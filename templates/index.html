@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TechnoGrowth · Chinese Cabbage Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --green-primary: #2E8B3A;
+  --green-dark:    #1F6B2A;
+  --green-medium:  #4CAF50;
+  --green-light:   #E8F5E9;
+  --green-lighter: #F1FBF2;
+  --green-accent:  #66BB6A;
+  --green-bg:      #6CC070;
+  --sidebar-bg:    #FFFFFF;
+  --sidebar-w:     130px;
+  --white:         #FFFFFF;
+  --text-dark:     #1A1A1A;
+  --text-mid:      #444444;
+  --text-muted:    #777777;
+  --text-light:    #999999;
+  --border:        #E0E0E0;
+  --border-light:  #F0F0F0;
+  --orange:        #FF9800;
+  --orange-light:  #FFF3E0;
+  --blue:          #2196F3;
+  --blue-light:    #E3F2FD;
+  --red:           #F44336;
+  --shadow:        0 1px 4px rgba(0,0,0,0.08);
+  --shadow-md:     0 2px 10px rgba(0,0,0,0.10);
+  --r:             8px;
+  --r-sm:          6px;
+  --sans:          'Plus Jakarta Sans', sans-serif;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { font-family:var(--sans); background:var(--green-bg); color:var(--text-dark); font-size:13px; line-height:1.5; min-height:100vh; }
+a { text-decoration:none; color:inherit; }
+button { font-family:var(--sans); cursor:pointer; border:none; background:none; }
+
+/* ── LAYOUT ── */
+.layout { display:flex; min-height:100vh; }
+.main   { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width:var(--sidebar-w);
+  background:var(--white);
+  position:fixed; top:0; left:0; bottom:0;
+  display:flex; flex-direction:column;
+  z-index:100; box-shadow:2px 0 8px rgba(0,0,0,0.08);
+}
+.sb-brand {
+  padding:16px 12px 14px;
+  border-bottom:1px solid var(--border-light);
+  display:flex; align-items:center; gap:8px;
+}
+.sb-logo {
+  width:32px; height:32px; border-radius:8px;
+  background:var(--green-primary);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.sb-logo svg { width:16px; height:16px; }
+.sb-brand-txt strong { display:block; font-size:11px; font-weight:700; color:var(--text-dark); line-height:1.2; }
+.sb-brand-txt span   { font-size:9px; color:var(--text-muted); }
+
+.sb-nav { flex:1; padding:10px 8px; }
+.nav-item {
+  display:flex; align-items:center; gap:8px;
+  padding:9px 10px; border-radius:var(--r-sm);
+  color:var(--text-muted); font-size:12px; font-weight:500;
+  cursor:pointer; transition:all .15s; margin-bottom:2px;
+}
+.nav-item:hover { background:var(--green-light); color:var(--green-primary); }
+.nav-item.active { background:var(--green-light); color:var(--green-primary); font-weight:600; }
+.nav-item svg { width:14px; height:14px; flex-shrink:0; }
+
+/* ── CONTENT AREA ── */
+.content {
+  background:var(--white);
+  margin:12px 12px 12px 0;
+  border-radius:12px;
+  flex:1;
+  overflow:hidden;
+  box-shadow:var(--shadow-md);
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  background:var(--green-primary);
+  padding:12px 20px;
+  display:flex; align-items:center; gap:12px;
+  border-radius:12px 12px 0 0;
+}
+.topbar-crop { display:flex; align-items:center; gap:10px; }
+.crop-img {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--green-accent);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0;
+}
+.crop-info strong { display:block; font-size:13px; font-weight:700; color:#fff; }
+.crop-info span   { font-size:10px; color:rgba(255,255,255,0.75); }
+.topbar-right { margin-left:auto; }
+.notif-btn {
+  width:32px; height:32px; border-radius:50%;
+  background:rgba(255,255,255,0.2);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.notif-btn svg { width:16px; height:16px; color:#fff; }
+
+/* ── PAGE SECTIONS ── */
+.page-section { display:none; padding:20px; }
+.page-section.active { display:block; }
+
+/* ── CARDS ── */
+.card {
+  background:var(--white);
+  border:1px solid var(--border-light);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+}
+.card-pad { padding:16px; }
+
+/* ── DASHBOARD ── */
+.health-banner {
+  background:var(--green-light);
+  border:1px solid #C8E6C9;
+  border-radius:var(--r);
+  padding:16px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px;
+}
+.health-left {}
+.health-status { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.health-status svg { width:16px; height:16px; color:var(--green-primary); }
+.health-status strong { font-size:16px; font-weight:700; color:var(--green-primary); }
+.health-day { font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-bottom:6px; }
+.health-day svg { width:12px; height:12px; }
+.harvest-eta { font-size:12px; color:var(--text-dark); }
+.harvest-eta span { color:var(--green-primary); font-weight:700; }
+.health-img {
+  width:90px; height:70px; border-radius:var(--r);
+  background:linear-gradient(135deg,#A5D6A7,#66BB6A);
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px; flex-shrink:0;
+}
+
+.sensor-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+.sensor-card {
+  background:var(--white); border:1px solid var(--border-light);
+  border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow);
+}
+.sensor-label { font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-bottom:6px; }
+.sensor-label svg { width:11px; height:11px; }
+.sensor-val { font-size:22px; font-weight:700; color:var(--text-dark); margin-bottom:4px; }
+.sensor-range { font-size:9px; color:var(--text-light); margin-bottom:8px; }
+.sensor-status {
+  font-size:10px; font-weight:600; color:var(--green-primary);
+  display:flex; align-items:center; gap:4px;
+  background:var(--green-light); padding:3px 8px; border-radius:99px;
+  width:fit-content;
+}
+.sensor-status::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green-primary); }
+
+.growth-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+
+.insight-card {
+  background:var(--green-primary); border-radius:var(--r);
+  padding:14px 16px; color:#fff;
+}
+.insight-title { font-size:11px; font-weight:600; opacity:.8; margin-bottom:10px; display:flex; align-items:center; gap:5px; }
+.insight-title svg { width:12px; height:12px; }
+.insight-row { display:flex; justify-content:space-between; align-items:flex-start; }
+.insight-data { }
+.leaf-label { font-size:10px; opacity:.75; margin-bottom:2px; }
+.leaf-val   { font-size:13px; font-weight:600; }
+.score-wrap { display:flex; align-items:center; gap:6px; }
+.score-label { font-size:10px; opacity:.75; }
+.score-pill  { background:rgba(255,255,255,0.25); border-radius:99px; padding:2px 8px; font-size:10px; font-weight:700; }
+.ideal-col   { text-align:right; }
+.ideal-title { font-size:10px; opacity:.75; margin-bottom:4px; }
+.ideal-item  { font-size:10px; opacity:.9; }
+
+.conditions-card {
+  background:var(--green-lighter); border:1px solid #C8E6C9;
+  border-radius:var(--r); padding:14px 16px;
+}
+.conditions-title { font-size:11px; font-weight:600; color:var(--green-primary); margin-bottom:8px; }
+.suggestion { font-size:11px; color:var(--text-mid); }
+.suggestion span { color:var(--green-primary); font-weight:600; }
+
+.score-card {
+  background:var(--white); border:1px solid var(--border-light);
+  border-radius:var(--r); padding:16px; box-shadow:var(--shadow);
+}
+.score-card-label { font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-bottom:4px; }
+.score-card-label svg { width:12px; height:12px; }
+.score-big { font-size:42px; font-weight:700; color:var(--green-primary); line-height:1; }
+.score-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+.activity-section { }
+.activity-title { font-size:12px; font-weight:600; color:var(--text-dark); display:flex; align-items:center; gap:5px; margin-bottom:10px; }
+.activity-title svg { width:13px; height:13px; }
+
+.device-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-light); }
+.device-row:last-child { border-bottom:none; }
+.device-name { font-size:12px; color:var(--text-mid); display:flex; align-items:center; gap:6px; }
+.device-name svg { width:12px; height:12px; color:var(--text-muted); }
+.device-state { font-size:11px; font-weight:500; color:var(--text-muted); }
+.mode-note { font-size:10px; color:var(--text-light); margin-top:6px; font-style:italic; }
+
+/* ── ANALYTICS ── */
+.analytics-header {
+  background:var(--green-primary); border-radius:var(--r);
+  padding:14px 18px; margin-bottom:14px;
+  display:flex; align-items:flex-start; justify-content:space-between;
+}
+.analytics-header-left strong { font-size:15px; font-weight:700; color:#fff; display:block; }
+.analytics-header-left span   { font-size:11px; color:rgba(255,255,255,.7); }
+.export-btn {
+  background:rgba(255,255,255,.2); color:#fff;
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:var(--r-sm); padding:6px 12px;
+  font-size:11px; font-weight:600; display:flex; align-items:center; gap:5px;
+}
+.export-btn svg { width:12px; height:12px; }
+
+.stat-grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+.stat-pill {
+  background:var(--white); border:1px solid var(--border-light);
+  border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow);
+}
+.stat-pill-label { font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-bottom:4px; }
+.stat-pill-label svg { width:11px; height:11px; }
+.stat-pill-val { font-size:22px; font-weight:700; color:var(--text-dark); }
+
+.weekly-perf { margin-bottom:14px; }
+.section-title { font-size:12px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
+.perf-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.perf-card {
+  background:var(--white); border:1px solid var(--border-light);
+  border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow);
+}
+.perf-label { font-size:10px; color:var(--text-muted); margin-bottom:4px; }
+.perf-val   { font-size:18px; font-weight:700; color:var(--text-dark); margin-bottom:3px; }
+.perf-change { font-size:10px; font-weight:600; }
+.perf-change.up   { color:#4CAF50; }
+.perf-change.down { color:#F44336; }
+
+.tab-row { display:flex; gap:4px; margin-bottom:14px; }
+.tab-btn {
+  padding:7px 16px; border-radius:var(--r-sm);
+  font-size:12px; font-weight:500; cursor:pointer;
+  border:1px solid var(--border); background:var(--white); color:var(--text-muted);
+  transition:all .15s;
+}
+.tab-btn.active { background:var(--white); color:var(--text-dark); font-weight:600; border-color:var(--border); }
+.tab-btn:not(.active) { background:var(--green-light); border-color:transparent; color:var(--green-primary); }
+
+.chart-label { font-size:12px; font-weight:700; color:var(--text-dark); margin-bottom:4px; }
+.on-track { font-size:10px; font-weight:600; color:var(--green-primary); background:var(--green-light); padding:2px 8px; border-radius:99px; }
+.chart-legend { display:flex; gap:12px; margin-bottom:8px; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-muted); }
+.legend-dot { width:8px; height:8px; border-radius:50%; }
+
+.ai-forecast {
+  background:var(--blue-light); border:1px solid #BBDEFB;
+  border-radius:var(--r-sm); padding:10px 12px; margin-top:10px;
+  font-size:11px; color:var(--text-mid); line-height:1.5;
+}
+.ai-forecast strong { color:var(--blue); }
+
+.key-metrics { margin-top:14px; }
+.metric-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 0; border-bottom:1px solid var(--border-light);
+}
+.metric-row:last-child { border-bottom:none; }
+.metric-name { font-size:12px; color:var(--text-muted); }
+.metric-val  { font-size:12px; font-weight:600; color:var(--text-dark); }
+.metric-val.green  { color:var(--green-primary); }
+.metric-val.orange { color:var(--orange); }
+
+/* ── CONTROL PANEL ── */
+.control-header {
+  background:var(--green-primary); border-radius:var(--r);
+  padding:14px 18px; margin-bottom:14px;
+  display:flex; align-items:center; gap:10px;
+}
+.control-header svg { width:18px; height:18px; color:#fff; }
+.control-header-txt strong { display:block; font-size:14px; font-weight:700; color:#fff; }
+.control-header-txt span   { font-size:11px; color:rgba(255,255,255,.7); }
+
+.auto-mode-row {
+  background:var(--white); border:1px solid var(--border-light);
+  border-radius:var(--r); padding:14px 18px; margin-bottom:8px;
+  display:flex; align-items:center; justify-content:space-between;
+  box-shadow:var(--shadow);
+}
+.auto-mode-info { display:flex; align-items:center; gap:10px; }
+.auto-icon { width:32px; height:32px; border-radius:8px; background:var(--green-light); display:flex; align-items:center; justify-content:center; }
+.auto-icon svg { width:16px; height:16px; color:var(--green-primary); }
+.auto-name { font-size:13px; font-weight:600; color:var(--text-dark); }
+.auto-desc { font-size:11px; color:var(--text-muted); }
+
+/* Toggle switch */
+.toggle-sw { position:relative; width:44px; height:24px; }
+.toggle-sw input { opacity:0; width:0; height:0; }
+.toggle-sw .slider {
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  background:#ccc; border-radius:24px; cursor:pointer; transition:.3s;
+}
+.toggle-sw .slider::before {
+  content:''; position:absolute;
+  width:18px; height:18px; border-radius:50%; background:#fff;
+  left:3px; bottom:3px; transition:.3s;
+}
+.toggle-sw input:checked + .slider { background:var(--green-primary); }
+.toggle-sw input:checked + .slider::before { transform:translateX(20px); }
+
+.auto-note {
+  background:var(--green-light); border:1px solid #C8E6C9;
+  border-radius:var(--r-sm); padding:9px 14px;
+  font-size:11px; color:var(--green-dark); margin-bottom:16px;
+}
+
+.devices-title { font-size:13px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
+.devices-grid  { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.device-card {
+  background:var(--white); border:1px solid var(--border-light);
+  border-radius:var(--r); padding:14px 16px; box-shadow:var(--shadow);
+}
+.device-card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.device-card-left { display:flex; align-items:center; gap:8px; }
+.device-card-ico  { width:28px; height:28px; border-radius:7px; background:var(--blue-light); display:flex; align-items:center; justify-content:center; }
+.device-card-ico svg { width:14px; height:14px; color:var(--blue); }
+.device-card-ico.orange { background:var(--orange-light); }
+.device-card-ico.orange svg { color:var(--orange); }
+.device-card-ico.teal { background:var(--green-light); }
+.device-card-ico.teal svg { color:var(--green-primary); }
+.device-card-name { font-size:12px; font-weight:600; color:var(--text-dark); }
+.device-card-sub  { font-size:10px; color:var(--text-muted); }
+.off-tag { font-size:10px; font-weight:600; color:var(--text-muted); background:var(--border-light); padding:2px 8px; border-radius:99px; display:flex; align-items:center; gap:4px; }
+.off-tag svg { width:10px; height:10px; }
+.device-card-meta { display:flex; align-items:center; justify-content:space-between; }
+.device-meta-txt { font-size:10px; color:var(--text-light); }
+
+.quick-actions-title { font-size:13px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
+.qa-row { display:flex; gap:10px; margin-bottom:12px; }
+.qa-btn {
+  flex:1; background:var(--white); border:1px solid var(--border);
+  border-radius:var(--r); padding:11px 16px;
+  font-size:12px; font-weight:500; color:var(--text-mid);
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  cursor:pointer; transition:all .15s;
+}
+.qa-btn:hover { background:var(--green-light); border-color:var(--green-accent); color:var(--green-primary); }
+.qa-btn svg { width:13px; height:13px; }
+.auto-active-note {
+  background:var(--green-light); border:1px solid #C8E6C9;
+  border-radius:var(--r-sm); padding:9px 14px;
+  font-size:11px; color:var(--green-dark); line-height:1.5;
+}
+.auto-active-note strong { color:var(--green-primary); }
+
+/* ── ALERTS ── */
+.alerts-header {
+  background:var(--green-primary); border-radius:var(--r);
+  padding:14px 18px; margin-bottom:14px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.alerts-header-left { display:flex; align-items:center; gap:10px; }
+.alerts-header-left svg { width:18px; height:18px; color:#fff; }
+.alerts-header-txt strong { display:block; font-size:14px; font-weight:700; color:#fff; }
+.alerts-header-txt span   { font-size:11px; color:rgba(255,255,255,.7); }
+.mark-all { background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.3); border-radius:var(--r-sm); padding:5px 12px; font-size:11px; font-weight:600; cursor:pointer; }
+
+.filter-tabs { display:flex; gap:6px; margin-bottom:14px; }
+.filter-tab {
+  padding:5px 12px; border-radius:99px; font-size:11px; font-weight:600;
+  cursor:pointer; border:1px solid var(--border); background:var(--white); color:var(--text-muted);
+}
+.filter-tab.active { background:var(--text-dark); color:#fff; border-color:var(--text-dark); }
+.filter-tab.orange { background:var(--orange-light); color:var(--orange); border-color:var(--orange); }
+.filter-tab.blue   { background:var(--blue-light);   color:var(--blue);   border-color:var(--blue); }
+.filter-tab.green  { background:var(--green-light);  color:var(--green-primary); border-color:var(--green-accent); }
+
+.alerts-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.alert-card {
+  border-radius:var(--r); padding:14px;
+  border:1px solid var(--border-light); background:var(--white);
+  box-shadow:var(--shadow); position:relative;
+}
+.alert-card.orange { background:var(--orange-light); border-color:#FFE0B2; }
+.alert-card.blue   { background:var(--blue-light);   border-color:#BBDEFB; }
+.alert-card.green  { background:var(--green-light);  border-color:#C8E6C9; }
+.alert-unread { position:absolute; top:12px; right:12px; width:7px; height:7px; border-radius:50%; background:var(--green-primary); }
+.alert-unread.orange { background:var(--orange); }
+.alert-top { display:flex; align-items:flex-start; gap:8px; margin-bottom:6px; }
+.alert-ico { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.alert-ico svg { width:13px; height:13px; }
+.alert-ico.orange { background:rgba(255,152,0,.2); color:var(--orange); }
+.alert-ico.blue   { background:rgba(33,150,243,.2); color:var(--blue); }
+.alert-ico.green  { background:rgba(76,175,80,.2);  color:var(--green-primary); }
+.alert-title { font-size:12px; font-weight:700; color:var(--text-dark); margin-bottom:3px; }
+.alert-desc  { font-size:11px; color:var(--text-mid); line-height:1.4; }
+.alert-time  { font-size:10px; color:var(--text-light); margin-top:6px; display:flex; align-items:center; gap:4px; }
+.alert-time svg { width:10px; height:10px; }
+
+.notif-section { margin-top:4px; }
+.notif-title { font-size:12px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
+.notif-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 0; border-bottom:1px solid var(--border-light);
+}
+.notif-row:last-of-type { border-bottom:none; }
+.notif-name { font-size:12px; color:var(--text-mid); }
+.notif-state {
+  font-size:10px; font-weight:700; padding:3px 10px; border-radius:99px;
+}
+.notif-state.enabled  { background:var(--green-light);  color:var(--green-primary); }
+.notif-state.disabled { background:var(--border-light); color:var(--text-muted); }
+.manage-pref { text-align:center; padding-top:12px; }
+.manage-pref a { font-size:12px; font-weight:600; color:var(--green-primary); }
+
+/* ── CHART SIZING ── */
+canvas { width:100%!important; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round">
+        <path d="M12 22V12M12 12C12 7 7 4 2 5M12 12C12 7 17 4 22 5"/>
+      </svg>
+    </div>
+    <div class="sb-brand-txt">
+      <strong>Chinese Cabbage</strong>
+      <span>Monitor System</span>
+    </div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" data-page="analytics">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </div>
+    <div class="nav-item" data-page="control">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Control
+    </div>
+    <div class="nav-item" data-page="alerts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Alerts
+    </div>
+  </nav>
+</aside>
+
+<!-- ═══════ MAIN ═══════ -->
+<main class="main">
+  <div class="content">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-crop">
+        <div class="crop-img">🥬</div>
+        <div class="crop-info">
+          <strong>Chinese Cabbage Monitor</strong>
+          <span>Day 27 · Growth Stage: Late Vegetative</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="notif-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════
+         PAGE: DASHBOARD
+    ══════════════════════════ -->
+    <div class="page-section active" id="page-dashboard">
+
+      <!-- Health Banner -->
+      <div class="health-banner">
+        <div class="health-left">
+          <div class="health-status">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
+            <strong>Healthy</strong>
+          </div>
+          <div class="health-day">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Day 27
+          </div>
+          <div class="harvest-eta">Harvest ETA <span>3 Days Remaining</span></div>
+        </div>
+        <div class="health-img">🥬</div>
+      </div>
+
+      <!-- Sensor Cards -->
+      <div class="sensor-grid">
+        <div class="sensor-card">
+          <div class="sensor-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F44336" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+            Temperature
+          </div>
+          <div class="sensor-val" id="dash-temp">29°C</div>
+          <div class="sensor-range">Optimal Range: 25-30°C</div>
+          <div class="sensor-status">Stable</div>
+        </div>
+        <div class="sensor-card">
+          <div class="sensor-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            Humidity
+          </div>
+          <div class="sensor-val" id="dash-humid">55%</div>
+          <div class="sensor-range">Optimal Range: 50-70%</div>
+          <div class="sensor-status">Stable</div>
+        </div>
+        <div class="sensor-card">
+          <div class="sensor-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+            Soil Moisture
+          </div>
+          <div class="sensor-val" id="dash-moist">42%</div>
+          <div class="sensor-range">Optimal Range: 43-60%</div>
+          <div class="sensor-status">Stable</div>
+        </div>
+        <div class="sensor-card">
+          <div class="sensor-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            NPK Level
+          </div>
+          <div class="sensor-val" style="font-size:16px;padding-top:4px;">NORMAL</div>
+          <div class="sensor-range">Optimal Level: Balanced</div>
+          <div class="sensor-status">Stable</div>
+        </div>
+      </div>
+
+      <!-- Growth Insight + Conditions -->
+      <div class="growth-row">
+        <div class="insight-card">
+          <div class="insight-title">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
+            Growth Insight
+          </div>
+          <div class="insight-row">
+            <div class="insight-data">
+              <div class="leaf-label">Leaf Count: 12</div>
+              <div style="height:6px;"></div>
+              <div class="score-label">Growth Score</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                <span style="font-size:13px;font-weight:700;">75</span>
+                <span class="score-pill">ON</span>
+              </div>
+            </div>
+            <div class="ideal-col">
+              <div class="ideal-title">Ideal Conditions</div>
+              <div class="ideal-item">25-30°C</div>
+              <div class="ideal-item">50-70%</div>
+              <div class="ideal-item">NPK Balanced</div>
+            </div>
+          </div>
+        </div>
+        <div class="conditions-card">
+          <div class="score-card-label" style="margin-bottom:4px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--green-primary)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Growth Score
+          </div>
+          <div class="score-big">88</div>
+          <div class="score-sub" style="margin-bottom:14px;">Optimal</div>
+          <div class="suggestion">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--green-primary)" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            <strong>Suggestion:</strong> <span>Increase humidity slightly</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Last 24 Hours -->
+      <div class="card card-pad">
+        <div class="activity-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Last 24 Hours
+        </div>
+        <div class="device-row">
+          <div class="device-name">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+            Irrigation Pump
+          </div>
+          <div class="device-state">OFF</div>
+        </div>
+        <div class="device-row">
+          <div class="device-name">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Exhaust Fan
+          </div>
+          <div class="device-state">OFF</div>
+        </div>
+        <div class="device-row">
+          <div class="device-name">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            Humidifier
+          </div>
+          <div class="device-state">OFF</div>
+        </div>
+        <div class="mode-note">Mode: AUTO · Irrigation (2 hrs ago)</div>
+        <div style="height:130px;margin-top:12px;"><canvas id="dashChart"></canvas></div>
+      </div>
+    </div><!-- /dashboard -->
+
+
+    <!-- ══════════════════════════
+         PAGE: ANALYTICS
+    ══════════════════════════ -->
+    <div class="page-section" id="page-analytics">
+
+      <div class="analytics-header">
+        <div class="analytics-header-left">
+          <strong>Analytics</strong>
+          <span>Growth &amp; Performance Insights</span>
+        </div>
+        <button class="export-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+      </div>
+
+      <!-- 4 stat pills -->
+      <div class="stat-grid-4">
+        <div class="stat-pill">
+          <div class="stat-pill-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Current Day
+          </div>
+          <div class="stat-pill-val">27</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-pill-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Growth Score
+          </div>
+          <div class="stat-pill-val">88</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-pill-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
+            Leaf Count
+          </div>
+          <div class="stat-pill-val">12</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-pill-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Days Old
+          </div>
+          <div class="stat-pill-val">27</div>
+        </div>
+      </div>
+
+      <!-- Weekly Performance -->
+      <div class="weekly-perf">
+        <div class="section-title">Weekly Performance</div>
+        <div class="perf-grid">
+          <div class="perf-card">
+            <div class="perf-label">Avg Temperature</div>
+            <div class="perf-val">28.5°C</div>
+            <div class="perf-change up">↑ +1.2°C</div>
+          </div>
+          <div class="perf-card">
+            <div class="perf-label">Avg Humidity</div>
+            <div class="perf-val">57%</div>
+            <div class="perf-change down">↓ -3%</div>
+          </div>
+          <div class="perf-card">
+            <div class="perf-label">Avg Soil Moisture</div>
+            <div class="perf-val">48%</div>
+            <div class="perf-change down">↓ -8%</div>
+          </div>
+          <div class="perf-card">
+            <div class="perf-label">Growth Rate</div>
+            <div class="perf-val">High</div>
+            <div class="perf-change up">↑ +15%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs + Growth Forecast Chart -->
+      <div class="tab-row">
+        <button class="tab-btn active">Growth</button>
+        <button class="tab-btn">Environment</button>
+        <button class="tab-btn">Nutrients</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="chart-label">Growth Forecast</div>
+        <span class="on-track">On Track</span>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>Actual Growth</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#A5D6A7;border:1px dashed #4CAF50;"></div>Predicted</div>
+      </div>
+      <div style="height:160px;"><canvas id="growthChart"></canvas></div>
+
+      <div class="ai-forecast">
+        <strong>AI Forecast:</strong> Based on current growth patterns, your Chinese cabbage will reach optimal harvest size in 3 days. Growth is 12% faster than predicted.
+      </div>
+
+      <!-- Leaf Development -->
+      <div style="margin-top:16px;">
+        <div class="chart-label" style="margin-bottom:8px;">Leaf Development</div>
+        <div style="height:130px;"><canvas id="leafChart"></canvas></div>
+      </div>
+
+      <!-- Key Metrics -->
+      <div class="key-metrics">
+        <div class="section-title" style="margin-top:14px;">Key Metrics</div>
+        <div class="metric-row"><span class="metric-name">Total Growth Days</span><span class="metric-val">27 days</span></div>
+        <div class="metric-row"><span class="metric-name">Current Size</span><span class="metric-val">35 cm</span></div>
+        <div class="metric-row"><span class="metric-name">Growth Rate</span><span class="metric-val green">1.3 cm/day</span></div>
+        <div class="metric-row"><span class="metric-name">Leaf Count</span><span class="metric-val">12 leaves</span></div>
+        <div class="metric-row"><span class="metric-name">Health Score</span><span class="metric-val green">Excellent (88/100)</span></div>
+      </div>
+    </div><!-- /analytics -->
+
+
+    <!-- ══════════════════════════
+         PAGE: CONTROL PANEL
+    ══════════════════════════ -->
+    <div class="page-section" id="page-control">
+
+      <div class="control-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        <div class="control-header-txt">
+          <strong>Control Panel</strong>
+          <span>Manage your devices</span>
+        </div>
+      </div>
+
+      <!-- Auto Mode -->
+      <div class="auto-mode-row">
+        <div class="auto-mode-info">
+          <div class="auto-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
+          </div>
+          <div>
+            <div class="auto-name">Auto Mode</div>
+            <div class="auto-desc">AI controlled environment management</div>
+          </div>
+        </div>
+        <label class="toggle-sw">
+          <input type="checkbox" checked id="autoModeToggle"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="auto-note">Devices will automatically adjust based on optimal conditions.</div>
+
+      <!-- Device Controls -->
+      <div class="devices-title">Device Controls</div>
+      <div class="devices-grid">
+        <div class="device-card">
+          <div class="device-card-top">
+            <div class="device-card-left">
+              <div class="device-card-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+              </div>
+              <div>
+                <div class="device-card-name">Irrigation Pump</div>
+                <div class="device-card-sub">Control water supply</div>
+              </div>
+            </div>
+            <div class="off-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              OFF
+            </div>
+          </div>
+          <div class="device-card-meta">
+            <div class="device-meta-txt">Last run: 2 hours ago</div>
+            <div class="device-meta-txt">Total today: 3.5 hrs</div>
+          </div>
+        </div>
+
+        <div class="device-card">
+          <div class="device-card-top">
+            <div class="device-card-left">
+              <div class="device-card-ico orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              </div>
+              <div>
+                <div class="device-card-name">Exhaust Fan</div>
+                <div class="device-card-sub">Temperature control</div>
+              </div>
+            </div>
+            <div class="off-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              OFF
+            </div>
+          </div>
+          <div class="device-card-meta">
+            <div class="device-meta-txt">Last run: 3 hours ago</div>
+            <div class="device-meta-txt">Total today: 1.2 hrs</div>
+          </div>
+        </div>
+
+        <div class="device-card">
+          <div class="device-card-top">
+            <div class="device-card-left">
+              <div class="device-card-ico teal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </div>
+              <div>
+                <div class="device-card-name">Humidifier</div>
+                <div class="device-card-sub">Humidity control</div>
+              </div>
+            </div>
+            <div class="off-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              OFF
+            </div>
+          </div>
+          <div class="device-card-meta">
+            <div class="device-meta-txt">Last run: Never</div>
+            <div class="device-meta-txt">Total today: 0 hrs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions-title">Quick Actions</div>
+      <div class="qa-row">
+        <button class="qa-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+          Water Now
+        </button>
+        <button class="qa-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Ventilate
+        </button>
+      </div>
+      <div class="auto-active-note">
+        <strong>Auto Mode Active:</strong> Manual controls are disabled. The system will automatically manage all devices based on optimal conditions for Chinese cabbage growth.
+      </div>
+    </div><!-- /control -->
+
+
+    <!-- ══════════════════════════
+         PAGE: ALERTS
+    ══════════════════════════ -->
+    <div class="page-section" id="page-alerts">
+
+      <div class="alerts-header">
+        <div class="alerts-header-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="alerts-header-txt">
+            <strong>Alerts</strong>
+            <span>2 unread notifications</span>
+          </div>
+        </div>
+        <button class="mark-all">Mark all read</button>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-tabs">
+        <div class="filter-tab active">All (6)</div>
+        <div class="filter-tab orange">⚠ Warnings (2)</div>
+        <div class="filter-tab blue">ℹ Info (3)</div>
+        <div class="filter-tab green">✓ Success (1)</div>
+      </div>
+
+      <!-- Alert Cards Grid -->
+      <div class="alerts-grid">
+        <div class="alert-card orange">
+          <div class="alert-unread orange"></div>
+          <div class="alert-top">
+            <div class="alert-ico orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+              <div class="alert-title">Soil Moisture Low</div>
+              <div class="alert-desc">Soil moisture has dropped to 42%. Consider irrigation.</div>
+            </div>
+          </div>
+          <div class="alert-time">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            2 hours ago
+          </div>
+        </div>
+
+        <div class="alert-card blue">
+          <div class="alert-unread"></div>
+          <div class="alert-top">
+            <div class="alert-ico blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
+            </div>
+            <div>
+              <div class="alert-title">Growth Milestone</div>
+              <div class="alert-desc">Your Chinese cabbage has reached 12 leaves!</div>
+            </div>
+          </div>
+          <div class="alert-time">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            5 hours ago
+          </div>
+        </div>
+
+        <div class="alert-card orange">
+          <div class="alert-top">
+            <div class="alert-ico orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+            </div>
+            <div>
+              <div class="alert-title">Temperature Rising</div>
+              <div class="alert-desc">Temperature increased to 29°C. Monitor closely.</div>
+            </div>
+          </div>
+          <div class="alert-time">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            1 day ago
+          </div>
+        </div>
+
+        <div class="alert-card blue">
+          <div class="alert-top">
+            <div class="alert-ico blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+            </div>
+            <div>
+              <div class="alert-title">Auto Irrigation Completed</div>
+              <div class="alert-desc">Irrigation pump ran for 2 hours as scheduled.</div>
+            </div>
+          </div>
+          <div class="alert-time">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            2 hours ago
+          </div>
+        </div>
+
+        <div class="alert-card green">
+          <div class="alert-top">
+            <div class="alert-ico green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <div class="alert-title">Optimal Conditions Achieved</div>
+              <div class="alert-desc">All environmental parameters are within ideal ranges.</div>
+            </div>
+          </div>
+          <div class="alert-time">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            1 day ago
+          </div>
+        </div>
+
+        <div class="alert-card blue">
+          <div class="alert-top">
+            <div class="alert-ico blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+            <div>
+              <div class="alert-title">Humidity Suggestion</div>
+              <div class="alert-desc">Consider increasing humidity slightly for optimal growth.</div>
+            </div>
+          </div>
+          <div class="alert-time">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            2 days ago
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification Settings -->
+      <div class="notif-section">
+        <div class="notif-title">Notification Settings</div>
+        <div class="notif-row"><span class="notif-name">Critical alerts</span><span class="notif-state enabled">Enabled</span></div>
+        <div class="notif-row"><span class="notif-name">Growth milestones</span><span class="notif-state enabled">Enabled</span></div>
+        <div class="notif-row"><span class="notif-name">Daily summaries</span><span class="notif-state enabled">Enabled</span></div>
+        <div class="notif-row"><span class="notif-name">Device status changes</span><span class="notif-state disabled">Disabled</span></div>
+        <div class="manage-pref"><a href="#">Manage Preferences</a></div>
+      </div>
+    </div><!-- /alerts -->
+
+  </div><!-- /content -->
+</main>
+</div><!-- /layout -->
+
+<script>
+// ── Navigation
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('page-' + item.dataset.page).classList.add('active');
+  });
+});
+
+// ── Tab buttons (analytics)
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ── Chart defaults
+const cOpts = (extra={}) => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: { backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 }
+  },
+  scales: {
+    x: { ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } },
+    y: { ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }
+  },
+  ...extra
+});
+
+// Dashboard mini chart
+new Chart(document.getElementById('dashChart'), {
+  type: 'line',
+  data: {
+    labels: ['6am','8am','10am','12pm','2pm','4pm','6pm','8pm','10pm','12am'],
+    datasets: [{
+      data: [28,27.5,28.2,29,29.4,29.1,28.8,28.5,28.2,28],
+      borderColor: '#4CAF50', backgroundColor: 'rgba(76,175,80,0.08)',
+      tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true
+    }]
+  },
+  options: cOpts()
+});
+
+// Growth Forecast
+new Chart(document.getElementById('growthChart'), {
+  type: 'line',
+  data: {
+    labels: ['Day 1','Day 7','Day 14','Day 21','Day 27','Day 35','Day 42','Day 49'],
+    datasets: [
+      { label:'Actual Growth', data:[2,6,11,18,25,null,null,null], borderColor:'#4CAF50', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#4CAF50' },
+      { label:'Predicted',     data:[2,5,10,17,23,30,36,40],       borderColor:'#A5D6A7', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, borderDash:[5,4], pointBackgroundColor:'#A5D6A7' }
+    ]
+  },
+  options: {
+    ...cOpts(),
+    plugins: {
+      legend: { display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:12 } },
+      tooltip: { backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 }
+    }
+  }
+});
+
+// Leaf Development bar
+new Chart(document.getElementById('leafChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Day 1','Day 7','Day 14','Day 21','Day 27'],
+    datasets: [{
+      data: [2, 4, 7, 10, 12],
+      backgroundColor: ['#A5D6A7','#81C784','#66BB6A','#4CAF50','#2E8B3A'],
+      borderRadius: 5, borderSkipped: false
+    }]
+  },
+  options: cOpts({ scales:{ x:{ ticks:{color:'#aaa',font:{size:10}}, grid:{display:false} }, y:{ ticks:{color:'#aaa',font:{size:10},stepSize:2}, grid:{color:'rgba(0,0,0,0.04)'}, min:0, max:14 } } })
+});
+
+// Live sensor update simulation
+setInterval(() => {
+  const t = document.getElementById('dash-temp');
+  const h = document.getElementById('dash-humid');
+  const m = document.getElementById('dash-moist');
+  if(t) t.textContent = Math.round(29 + (Math.random()-.5)*2) + '°C';
+  if(h) h.textContent = Math.round(55 + (Math.random()-.5)*4) + '%';
+  if(m) m.textContent = Math.round(42 + (Math.random()-.5)*3) + '%';
+}, 4000);
+</script>
+</body>
+</html>
