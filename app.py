@@ -20,8 +20,6 @@ log = logging.getLogger("TechnoGrowth")
 app = Flask(__name__)
 
 MONGO_URI = os.getenv("MONGO_URI")
-if not MONGO_URI:
-    MONGO_URI = "mongodb+srv://TechnoGrowth:TechnoGrowth_001@expressnodedb.xwfpidi.mongodb.net/TechnoGrowth"
 
 app.config["MONGO_URI"] = MONGO_URI
 
