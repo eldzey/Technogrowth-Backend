@@ -1,687 +1,237 @@
 """
-sensor_reader.py — TechnoGrowth · Raspberry Pi 5 Sensor Reader (Full Fixed)
-=============================================================================
-Reads real hardware sensors, controls relays, and POSTs data to Flask backend.
+TechnoGrowth · Chinese Cabbage Monitor
+Raspberry Pi sensor reader — posts to Flask every 30 s
 
-Wiring Guide:
-─────────────────────────────────────────────────────────────────────────────
-Sensor            GPIO Pin    Notes
-─────────────────────────────────────────────────────────────────────────────
-DHT22 (Temp/Hum)  GPIO 4      Data → GPIO4, VCC → 3.3V, 10kΩ pull-up required
-Soil Moisture     GPIO (SPI)  Analog via MCP3008 CH0 (SPI bus 0, CE0)
-NPK Sensor        /dev/ttyUSB0  RS-485 via USB adapter, Modbus RTU @ 4800 baud
-Relay Pump        GPIO 27     Active-LOW relay (LOW = pump ON)
-Relay Fan         GPIO 22     Active-LOW relay (LOW = fan ON)
-─────────────────────────────────────────────────────────────────────────────
+Hardware:
+  - DHT22  → GPIO 4   (temperature + humidity)
+  - YL-69 / capacitive moisture sensor → MCP3008 CH0 (SPI)
+  - NPK RS-485 sensor → /dev/ttyUSB0  (Modbus RTU)
+  - Relay 1 → GPIO 17  (irrigation pump)
+  - Relay 2 → GPIO 27  (exhaust fan)
 
-MCP3008 SPI Wiring:
-  MCP3008 VDD  → 3.3V      MCP3008 CLK  → GPIO 11 (SCLK)
-  MCP3008 VREF → 3.3V      MCP3008 DOUT → GPIO 9  (MISO)
-  MCP3008 AGND → GND       MCP3008 DIN  → GPIO 10 (MOSI)
-  MCP3008 DGND → GND       MCP3008 CS   → GPIO 8  (CE0)
-  Moisture sensor OUT → MCP3008 CH0
+Install deps:
+  pip install adafruit-circuitpython-dht adafruit-blinka \
+              minimalmodbus spidev RPi.GPIO requests
 
-Install dependencies on Pi 5:
-  sudo apt-get install -y libgpiod2 python3-pip
-  pip install adafruit-circuitpython-dht RPi.GPIO spidev requests \
-              python-dotenv pyserial
-
-Enable SPI: sudo raspi-config → Interface Options → SPI → Enable
-Enable Serial: sudo raspi-config → Interface Options → Serial Port → Enable
-  (Disable login shell over serial, keep serial port hardware enabled)
-
-Run as service (recommended):
-  sudo cp technogrowth-sensor.service /etc/systemd/system/
-  sudo systemctl enable technogrowth-sensor
-  sudo systemctl start technogrowth-sensor
+Run:
+  python3 pi_sensor.py
 """
 
-import time
-import logging
-import logging.handlers
-import requests
-import os
-import random
-import json
-from datetime import datetime
-from dotenv import load_dotenv
+import time, requests, logging, struct
+import RPi.GPIO as GPIO
+import adafruit_dht
+import board
+import spidev
+import minimalmodbus
 
-load_dotenv()
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s [%(levelname)s] %(message)s")
+log = logging.getLogger(__name__)
 
-# ══════════════════════════════════════════════════════════════
-#  CONFIGURATION
-# ══════════════════════════════════════════════════════════════
-FLASK_URL         = os.getenv("FLASK_URL", "http://localhost:5000")
-POLL_INTERVAL     = int(os.getenv("POLL_INTERVAL", "30"))   # seconds (DHT22 needs ≥5s; 30s is reliable)
-COMMAND_POLL_INTERVAL = 5    # seconds between manual command checks
+# ── Config ───────────────────────────────────────────────
+FLASK_URL      = "http://localhost:5000/api/ingest"
+POLL_INTERVAL  = 30          # seconds between readings
 
-TEMP_OPTIMAL_MIN  = float(os.getenv("TEMP_MIN",  "25.0"))
-TEMP_OPTIMAL_MAX  = float(os.getenv("TEMP_MAX",  "30.0"))
-MOIST_OPTIMAL_MIN = float(os.getenv("MOIST_MIN", "43.0"))
-MOIST_OPTIMAL_MAX = float(os.getenv("MOIST_MAX", "60.0"))
+# GPIO
+PUMP_PIN       = 17          # Relay: irrigation pump (active LOW)
+FAN_PIN        = 27          # Relay: exhaust fan     (active LOW)
 
-# GPIO pin numbers (BCM mode)
-PIN_RELAY_PUMP      = 27
-PIN_RELAY_FAN       = 22
-PIN_DHT22           = 4       # board.D4 / GPIO4
-MCP3008_CH_MOISTURE = 0       # SPI channel on MCP3008
+# Thresholds (auto mode)
+TEMP_MAX       = 30.0        # °C  — fan ON above this
+MOIST_MIN      = 43          # %   — pump ON below this
+MOIST_MAX      = 60          # %   — pump OFF above this
+HUMID_MAX      = 88          # %   — fan ON above this (fungal risk)
+HUMID_MIN      = 65          # %   — alert below this
 
-# Soil moisture ADC calibration — adjust these to your sensor
-DRY_VAL = 750    # ADC reading in completely dry soil
-WET_VAL  = 300   # ADC reading in saturated soil
+# Growth stages (days since transplant)
+STAGES = [
+    (0,  7,  "Seedling"),
+    (8,  20, "Vegetative"),
+    (21, 40, "Head Formation"),
+    (41, 60, "Maturation"),
+]
 
-# ══════════════════════════════════════════════════════════════
-#  LOGGING  — rotating file so the log doesn't fill the SD card
-# ══════════════════════════════════════════════════════════════
-LOG_DIR = "/var/log/technogrowth"
-try:
-    os.makedirs(LOG_DIR, exist_ok=True)
-except PermissionError:
-    LOG_DIR = os.path.expanduser("~/technogrowth_logs")
-    os.makedirs(LOG_DIR, exist_ok=True)
+# NPK RS-485
+NPK_PORT       = "/dev/ttyUSB0"
+NPK_BAUDRATE   = 4800
+NPK_ADDR       = 1           # Modbus slave address
 
-_file_handler = logging.handlers.RotatingFileHandler(
-    f"{LOG_DIR}/sensor.log",
-    maxBytes=5 * 1024 * 1024,   # 5 MB per file
-    backupCount=3                # keep 3 rotated files = 15 MB max
-)
-_file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+# MCP3008 SPI (soil moisture ADC)
+SPI_BUS        = 0
+SPI_DEVICE     = 0
+SPI_SPEED      = 1_350_000
+MOISTURE_CH    = 0           # MCP3008 channel
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(), _file_handler]
-)
-log = logging.getLogger("sensor_reader")
+# ── GPIO Setup ───────────────────────────────────────────
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(PUMP_PIN, GPIO.OUT, initial=GPIO.HIGH)   # HIGH = relay OFF
+GPIO.setup(FAN_PIN,  GPIO.OUT, initial=GPIO.HIGH)
 
-# ══════════════════════════════════════════════════════════════
-#  HARDWARE INIT
-# ══════════════════════════════════════════════════════════════
-HARDWARE_AVAILABLE = False
-dht_device = None
-spi        = None
-GPIO       = None   # module-level reference so cleanup can always reach it
+# ── DHT22 ────────────────────────────────────────────────
+dht = adafruit_dht.DHT22(board.D4, use_pulseio=False)
 
-try:
-    import board
-    import adafruit_dht
-    import RPi.GPIO as GPIO
-    import spidev
-
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
-
-    # ── DHT22 — Pi 5 uses gpiochip4; use_pulseio=False is mandatory on Pi 5
-    # If board.D4 raises AttributeError on Pi 5, fall back to the raw pin number.
-    try:
-        _dht_pin = board.D4
-    except AttributeError:
-        # Pi 5 compatibility: some CircuitPython builds expose GPIO4 differently
-        import digitalio
-        _dht_pin = board.GPIO4 if hasattr(board, "GPIO4") else board.D4
-
-    dht_device = adafruit_dht.DHT22(_dht_pin, use_pulseio=False)
-    log.info(f"DHT22 initialised on {_dht_pin}")
-
-    # ── Relays — active-LOW, default HIGH (relay OFF = safe state)
-    GPIO.setup(PIN_RELAY_PUMP, GPIO.OUT, initial=GPIO.HIGH)
-    GPIO.setup(PIN_RELAY_FAN,  GPIO.OUT, initial=GPIO.HIGH)
-    log.info(f"Relay pins set up: PUMP={PIN_RELAY_PUMP}, FAN={PIN_RELAY_FAN}")
-
-    # ── MCP3008 via SPI
-    spi = spidev.SpiDev()
-    spi.open(0, 0)                   # bus 0, device 0 (CE0 = GPIO8)
-    spi.max_speed_hz = 1_350_000
-    log.info("SPI / MCP3008 initialised")
-
-    HARDWARE_AVAILABLE = True
-    log.info("All hardware initialised successfully.")
-
-except (ImportError, RuntimeError, Exception) as e:
-    log.warning(f"Hardware unavailable ({e}). Entering SIMULATION mode — no GPIO or sensors.")
-
-
-# ══════════════════════════════════════════════════════════════
-#  SAFE STATE — call whenever something goes wrong
-# ══════════════════════════════════════════════════════════════
-def safe_state():
-    """Turn both relays OFF (HIGH = relay inactive on active-LOW board)."""
-    if HARDWARE_AVAILABLE and GPIO is not None:
+def read_dht22():
+    """Return (temperature_c, humidity_pct) or (None, None) on error."""
+    for _ in range(3):
         try:
-            GPIO.output(PIN_RELAY_PUMP, GPIO.HIGH)
-            GPIO.output(PIN_RELAY_FAN,  GPIO.HIGH)
-            log.info("Safe state applied: both relays OFF.")
-        except Exception as e:
-            log.error(f"Failed to apply safe state: {e}")
-
-
-# ══════════════════════════════════════════════════════════════
-#  SENSOR READING
-# ══════════════════════════════════════════════════════════════
-
-def read_temperature_humidity():
-    """
-    Read DHT22. Returns (temp_c, humidity_pct).
-    Retries 5 times with back-off — DHT22 is notoriously flaky.
-    Returns (None, None) only if all attempts fail.
-    """
-    if not HARDWARE_AVAILABLE:
-        temp = round(28.5 + random.uniform(-1.5, 1.5), 1)
-        hum  = round(65.0 + random.uniform(-5.0, 5.0), 1)
-        return temp, hum
-
-    for attempt in range(5):
-        try:
-            temp = dht_device.temperature
-            hum  = dht_device.humidity
-            if temp is not None and hum is not None:
-                # Sanity-check: DHT22 range is −40 to +80°C, 0–100% RH
-                if -40 <= temp <= 80 and 0 <= hum <= 100:
-                    return round(temp, 1), round(hum, 1)
-                else:
-                    log.warning(f"DHT22 out-of-range reading: temp={temp}, hum={hum}")
+            t = dht.temperature
+            h = dht.humidity
+            if t is not None and h is not None:
+                return round(float(t), 1), round(float(h), 1)
         except RuntimeError as e:
-            log.debug(f"DHT22 attempt {attempt + 1}/5 failed: {e}")
-        time.sleep(1.0 + attempt * 0.5)   # progressive back-off: 1s, 1.5s, 2s …
-
-    log.error("DHT22 failed after 5 attempts — returning None.")
+            log.warning("DHT22 read error: %s", e)
+            time.sleep(2)
     return None, None
 
+# ── MCP3008 SPI (soil moisture) ──────────────────────────
+spi = spidev.SpiDev()
+spi.open(SPI_BUS, SPI_DEVICE)
+spi.max_speed_hz = SPI_SPEED
 
-def read_mcp3008(channel):
-    """Read a 10-bit ADC value (0–1023) from MCP3008 via SPI."""
-    if not HARDWARE_AVAILABLE or spi is None:
-        return 512   # mid-scale simulation
+def read_mcp3008(channel: int) -> int:
+    """Read 10-bit ADC value (0-1023) from MCP3008."""
+    assert 0 <= channel <= 7
+    r = spi.xfer2([1, (8 + channel) << 4, 0])
+    return ((r[1] & 3) << 8) | r[2]
 
-    if not (0 <= channel <= 7):
-        log.error(f"Invalid MCP3008 channel: {channel}")
-        return None
+def read_soil_moisture() -> int:
+    """Convert ADC reading to moisture percentage (0-100%)."""
+    raw = read_mcp3008(MOISTURE_CH)
+    # Calibrate: 0 = dry (ADC ~900), 100 = wet (ADC ~100)
+    DRY, WET = 900, 100
+    pct = (DRY - raw) / (DRY - WET) * 100
+    return max(0, min(100, round(pct)))
 
+# ── NPK Sensor (RS-485 Modbus RTU) ──────────────────────
+try:
+    npk_instrument = minimalmodbus.Instrument(NPK_PORT, NPK_ADDR)
+    npk_instrument.serial.baudrate = NPK_BAUDRATE
+    npk_instrument.serial.bytesize = 8
+    npk_instrument.serial.parity   = "N"
+    npk_instrument.serial.stopbits = 1
+    npk_instrument.serial.timeout  = 1
+    npk_instrument.mode = minimalmodbus.MODE_RTU
+    NPK_AVAILABLE = True
+except Exception as e:
+    log.warning("NPK sensor unavailable: %s", e)
+    NPK_AVAILABLE = False
+
+def read_npk() -> dict:
+    """
+    Read N, P, K from RS-485 sensor (registers 0x001E–0x0020).
+    Returns dict with nitrogen, phosphorus, potassium (mg/kg) and status.
+    """
+    if not NPK_AVAILABLE:
+        return {"nitrogen": None, "phosphorus": None, "potassium": None, "status": "UNAVAILABLE"}
     try:
-        adc = spi.xfer2([1, (8 + channel) << 4, 0])
-        return ((adc[1] & 3) << 8) + adc[2]
+        n = npk_instrument.read_register(0x001E, functioncode=3)
+        p = npk_instrument.read_register(0x001F, functioncode=3)
+        k = npk_instrument.read_register(0x0020, functioncode=3)
+        status = classify_npk(n, p, k)
+        return {"nitrogen": n, "phosphorus": p, "potassium": k, "status": status}
     except Exception as e:
-        log.error(f"SPI read error on channel {channel}: {e}")
-        return None
-
-
-def read_soil_moisture():
-    """
-    Convert MCP3008 ADC reading to soil moisture percentage (0–100%).
-    Higher ADC value = drier soil (capacitive sensor, inverted scale).
-    Clamps to [0, 100] to handle out-of-calibration readings.
-    """
-    if not HARDWARE_AVAILABLE:
-        return round(50.0 + random.uniform(-10.0, 10.0), 1)
-
-    if DRY_VAL == WET_VAL:
-        log.error("Calibration error: DRY_VAL == WET_VAL. Check constants.")
-        return 0.0
-
-    raw = read_mcp3008(MCP3008_CH_MOISTURE)
-    if raw is None:
-        return None
-
-    pct = (DRY_VAL - raw) / (DRY_VAL - WET_VAL) * 100.0
-    clamped = round(max(0.0, min(100.0, pct)), 1)
-
-    if pct < 0 or pct > 100:
-        log.warning(f"Moisture reading {pct:.1f}% clamped — recalibrate DRY_VAL/WET_VAL")
-
-    return clamped
-
-
-def read_npk():
-    """
-    Read NPK from RS-485 Modbus RTU soil sensor via USB serial adapter.
-    Standard Modbus query for registers 0x0000–0x0002 (N, P, K in mg/kg).
-    CRC bytes 0x05 0xCB are pre-calculated for this specific query frame.
-    """
-    if not HARDWARE_AVAILABLE:
-        return {
-            "nitrogen":   round(45.0 + random.uniform(-3.0, 3.0), 1),
-            "phosphorus": round(32.0 + random.uniform(-2.0, 2.0), 1),
-            "potassium":  round(28.0 + random.uniform(-2.0, 2.0), 1),
-            "status": "NORMAL"
-        }
-
-    # Modbus RTU: device=0x01, func=0x03, start_reg=0x0000, count=0x0003
-    QUERY = bytes([0x01, 0x03, 0x00, 0x00, 0x00, 0x03, 0x05, 0xCB])
-
-    try:
-        import serial
-        with serial.Serial(
-            "/dev/ttyUSB0",
-            baudrate=4800,
-            bytesize=serial.EIGHTBITS,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            timeout=1.5   # slightly longer timeout for slow RS-485 adapters
-        ) as ser:
-            ser.reset_input_buffer()   # flush stale bytes before querying
-            ser.write(QUERY)
-            time.sleep(0.3)            # RS-485 turnaround time
-            response = ser.read(11)
-
-        # Expected: 0x01 0x03 0x06 <N_H> <N_L> <P_H> <P_L> <K_H> <K_L> <CRC_L> <CRC_H>
-        if len(response) < 9:
-            log.warning(f"NPK short response: got {len(response)} bytes, expected 11.")
-            return {"nitrogen": None, "phosphorus": None, "potassium": None, "status": "ERROR"}
-
-        n = (response[3] << 8) | response[4]
-        p = (response[5] << 8) | response[6]
-        k = (response[7] << 8) | response[8]
-
-        # Sanity check: typical soil NPK is 0–200 mg/kg
-        for label, val in [("N", n), ("P", p), ("K", k)]:
-            if not (0 <= val <= 2000):
-                log.warning(f"NPK {label} value {val} out of expected range — check sensor wiring.")
-
-        return {"nitrogen": n, "phosphorus": p, "potassium": k, "status": "NORMAL"}
-
-    except Exception as e:
-        log.error(f"NPK sensor error: {e}")
+        log.warning("NPK read error: %s", e)
         return {"nitrogen": None, "phosphorus": None, "potassium": None, "status": "ERROR"}
 
+def classify_npk(n, p, k) -> str:
+    """Simple threshold classification for Chinese cabbage."""
+    LOW_N, LOW_P, LOW_K   = 30, 20, 18
+    HIGH_N, HIGH_P, HIGH_K = 70, 50, 50
+    issues = []
+    if n < LOW_N:   issues.append("N-LOW")
+    elif n > HIGH_N: issues.append("N-HIGH")
+    if p < LOW_P:   issues.append("P-LOW")
+    elif p > HIGH_P: issues.append("P-HIGH")
+    if k < LOW_K:   issues.append("K-LOW")
+    elif k > HIGH_K: issues.append("K-HIGH")
+    return "NORMAL" if not issues else ",".join(issues)
 
-def evaluate_npk_status(npk):
-    """
-    Classify NPK status based on Chinese cabbage optimal thresholds.
-    Returns: 'NORMAL', 'LOW', 'HIGH', or 'ERROR'/'UNKNOWN'.
-    """
-    if npk.get("status") == "ERROR":
-        return "ERROR"
+# ── Growth stage ─────────────────────────────────────────
+_transplant_day = 21   # update to actual day-since-transplant counter
 
-    n = npk.get("nitrogen")
-    p = npk.get("phosphorus")
-    k = npk.get("potassium")
+def current_stage() -> str:
+    for start, end, label in STAGES:
+        if start <= _transplant_day <= end:
+            return label
+    return "Post-Harvest"
 
-    if None in (n, p, k):
-        return "UNKNOWN"
+# ── Auto relay control ───────────────────────────────────
+_pump_on = False
+_fan_on  = False
 
-    if n < 20 or p < 15 or k < 15:
-        return "LOW"
-    if n > 80 or p > 60 or k > 60:
-        return "HIGH"
-    return "NORMAL"
+def update_relays(temp, moist, humid):
+    global _pump_on, _fan_on
 
+    # Irrigation pump: ON when moisture too low, OFF when restored
+    if moist is not None:
+        if moist < MOIST_MIN and not _pump_on:
+            GPIO.output(PUMP_PIN, GPIO.LOW)   # relay ON
+            _pump_on = True
+            log.info("Pump ON — moisture %s%%", moist)
+        elif moist >= MOIST_MAX and _pump_on:
+            GPIO.output(PUMP_PIN, GPIO.HIGH)  # relay OFF
+            _pump_on = False
+            log.info("Pump OFF — moisture %s%%", moist)
 
-# ══════════════════════════════════════════════════════════════
-#  RELAY CONTROL
-# ══════════════════════════════════════════════════════════════
+    # Exhaust fan: ON when temp too high OR humidity too high
+    fan_needed = (
+        (temp  is not None and temp  > TEMP_MAX)  or
+        (humid is not None and humid > HUMID_MAX)
+    )
+    if fan_needed and not _fan_on:
+        GPIO.output(FAN_PIN, GPIO.LOW)
+        _fan_on = True
+        log.info("Fan ON — temp=%s°C humid=%s%%", temp, humid)
+    elif not fan_needed and _fan_on:
+        GPIO.output(FAN_PIN, GPIO.HIGH)
+        _fan_on = False
+        log.info("Fan OFF")
 
-def set_relay(pin, turn_on):
-    """
-    Drive a relay pin. Active-LOW board: LOW = relay ON, HIGH = relay OFF.
-    Returns True on success, False on error.
-    """
-    if not HARDWARE_AVAILABLE or GPIO is None:
-        label = "PUMP" if pin == PIN_RELAY_PUMP else "FAN"
-        log.info(f"[SIM] Relay {label} → {'ON' if turn_on else 'OFF'}")
-        return True
+def relay_state(pin_on: bool) -> str:
+    return "ON" if pin_on else "OFF"
 
+# ── Post to Flask ────────────────────────────────────────
+def post_reading(temp, humid, moist, npk):
+    payload = {
+        "temperature":    temp,
+        "humidity":       humid,
+        "soil_moisture":  moist,
+        "npk":            npk,
+        "stage":          current_stage(),
+        "irrigation_pump": relay_state(_pump_on),
+        "exhaust_fan":     relay_state(_fan_on),
+        "auto_mode":       True,
+    }
     try:
-        GPIO.output(pin, GPIO.LOW if turn_on else GPIO.HIGH)
-        return True
-    except Exception as e:
-        log.error(f"GPIO output error on pin {pin}: {e}")
-        return False
-
-
-def get_relay_state(pin):
-    """Return 'ON' or 'OFF'. Active-LOW: LOW means ON."""
-    if not HARDWARE_AVAILABLE or GPIO is None:
-        return "OFF"
-    try:
-        return "OFF" if GPIO.input(pin) == GPIO.HIGH else "ON"
-    except Exception as e:
-        log.error(f"GPIO input error on pin {pin}: {e}")
-        return "UNKNOWN"
-
-
-# ══════════════════════════════════════════════════════════════
-#  AUTO CONTROL  — threshold-based relay management
-# ══════════════════════════════════════════════════════════════
-
-def auto_control(temp, moisture):
-    """
-    Automatically drive relays based on sensor readings.
-    Only called when auto mode is active (fetched from backend).
-
-    Pump logic  — simple bang-bang with hysteresis:
-      moisture < MIN  → pump ON
-      moisture > MAX  → pump OFF (prevent waterlogging)
-      in between      → leave as-is (hysteresis band)
-
-    Fan logic:
-      temp > MAX      → fan ON
-      temp < MIN      → fan OFF
-      in between      → leave as-is
-    """
-    changed = []
-
-    if moisture is not None:
-        if moisture < MOIST_OPTIMAL_MIN:
-            if set_relay(PIN_RELAY_PUMP, True):
-                changed.append("PUMP→ON (moisture low)")
-        elif moisture > MOIST_OPTIMAL_MAX:
-            if set_relay(PIN_RELAY_PUMP, False):
-                changed.append("PUMP→OFF (moisture high)")
-        # Hysteresis: no change if moisture is within optimal band
-
-    if temp is not None:
-        if temp > TEMP_OPTIMAL_MAX:
-            if set_relay(PIN_RELAY_FAN, True):
-                changed.append("FAN→ON (temp high)")
-        elif temp < TEMP_OPTIMAL_MIN:
-            if set_relay(PIN_RELAY_FAN, False):
-                changed.append("FAN→OFF (temp low)")
-
-    if changed:
-        log.info(f"Auto-control actions: {', '.join(changed)}")
-
-
-def is_auto_mode_active():
-    """
-    Fetch auto mode state from the backend command endpoint.
-    Returns True (default) if the request fails — fail-safe to auto mode.
-    """
-    try:
-        r = requests.get(f"{FLASK_URL}/api/devices/command", timeout=3)
-        if r.ok:
-            data = r.json()
-            return data.get("auto_mode", True)
-    except requests.RequestException:
-        pass   # Network blip — assume auto mode for safety
-    return True
-
-
-# ══════════════════════════════════════════════════════════════
-#  MANUAL COMMAND QUEUE — handles frontend toggle button presses
-# ══════════════════════════════════════════════════════════════
-
-def process_manual_commands():
-    """
-    Poll /api/devices/pending-commands for queued manual relay toggles.
-    The Flask backend stores commands written by the frontend toggle buttons.
-    Applies them here (on the Pi) then ACKs so they don't re-fire.
-
-    Expected command format from backend:
-      [{"id": "...", "device": "pump"|"fan", "state": "ON"|"OFF"}, ...]
-    """
-    try:
-        r = requests.get(f"{FLASK_URL}/api/devices/pending-commands", timeout=3)
-        if not r.ok:
-            return
-
-        commands = r.json()
-        if not commands:
-            return
-
-        acked_ids = []
-        for cmd in commands:
-            device = cmd.get("device")
-            state  = cmd.get("state")
-            cmd_id = cmd.get("id")
-
-            if device not in ("pump", "fan") or state not in ("ON", "OFF"):
-                log.warning(f"Invalid command received: {cmd}")
-                continue
-
-            pin = PIN_RELAY_PUMP if device == "pump" else PIN_RELAY_FAN
-            success = set_relay(pin, state == "ON")
-
-            if success:
-                log.info(f"Manual command applied: {device.upper()} → {state}")
-                acked_ids.append(cmd_id)
-            else:
-                log.error(f"Failed to apply command: {cmd}")
-
-        # ACK processed commands so Flask removes them from the queue
-        if acked_ids:
-            requests.post(
-                f"{FLASK_URL}/api/devices/ack-commands",
-                json={"ids": acked_ids},
-                timeout=3
-            )
-
+        resp = requests.post(FLASK_URL, json=payload, timeout=5)
+        resp.raise_for_status()
+        log.info("Posted: temp=%.1f°C humid=%.1f%% moist=%d%% npk=%s",
+                 temp or 0, humid or 0, moist or 0, npk.get("status"))
     except requests.RequestException as e:
-        log.debug(f"Command poll skipped (backend unreachable): {e}")
-    except Exception as e:
-        log.error(f"Command processing error: {e}", exc_info=True)
+        log.error("Post failed: %s", e)
 
-
-# ══════════════════════════════════════════════════════════════
-#  ALERT DEDUPLICATION  — prevent flooding the database
-# ══════════════════════════════════════════════════════════════
-
-# Tracks which alert conditions are currently active.
-# Key = alert condition string, Value = datetime first triggered.
-_active_alert_keys = {}
-
-def generate_alerts(temp, moisture, npk):
-    """
-    Return only NEW alerts — conditions that weren't already active.
-    Clears resolved conditions from the active set so they can re-trigger
-    if the problem comes back after being fixed.
-    """
-    current_conditions = {}   # key → alert dict for conditions present right now
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    # ── Temperature alerts ──
-    if temp is not None:
-        if temp > TEMP_OPTIMAL_MAX:
-            current_conditions["temp_high"] = {
-                "type": "warning", "title": "Temperature High",
-                "desc": f"Temperature is {temp}°C — above optimal max of {TEMP_OPTIMAL_MAX}°C. Fan activated.",
-                "sensor": "temperature", "timestamp": ts, "read": False
-            }
-        elif temp < TEMP_OPTIMAL_MIN:
-            current_conditions["temp_low"] = {
-                "type": "warning", "title": "Temperature Low",
-                "desc": f"Temperature is {temp}°C — below optimal min of {TEMP_OPTIMAL_MIN}°C.",
-                "sensor": "temperature", "timestamp": ts, "read": False
-            }
-
-    # ── Moisture alerts ──
-    if moisture is not None:
-        if moisture < MOIST_OPTIMAL_MIN:
-            current_conditions["moisture_low"] = {
-                "type": "warning", "title": "Soil Moisture Low",
-                "desc": f"Soil moisture is {moisture}% — below optimal ({MOIST_OPTIMAL_MIN}–{MOIST_OPTIMAL_MAX}%). Pump activated.",
-                "sensor": "soil_moisture", "timestamp": ts, "read": False
-            }
-        elif moisture > MOIST_OPTIMAL_MAX:
-            current_conditions["moisture_high"] = {
-                "type": "info", "title": "Soil Moisture High",
-                "desc": f"Soil moisture is {moisture}% — above optimal. Check drainage.",
-                "sensor": "soil_moisture", "timestamp": ts, "read": False
-            }
-
-    # ── NPK alerts ──
-    if npk:
-        status = npk.get("status")
-        if status == "LOW":
-            current_conditions["npk_low"] = {
-                "type": "warning", "title": "Low NPK Levels",
-                "desc": "One or more nutrients below optimal. Consider fertilisation.",
-                "sensor": "npk", "timestamp": ts, "read": False
-            }
-        elif status == "HIGH":
-            current_conditions["npk_high"] = {
-                "type": "warning", "title": "High NPK Levels",
-                "desc": "Nutrient levels elevated — risk of nutrient burn.",
-                "sensor": "npk", "timestamp": ts, "read": False
-            }
-        elif status == "ERROR":
-            current_conditions["npk_error"] = {
-                "type": "warning", "title": "NPK Sensor Error",
-                "desc": "NPK sensor returned no data. Check serial connection to /dev/ttyUSB0.",
-                "sensor": "npk", "timestamp": ts, "read": False
-            }
-
-    # ── Post SUCCESS alert when all conditions clear ──
-    all_clear = len(current_conditions) == 0
-    was_in_alert = len(_active_alert_keys) > 0
-    if all_clear and was_in_alert:
-        current_conditions["all_clear"] = {
-            "type": "success", "title": "Optimal Conditions Restored",
-            "desc": "All sensor readings are back within optimal ranges.",
-            "sensor": "system", "timestamp": ts, "read": False
-        }
-
-    # ── Filter to only NEW conditions ──
-    new_alerts = []
-    for key, alert in current_conditions.items():
-        if key not in _active_alert_keys:
-            _active_alert_keys[key] = ts
-            new_alerts.append(alert)
-
-    # ── Clear resolved conditions from active set ──
-    resolved = [k for k in list(_active_alert_keys) if k not in current_conditions]
-    for key in resolved:
-        log.info(f"Alert condition resolved: {key}")
-        del _active_alert_keys[key]
-
-    return new_alerts
-
-
-# ══════════════════════════════════════════════════════════════
-#  HTTP HELPERS
-# ══════════════════════════════════════════════════════════════
-
-def post(endpoint, payload, retries=2):
-    """POST JSON to Flask. Retries on transient network errors."""
-    for attempt in range(retries + 1):
-        try:
-            r = requests.post(
-                f"{FLASK_URL}{endpoint}",
-                json=payload,
-                timeout=5
-            )
-            r.raise_for_status()
-            return True
-        except requests.RequestException as e:
-            if attempt < retries:
-                log.debug(f"POST {endpoint} attempt {attempt + 1} failed ({e}), retrying…")
-                time.sleep(1)
-            else:
-                log.error(f"POST {endpoint} failed after {retries + 1} attempts: {e}")
-    return False
-
-
-# ══════════════════════════════════════════════════════════════
-#  MAIN LOOP
-# ══════════════════════════════════════════════════════════════
-
+# ── Main loop ────────────────────────────────────────────
 def main():
-    log.info("=" * 60)
-    log.info("TechnoGrowth Sensor Reader starting")
-    log.info(f"  Flask URL:     {FLASK_URL}")
-    log.info(f"  Poll interval: {POLL_INTERVAL}s")
-    log.info(f"  Hardware:      {'REAL' if HARDWARE_AVAILABLE else 'SIMULATION'}")
-    log.info(f"  Temp range:    {TEMP_OPTIMAL_MIN}–{TEMP_OPTIMAL_MAX}°C")
-    log.info(f"  Moisture range:{MOIST_OPTIMAL_MIN}–{MOIST_OPTIMAL_MAX}%")
-    log.info("=" * 60)
+    log.info("Chinese Cabbage Monitor — sensor loop starting (interval %ds)", POLL_INTERVAL)
+    try:
+        while True:
+            temp,  humid = read_dht22()
+            moist        = read_soil_moisture()
+            npk          = read_npk()
 
-    last_sensor_post = 0
-    last_command_check = 0
+            update_relays(temp, moist, humid)
+            post_reading(temp, humid, moist, npk)
 
-    while True:
-        now = time.time()
-
-        # ── Manual command check (every COMMAND_POLL_INTERVAL seconds) ──
-        if now - last_command_check >= COMMAND_POLL_INTERVAL:
-            auto = is_auto_mode_active()
-
-            # Only process manual commands when auto mode is OFF
-            if not auto:
-                process_manual_commands()
-
-            last_command_check = now
-
-        # ── Sensor read + auto control (every POLL_INTERVAL seconds) ──
-        if now - last_sensor_post >= POLL_INTERVAL:
-            try:
-                ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-                # ── Read all sensors ──
-                temp, humidity = read_temperature_humidity()
-                moisture       = read_soil_moisture()
-                npk            = read_npk()
-                npk["status"]  = evaluate_npk_status(npk)
-
-                log.info(
-                    f"Temp={temp}°C | Humidity={humidity}% | "
-                    f"Moisture={moisture}% | NPK={npk}"
-                )
-
-                # ── Auto relay control ──
-                auto = is_auto_mode_active()
-                if auto:
-                    auto_control(temp, moisture)
-
-                # ── Build and post sensor payload ──
-                sensor_payload = {
-                    "timestamp":     ts,
-                    "temperature":   temp,
-                    "humidity":      humidity,
-                    "soil_moisture": moisture,
-                    "npk":           npk,
-                }
-                post("/api/sensors", sensor_payload)
-
-                # ── Post current device states ──
-                device_payload = {
-                    "timestamp":       ts,
-                    "irrigation_pump": get_relay_state(PIN_RELAY_PUMP),
-                    "exhaust_fan":     get_relay_state(PIN_RELAY_FAN),
-                    "auto_mode":       auto,
-                }
-                post("/api/devices", device_payload)
-
-                # ── Generate and post only NEW alerts ──
-                alerts = generate_alerts(temp, moisture, npk)
-                for alert in alerts:
-                    if post("/api/alerts", alert):
-                        log.warning(f"Alert: {alert['title']}")
-
-                last_sensor_post = now
-
-            except Exception as e:
-                # ── Watchdog: catch any unhandled error, apply safe state ──
-                log.error(f"Sensor loop error: {e}", exc_info=True)
-                safe_state()
-                # Don't update last_sensor_post so we retry immediately next tick
-
-        # ── Sleep briefly so command checks stay responsive ──
-        time.sleep(1)
-
-
-# ══════════════════════════════════════════════════════════════
-#  ENTRY POINT
-# ══════════════════════════════════════════════════════════════
+            time.sleep(POLL_INTERVAL)
+    except KeyboardInterrupt:
+        log.info("Stopped by user.")
+    finally:
+        GPIO.output(PUMP_PIN, GPIO.HIGH)   # safety: relays off
+        GPIO.output(FAN_PIN,  GPIO.HIGH)
+        GPIO.cleanup()
+        spi.close()
+        dht.exit()
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        log.info("Sensor reader stopped by user (KeyboardInterrupt).")
-    except Exception as e:
-        log.critical(f"Fatal error: {e}", exc_info=True)
-    finally:
-        # ── Clean up hardware on any exit ──
-        safe_state()
-        if HARDWARE_AVAILABLE and GPIO is not None:
-            try:
-                GPIO.cleanup()
-                log.info("GPIO cleaned up.")
-            except Exception as e:
-                log.error(f"GPIO cleanup error: {e}")
-        if spi is not None:
-            try:
-                spi.close()
-                log.info("SPI closed.")
-            except Exception as e:
-                log.error(f"SPI close error: {e}")
-        log.info("Sensor reader exited cleanly.")
+    main()

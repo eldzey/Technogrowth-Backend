@@ -34,16 +34,12 @@
   --r-sm:          6px;
   --sans:          'Plus Jakarta Sans', sans-serif;
 }
-
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html,body { font-family:var(--sans); background:var(--green-bg); color:var(--text-dark); font-size:13px; line-height:1.5; min-height:100vh; }
 a { text-decoration:none; color:inherit; }
 button { font-family:var(--sans); cursor:pointer; border:none; background:none; }
-
 .layout { display:flex; min-height:100vh; }
 .main   { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; }
-
-/* ── SIDEBAR ── */
 .sidebar { width:var(--sidebar-w); background:var(--white); position:fixed; top:0; left:0; bottom:0; display:flex; flex-direction:column; z-index:100; box-shadow:2px 0 8px rgba(0,0,0,0.08); }
 .sb-brand { padding:16px 12px 14px; border-bottom:1px solid var(--border-light); display:flex; align-items:center; gap:8px; }
 .sb-logo  { width:32px; height:32px; border-radius:8px; background:var(--green-primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -55,11 +51,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .nav-item:hover  { background:var(--green-light); color:var(--green-primary); }
 .nav-item.active { background:var(--green-light); color:var(--green-primary); font-weight:600; }
 .nav-item svg { width:14px; height:14px; flex-shrink:0; }
-
-/* ── CONTENT ── */
 .content { background:var(--white); margin:12px 12px 12px 0; border-radius:12px; flex:1; overflow:hidden; box-shadow:var(--shadow-md); }
-
-/* ── TOP BAR ── */
 .topbar { background:var(--green-primary); padding:12px 20px; display:flex; align-items:center; gap:12px; border-radius:12px 12px 0 0; }
 .topbar-crop { display:flex; align-items:center; gap:10px; }
 .crop-img { width:36px; height:36px; border-radius:50%; background:var(--green-accent); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
@@ -68,17 +60,11 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .topbar-right { margin-left:auto; }
 .notif-btn { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; }
 .notif-btn svg { width:16px; height:16px; color:#fff; }
-
-/* ── PAGE SECTIONS ── */
 .page-section { display:none; padding:20px; }
 .page-section.active { display:block; }
-
-/* ── SHARED ── */
 .card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); box-shadow:var(--shadow); }
 .card-pad { padding:16px; }
 .section-title { font-size:12px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
-
-/* ── DASHBOARD BANNER ── */
 .health-banner { background:var(--green-light); border:1px solid #C8E6C9; border-radius:var(--r); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
 .health-status { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
 .health-status svg { width:16px; height:16px; color:var(--green-primary); }
@@ -86,9 +72,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .health-day { font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-bottom:6px; }
 .health-day svg { width:12px; height:12px; }
 .health-img { width:90px; height:70px; border-radius:var(--r); background:linear-gradient(135deg,#A5D6A7,#66BB6A); display:flex; align-items:center; justify-content:center; font-size:36px; flex-shrink:0; }
-
-/* ── SENSOR CARDS ── */
-.sensor-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.sensor-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
 .sensor-card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); }
 .sensor-label { font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-bottom:6px; }
 .sensor-label svg { width:11px; height:11px; }
@@ -102,8 +86,6 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .sensor-status.danger::before  { background:var(--red); }
 .sensor-card.warning-border { border-color:var(--orange) !important; }
 .sensor-card.danger-border  { border-color:var(--red)    !important; }
-
-/* ── LAST 24 HRS ── */
 .activity-title { font-size:12px; font-weight:600; color:var(--text-dark); display:flex; align-items:center; gap:5px; margin-bottom:10px; }
 .activity-title svg { width:13px; height:13px; }
 .device-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-light); }
@@ -112,8 +94,6 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .device-name svg { width:12px; height:12px; color:var(--text-muted); }
 .device-state { font-size:11px; font-weight:500; color:var(--text-muted); }
 .mode-note { font-size:10px; color:var(--text-light); margin-top:6px; font-style:italic; }
-
-/* ── ANALYTICS ── */
 .analytics-header { background:var(--green-primary); border-radius:var(--r); padding:14px 18px; margin-bottom:14px; display:flex; align-items:flex-start; justify-content:space-between; }
 .analytics-header-left strong { font-size:15px; font-weight:700; color:#fff; display:block; }
 .analytics-header-left span   { font-size:11px; color:rgba(255,255,255,.7); }
@@ -125,13 +105,13 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .export-opt { display:flex; align-items:center; gap:8px; padding:9px 14px; font-size:12px; font-weight:500; color:var(--text-mid); cursor:pointer; transition:background .12s; }
 .export-opt:hover { background:var(--green-light); color:var(--green-primary); }
 .export-opt svg { width:13px; height:13px; flex-shrink:0; }
-.stat-grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+.stat-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
 .stat-pill { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); }
 .stat-pill-label { font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-bottom:4px; }
 .stat-pill-label svg { width:11px; height:11px; }
 .stat-pill-val { font-size:22px; font-weight:700; color:var(--text-dark); }
 .weekly-perf { margin-bottom:14px; }
-.perf-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.perf-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .perf-card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); }
 .perf-label { font-size:10px; color:var(--text-muted); margin-bottom:4px; }
 .perf-val   { font-size:18px; font-weight:700; color:var(--text-dark); margin-bottom:3px; }
@@ -156,8 +136,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .metric-val  { font-size:12px; font-weight:600; color:var(--text-dark); }
 .metric-val.green  { color:var(--green-primary); }
 .metric-val.orange { color:var(--orange); }
-
-/* ── ALERTS ── */
+.metric-val.blue   { color:var(--blue); }
 .alerts-header { background:var(--green-primary); border-radius:var(--r); padding:14px 18px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
 .alerts-header-left { display:flex; align-items:center; gap:10px; }
 .alerts-header-left svg { width:18px; height:18px; color:#fff; }
@@ -206,8 +185,6 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .notif-state.disabled { background:var(--border-light); color:var(--text-muted); }
 .manage-pref { text-align:center; padding-top:12px; }
 .manage-pref a { font-size:12px; font-weight:600; color:var(--green-primary); }
-
-/* ── HISTORY LOG ── */
 .log-header { background:var(--green-primary); border-radius:var(--r); padding:14px 18px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
 .log-header-left { display:flex; align-items:center; gap:10px; }
 .log-header-left svg { width:18px; height:18px; color:#fff; }
@@ -250,20 +227,17 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .log-page-btn { padding:5px 12px; border-radius:var(--r-sm); font-size:11px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--white); color:var(--text-mid); transition:all .15s; }
 .log-page-btn:hover:not(:disabled) { background:var(--green-light); border-color:var(--green-accent); color:var(--green-primary); }
 .log-page-btn:disabled { opacity:.4; cursor:not-allowed; }
-
 canvas { width:100%!important; }
 </style>
 </head>
 <body>
 <div class="layout">
 
-<!-- ═══════ SIDEBAR ═══════ -->
+<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sb-brand">
     <div class="sb-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round">
-        <path d="M12 22V12M12 12C12 7 7 4 2 5M12 12C12 7 17 4 22 5"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 22V12M12 12C12 7 7 4 2 5M12 12C12 7 17 4 22 5"/></svg>
     </div>
     <div class="sb-brand-txt">
       <strong>Chinese Cabbage</strong>
@@ -290,11 +264,10 @@ canvas { width:100%!important; }
   </nav>
 </aside>
 
-<!-- ═══════ MAIN ═══════ -->
+<!-- MAIN -->
 <main class="main">
   <div class="content">
 
-    <!-- TOP BAR -->
     <div class="topbar">
       <div class="topbar-crop">
         <div class="crop-img">🥬</div>
@@ -310,12 +283,8 @@ canvas { width:100%!important; }
       </div>
     </div>
 
-    <!-- ══════════════════════════
-         PAGE: DASHBOARD
-    ══════════════════════════ -->
+    <!-- ══ DASHBOARD ══ -->
     <div class="page-section active" id="page-dashboard">
-
-      <!-- Status Banner -->
       <div class="health-banner">
         <div>
           <div class="health-status">
@@ -326,15 +295,15 @@ canvas { width:100%!important; }
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             Live data from Raspberry Pi sensors
           </div>
-          <div class="health-day" id="dash-stage-row">
+          <div class="health-day">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
-            Stage: <span id="dash-stage-label">Loading…</span>
+            Stage: <span id="dash-stage-label" style="margin-left:3px;">Loading…</span>
           </div>
         </div>
         <div class="health-img">🥬</div>
       </div>
 
-      <!-- Sensor Cards -->
+      <!-- 4-sensor grid -->
       <div class="sensor-grid">
         <div class="sensor-card" id="card-temp">
           <div class="sensor-label">
@@ -345,6 +314,7 @@ canvas { width:100%!important; }
           <div class="sensor-range">Optimal: 25–30°C</div>
           <div class="sensor-status" id="status-temp">Loading…</div>
         </div>
+
         <div class="sensor-card" id="card-moist">
           <div class="sensor-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
@@ -354,6 +324,17 @@ canvas { width:100%!important; }
           <div class="sensor-range">Optimal: 43–60%</div>
           <div class="sensor-status" id="status-moist">Loading…</div>
         </div>
+
+        <div class="sensor-card" id="card-humid">
+          <div class="sensor-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0 0 16 0c0-3-2-7-8-13z"/><path d="M12 18a3 3 0 0 1-3-3"/></svg>
+            Air Humidity
+          </div>
+          <div class="sensor-val" id="dash-humid">—</div>
+          <div class="sensor-range">Optimal: 70–85%</div>
+          <div class="sensor-status" id="status-humid">Loading…</div>
+        </div>
+
         <div class="sensor-card" id="card-npk">
           <div class="sensor-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
@@ -365,7 +346,6 @@ canvas { width:100%!important; }
         </div>
       </div>
 
-      <!-- Last 24 Hours -->
       <div class="card card-pad">
         <div class="activity-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -386,14 +366,13 @@ canvas { width:100%!important; }
           <div class="device-state" id="dash-fan-state">—</div>
         </div>
         <div class="mode-note" id="dash-mode-note">Mode: AUTO · Syncing…</div>
-        <div style="height:130px;margin-top:12px;"><canvas id="dashChart"></canvas></div>
+        <div style="height:130px;margin-top:12px;">
+          <canvas id="dashChart"></canvas>
+        </div>
       </div>
-    </div><!-- /dashboard -->
+    </div>
 
-
-    <!-- ══════════════════════════
-         PAGE: ANALYTICS
-    ══════════════════════════ -->
+    <!-- ══ ANALYTICS ══ -->
     <div class="page-section" id="page-analytics">
       <div class="analytics-header">
         <div class="analytics-header-left">
@@ -418,7 +397,7 @@ canvas { width:100%!important; }
         </div>
       </div>
 
-      <div class="stat-grid-2">
+      <div class="stat-grid-3">
         <div class="stat-pill">
           <div class="stat-pill-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
@@ -432,6 +411,13 @@ canvas { width:100%!important; }
             Avg Soil Moisture (7d)
           </div>
           <div class="stat-pill-val" id="avg-moist-pill">—</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-pill-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0 0 16 0c0-3-2-7-8-13z"/></svg>
+            Avg Air Humidity (7d)
+          </div>
+          <div class="stat-pill-val" id="avg-humid-pill">—</div>
         </div>
       </div>
 
@@ -447,6 +433,11 @@ canvas { width:100%!important; }
             <div class="perf-label">Avg Soil Moisture</div>
             <div class="perf-val" id="perf-moist">—</div>
             <div class="perf-change" id="perf-moist-change"></div>
+          </div>
+          <div class="perf-card">
+            <div class="perf-label">Avg Air Humidity</div>
+            <div class="perf-val" id="perf-humid">—</div>
+            <div class="perf-change" id="perf-humid-change"></div>
           </div>
         </div>
       </div>
@@ -466,22 +457,37 @@ canvas { width:100%!important; }
           <div class="legend-item"><div class="legend-dot" style="background:#F44336;"></div>Temperature °C</div>
           <div class="legend-item"><div class="legend-dot" style="background:rgba(244,67,54,0.3);"></div>Optimal Range</div>
         </div>
-        <div style="height:160px;"><canvas id="envTempChart"></canvas></div>
+        <div style="height:140px;"><canvas id="envTempChart"></canvas></div>
 
-        <div style="margin-top:16px;">
-          <div class="chart-label" style="margin-bottom:8px;">Soil Moisture (Last 7 Days)</div>
+        <div style="margin-top:14px;">
+          <div class="chart-label" style="margin-bottom:6px;">Soil Moisture (Last 7 Days)</div>
           <div class="chart-legend">
             <div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>Soil Moisture %</div>
           </div>
-          <div style="height:130px;"><canvas id="envMoistChart"></canvas></div>
+          <div style="height:120px;"><canvas id="envMoistChart"></canvas></div>
         </div>
 
-        <div class="env-note"><strong>Environment Note:</strong> Data pulled live from MongoDB. Soil moisture below optimal triggers auto irrigation.</div>
+        <div style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div class="chart-label">Air Humidity (Last 7 Days)</div>
+            <span class="on-track">Stable</span>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>Air Humidity %</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(33,150,243,0.3);"></div>Optimal Range (70–85%)</div>
+          </div>
+          <div style="height:120px;"><canvas id="envHumidChart"></canvas></div>
+        </div>
+
+        <div class="env-note">
+          <strong>Environment Note:</strong> Data pulled live from MongoDB. Soil moisture below 43% triggers auto irrigation. Humidity outside 70–85% can promote fungal disease or plant stress.
+        </div>
 
         <div class="key-metrics">
           <div class="section-title" style="margin-top:14px;">Environment Summary</div>
           <div class="metric-row"><span class="metric-name">Avg Temperature (7d)</span><span class="metric-val" id="sum-avg-temp">—</span></div>
           <div class="metric-row"><span class="metric-name">Avg Soil Moisture (7d)</span><span class="metric-val orange" id="sum-avg-moist">—</span></div>
+          <div class="metric-row"><span class="metric-name">Avg Air Humidity (7d)</span><span class="metric-val blue" id="sum-avg-humid">—</span></div>
           <div class="metric-row"><span class="metric-name">Overall Status</span><span class="metric-val green">Stable</span></div>
         </div>
       </div>
@@ -498,16 +504,13 @@ canvas { width:100%!important; }
           <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>K</div>
         </div>
         <div style="height:180px;"><canvas id="npkChart"></canvas></div>
-
         <div class="env-note" style="margin-top:10px;">
           <strong style="color:var(--green-primary);">Nutrient Note:</strong> NPK levels read from RS-485 sensor via Modbus RTU.
         </div>
-
         <div style="margin-top:16px;">
           <div class="chart-label" style="margin-bottom:8px;">Current NPK Breakdown</div>
           <div style="height:120px;"><canvas id="npkBarChart"></canvas></div>
         </div>
-
         <div class="key-metrics">
           <div class="section-title" style="margin-top:14px;">Nutrient Summary</div>
           <div class="metric-row"><span class="metric-name">Nitrogen (N)</span><span class="metric-val green" id="npk-n-val">—</span></div>
@@ -516,12 +519,9 @@ canvas { width:100%!important; }
           <div class="metric-row"><span class="metric-name">Overall NPK Status</span><span class="metric-val green" id="npk-status-val">—</span></div>
         </div>
       </div>
-    </div><!-- /analytics -->
+    </div>
 
-
-    <!-- ══════════════════════════
-         PAGE: ALERTS
-    ══════════════════════════ -->
+    <!-- ══ ALERTS ══ -->
     <div class="page-section" id="page-alerts">
       <div class="alerts-header">
         <div class="alerts-header-left">
@@ -533,16 +533,13 @@ canvas { width:100%!important; }
         </div>
         <button class="mark-all" id="markAllBtn">Mark all read</button>
       </div>
-
       <div class="filter-tabs">
         <button class="filter-tab f-all"     data-filter="all"     onclick="filterAlerts('all')">All</button>
         <button class="filter-tab"           data-filter="warning" onclick="filterAlerts('warning')">⚠ Warnings</button>
         <button class="filter-tab"           data-filter="info"    onclick="filterAlerts('info')">ℹ Info</button>
         <button class="filter-tab"           data-filter="success" onclick="filterAlerts('success')">✓ Success</button>
       </div>
-
       <div id="alertsContainer"></div>
-
       <div class="notif-section">
         <div class="notif-title">Notification Settings</div>
         <div class="notif-row"><span class="notif-name">Critical sensor alerts</span><span class="notif-state enabled">Enabled</span></div>
@@ -551,12 +548,9 @@ canvas { width:100%!important; }
         <div class="notif-row"><span class="notif-name">Device status changes</span><span class="notif-state disabled">Disabled</span></div>
         <div class="manage-pref"><a href="#">Manage Preferences</a></div>
       </div>
-    </div><!-- /alerts -->
+    </div>
 
-
-    <!-- ══════════════════════════
-         PAGE: HISTORY LOG
-    ══════════════════════════ -->
+    <!-- ══ HISTORY ══ -->
     <div class="page-section" id="page-history">
       <div class="log-header">
         <div class="log-header-left">
@@ -607,16 +601,14 @@ canvas { width:100%!important; }
           </div>
         </div>
       </div>
-    </div><!-- /history -->
+    </div>
 
-  </div><!-- /content -->
+  </div>
 </main>
-</div><!-- /layout -->
+</div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-//  NAVIGATION
-// ══════════════════════════════════════════════════════════
+// NAVIGATION
 document.querySelectorAll('.nav-item[data-page]').forEach(item => {
   item.addEventListener('click', () => {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -627,9 +619,7 @@ document.querySelectorAll('.nav-item[data-page]').forEach(item => {
   });
 });
 
-// ══════════════════════════════════════════════════════════
-//  ANALYTICS TABS
-// ══════════════════════════════════════════════════════════
+// ANALYTICS TABS
 const tabChartInited = {};
 document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -645,17 +635,13 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
   });
 });
 
-// ══════════════════════════════════════════════════════════
-//  EXPORT DROPDOWN
-// ══════════════════════════════════════════════════════════
+// EXPORT DROPDOWN
 const exportBtn = document.getElementById('exportBtn');
 const exportDD  = document.getElementById('exportDropdown');
 exportBtn.addEventListener('click', e => { e.stopPropagation(); exportDD.classList.toggle('open'); });
 document.addEventListener('click', () => exportDD.classList.remove('open'));
 
-// ══════════════════════════════════════════════════════════
-//  CHART DEFAULTS
-// ══════════════════════════════════════════════════════════
+// CHART DEFAULTS
 const cOpts = (extra={}) => ({
   responsive: true, maintainAspectRatio: false,
   plugins: { legend:{ display:false }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } },
@@ -663,44 +649,65 @@ const cOpts = (extra={}) => ({
   ...extra
 });
 
+// DASHBOARD MINI CHART — temp + humidity overlay
 new Chart(document.getElementById('dashChart'), {
   type: 'line',
   data: {
     labels: ['6am','8am','10am','12pm','2pm','4pm','6pm','8pm','10pm','12am'],
-    datasets: [{ data:[28,27.5,28.2,29,29.4,29.1,28.8,28.5,28.2,28], borderColor:'#4CAF50', backgroundColor:'rgba(76,175,80,0.08)', tension:0.4, pointRadius:2, borderWidth:2, fill:true }]
+    datasets: [
+      { label:'Temp °C', data:[28,27.5,28.2,29,29.4,29.1,28.8,28.5,28.2,28], borderColor:'#F44336', backgroundColor:'rgba(244,67,54,0.07)', tension:0.4, pointRadius:2, borderWidth:2, fill:true },
+      { label:'Humidity %', data:[78,76,75,74,76,77,79,80,78,77], borderColor:'#2196F3', backgroundColor:'rgba(33,150,243,0.06)', tension:0.4, pointRadius:2, borderWidth:2, fill:true }
+    ]
   },
-  options: cOpts()
+  options: { ...cOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:12 } }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } } }
 });
 
-// ══════════════════════════════════════════════════════════
-//  ENVIRONMENT CHARTS
-// ══════════════════════════════════════════════════════════
+// ENV CHARTS
 function avg(arr) { const v = arr.filter(x => x != null); return v.length ? (v.reduce((a,b) => a+b, 0) / v.length).toFixed(1) : null; }
 
 function initEnvCharts() {
   fetch('/api/history').then(r => r.json()).then(data => {
-    const at = avg(data.temperature), am = avg(data.soil_moisture);
+    const at = avg(data.temperature), am = avg(data.soil_moisture), ah = avg(data.humidity);
     if (at) ['avg-temp-pill','perf-temp','sum-avg-temp'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = at + '°C'; });
     if (am) ['avg-moist-pill','perf-moist','sum-avg-moist'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = am + '%'; });
+    if (ah) ['avg-humid-pill','perf-humid','sum-avg-humid'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ah + '%'; });
+
     new Chart(document.getElementById('envTempChart'), { type:'line', data:{ labels:data.labels, datasets:[
       { data:data.temperature, borderColor:'#F44336', backgroundColor:'rgba(244,67,54,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true, pointBackgroundColor:'#F44336' },
       { data:Array(data.labels.length).fill(data.temp_optimal.max), borderColor:'rgba(244,67,54,0.25)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false },
       { data:Array(data.labels.length).fill(data.temp_optimal.min), borderColor:'rgba(244,67,54,0.25)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false }
     ]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:22, max:32 } } } });
+
     new Chart(document.getElementById('envMoistChart'), { type:'line', data:{ labels:data.labels, datasets:[
       { data:data.soil_moisture, borderColor:'#4CAF50', backgroundColor:'rgba(76,175,80,0.08)', tension:0.4, pointRadius:3, borderWidth:2, fill:true, pointBackgroundColor:'#4CAF50' },
       { data:Array(data.labels.length).fill(data.moist_optimal.min), borderColor:'rgba(76,175,80,0.35)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false }
     ]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:20, max:70 } } } });
+
+    const hd = data.humidity || [];
+    new Chart(document.getElementById('envHumidChart'), { type:'line', data:{ labels:data.labels, datasets:[
+      { data:hd, borderColor:'#2196F3', backgroundColor:'rgba(33,150,243,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true, pointBackgroundColor:'#2196F3' },
+      { data:Array(data.labels.length).fill(data.humid_optimal ? data.humid_optimal.max : 85), borderColor:'rgba(33,150,243,0.3)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false },
+      { data:Array(data.labels.length).fill(data.humid_optimal ? data.humid_optimal.min : 70), borderColor:'rgba(33,150,243,0.3)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false }
+    ]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:50, max:100 } } } });
   }).catch(() => {
     const labels = ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'];
-    new Chart(document.getElementById('envTempChart'), { type:'line', data:{ labels, datasets:[{ data:[28.1,28.6,29.0,28.8,29.4,29.1,29.0], borderColor:'#F44336', backgroundColor:'rgba(244,67,54,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true }]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:22, max:32 } } } });
-    new Chart(document.getElementById('envMoistChart'), { type:'line', data:{ labels, datasets:[{ data:[54,51,48,45,40,43,42], borderColor:'#4CAF50', backgroundColor:'rgba(76,175,80,0.08)', tension:0.4, pointRadius:3, borderWidth:2, fill:true }]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:20, max:70 } } } });
+    const fT = [28.1,28.6,29.0,28.8,29.4,29.1,29.0];
+    const fM = [54,51,48,45,40,43,42];
+    const fH = [78,76,80,82,79,75,77];
+    ['avg-temp-pill','perf-temp','sum-avg-temp'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '28.9°C'; });
+    ['avg-moist-pill','perf-moist','sum-avg-moist'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '46.0%'; });
+    ['avg-humid-pill','perf-humid','sum-avg-humid'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '78.1%'; });
+    new Chart(document.getElementById('envTempChart'), { type:'line', data:{ labels, datasets:[{ data:fT, borderColor:'#F44336', backgroundColor:'rgba(244,67,54,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true }]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:22, max:32 } } } });
+    new Chart(document.getElementById('envMoistChart'), { type:'line', data:{ labels, datasets:[{ data:fM, borderColor:'#4CAF50', backgroundColor:'rgba(76,175,80,0.08)', tension:0.4, pointRadius:3, borderWidth:2, fill:true }]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:20, max:70 } } } });
+    new Chart(document.getElementById('envHumidChart'), { type:'line', data:{ labels, datasets:[
+      { data:fH, borderColor:'#2196F3', backgroundColor:'rgba(33,150,243,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true, pointBackgroundColor:'#2196F3' },
+      { data:Array(7).fill(85), borderColor:'rgba(33,150,243,0.3)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false },
+      { data:Array(7).fill(70), borderColor:'rgba(33,150,243,0.3)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false }
+    ]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:50, max:100 } } } });
   });
 }
 
-// ══════════════════════════════════════════════════════════
-//  NUTRIENT CHARTS
-// ══════════════════════════════════════════════════════════
+// NUTRIENT CHARTS
 function initNutrientCharts() {
   fetch('/api/npk-trend').then(r => r.json()).then(data => {
     const c = data.current;
@@ -737,15 +744,13 @@ function initNutrientCharts() {
 tabChartInited['environment'] = true;
 initEnvCharts();
 
-// ══════════════════════════════════════════════════════════
-//  ALERTS — state + render
-// ══════════════════════════════════════════════════════════
+// ALERTS
 let currentFilter = 'all';
 const alertsData = [
-  { id:1, type:'warning', title:'Soil Moisture Low',         desc:'Soil moisture has dropped to 42%. Optimal is 43–60%. Consider irrigation.',          time:'2 hours ago', read:false },
-  { id:2, type:'warning', title:'Temperature Rising',        desc:'Temperature increased to 29°C. Approaching upper limit (30°C). Monitor closely.',     time:'1 day ago',   read:true  },
-  { id:3, type:'info',    title:'Auto Irrigation Completed', desc:'Irrigation pump ran for 2 hours as scheduled by threshold trigger.',                    time:'2 hours ago', read:false },
-  { id:4, type:'success', title:'Optimal Conditions',        desc:'All sensor readings are within ideal ranges. Temperature and NPK stable.',              time:'1 day ago',   read:true  },
+  { id:1, type:'warning', title:'Soil Moisture Low',         desc:'Soil moisture has dropped to 42%. Optimal is 43–60%. Consider irrigation.',        time:'2 hours ago', read:false },
+  { id:2, type:'warning', title:'Temperature Rising',        desc:'Temperature increased to 29°C. Approaching upper limit (30°C). Monitor closely.',   time:'1 day ago',   read:true  },
+  { id:3, type:'info',    title:'Auto Irrigation Completed', desc:'Irrigation pump ran for 2 hours as scheduled by threshold trigger.',                  time:'2 hours ago', read:false },
+  { id:4, type:'success', title:'Optimal Conditions',        desc:'All sensor readings within ideal ranges. Temperature, humidity, and NPK stable.',     time:'1 day ago',   read:true  },
 ];
 let alertIdCounter = 100;
 
@@ -760,18 +765,11 @@ function renderAlerts() {
   const container = document.getElementById('alertsContainer');
   const filtered  = currentFilter === 'all' ? alertsData : alertsData.filter(a => a.type === currentFilter);
   updateFilterCounts();
-  if (!filtered.length) {
-    container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter} alerts</div>`;
-    return;
-  }
+  if (!filtered.length) { container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter} alerts</div>`; return; }
   if (currentFilter === 'all') {
     const groups = [{ label:'⚠ Warnings', type:'warning' }, { label:'ℹ Information', type:'info' }, { label:'✓ Success', type:'success' }];
     let html = '';
-    groups.forEach(g => {
-      const items = alertsData.filter(a => a.type === g.type);
-      if (!items.length) return;
-      html += `<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`;
-    });
+    groups.forEach(g => { const items = alertsData.filter(a => a.type === g.type); if (!items.length) return; html += `<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`; });
     container.innerHTML = html;
   } else {
     container.innerHTML = `<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`;
@@ -782,14 +780,8 @@ function alertCardHTML(a) {
   const color = alertColorMap[a.type];
   return `<div class="alert-card ${color} ${a.read ? 'read' : ''}" id="alert-${a.id}">
     <div class="alert-unread ${color === 'orange' ? 'orange' : ''}"></div>
-    <div class="alert-top">
-      <div class="alert-ico ${color}">${alertIconMap[a.type]}</div>
-      <div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div>
-    </div>
-    <div class="alert-time">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      ${a.time}
-    </div>
+    <div class="alert-top"><div class="alert-ico ${color}">${alertIconMap[a.type]}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div>
+    <div class="alert-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${a.time}</div>
     <span class="alert-dismiss" onclick="dismissAlert(${a.id})">✕</span>
   </div>`;
 }
@@ -798,17 +790,14 @@ function filterAlerts(type) {
   currentFilter = type;
   document.querySelectorAll('.filter-tab').forEach(t => {
     t.className = 'filter-tab';
-    if (t.dataset.filter === type) {
-      const map = { all:'f-all', warning:'f-warning', info:'f-info', success:'f-success' };
-      t.classList.add(map[type]);
-    }
+    if (t.dataset.filter === type) { const map = { all:'f-all', warning:'f-warning', info:'f-info', success:'f-success' }; t.classList.add(map[type]); }
   });
   renderAlerts();
 }
 
 function updateFilterCounts() {
-  const unread  = alertsData.filter(a => !a.read).length;
-  const counts  = { all:alertsData.length, warning:alertsData.filter(a=>a.type==='warning').length, info:alertsData.filter(a=>a.type==='info').length, success:alertsData.filter(a=>a.type==='success').length };
+  const unread = alertsData.filter(a => !a.read).length;
+  const counts = { all:alertsData.length, warning:alertsData.filter(a=>a.type==='warning').length, info:alertsData.filter(a=>a.type==='info').length, success:alertsData.filter(a=>a.type==='success').length };
   document.getElementById('alert-unread-label').textContent = `${counts.all} alert${counts.all!==1?'s':''} · ${unread} unread`;
   document.querySelector('[data-filter="all"]').textContent     = `All (${counts.all})`;
   document.querySelector('[data-filter="warning"]').textContent = `⚠ Warnings (${counts.warning})`;
@@ -816,76 +805,56 @@ function updateFilterCounts() {
   document.querySelector('[data-filter="success"]').textContent = `✓ Success (${counts.success})`;
 }
 
-function dismissAlert(id) {
-  const idx = alertsData.findIndex(a => a.id === id);
-  if (idx !== -1) alertsData.splice(idx, 1);
-  renderAlerts();
-}
+function dismissAlert(id) { const idx = alertsData.findIndex(a => a.id === id); if (idx !== -1) alertsData.splice(idx, 1); renderAlerts(); }
+function pushSensorAlert(type, title, desc) { if (alertsData.find(a => a.title === title)) return; alertsData.unshift({ id:alertIdCounter++, type, title, desc, time:'Just now', read:false }); renderAlerts(); }
+function removeSensorAlert(title) { const idx = alertsData.findIndex(a => a.title === title); if (idx !== -1) alertsData.splice(idx, 1); renderAlerts(); }
+document.getElementById('markAllBtn').addEventListener('click', () => { alertsData.forEach(a => a.read = true); renderAlerts(); });
 
-function pushSensorAlert(type, title, desc) {
-  if (alertsData.find(a => a.title === title)) return;
-  alertsData.unshift({ id:alertIdCounter++, type, title, desc, time:'Just now', read:false });
-  renderAlerts();
-}
-
-function removeSensorAlert(title) {
-  const idx = alertsData.findIndex(a => a.title === title);
-  if (idx !== -1) alertsData.splice(idx, 1);
-  renderAlerts();
-}
-
-document.getElementById('markAllBtn').addEventListener('click', () => {
-  alertsData.forEach(a => a.read = true);
-  renderAlerts();
-});
-
-// ══════════════════════════════════════════════════════════
-//  LIVE SENSOR POLLING — every 5s
-// ══════════════════════════════════════════════════════════
+// LIVE POLLING
 function pollSensors() {
   fetch('/api/sensors/latest').then(r => r.ok ? r.json() : Promise.reject()).then(data => {
-    const t  = document.getElementById('dash-temp');
-    const m  = document.getElementById('dash-moist');
-    const n  = document.getElementById('dash-npk');
-    const sl = document.getElementById('dash-stage-label');
-    if (t)  t.textContent  = data.temperature   != null ? data.temperature   + '°C' : '—';
-    if (m)  m.textContent  = data.soil_moisture  != null ? data.soil_moisture + '%'  : '—';
-    if (n && data.npk)  n.textContent = data.npk.status ?? '—';
-    if (sl && data.stage)  sl.textContent = data.stage;
+    const tEl  = document.getElementById('dash-temp');
+    const mEl  = document.getElementById('dash-moist');
+    const hEl  = document.getElementById('dash-humid');
+    const nEl  = document.getElementById('dash-npk');
+    const slEl = document.getElementById('dash-stage-label');
+    if (tEl)  tEl.textContent  = data.temperature  != null ? data.temperature  + '°C' : '—';
+    if (mEl)  mEl.textContent  = data.soil_moisture != null ? data.soil_moisture + '%'  : '—';
+    if (hEl)  hEl.textContent  = data.humidity      != null ? data.humidity      + '%'  : '—';
+    if (nEl && data.npk)  nEl.textContent = data.npk.status ?? '—';
+    if (slEl && data.stage) slEl.textContent = data.stage;
 
-    const temp  = data.temperature;
-    const moist = data.soil_moisture;
+    const temp = data.temperature, moist = data.soil_moisture, humid = data.humidity;
     const ts = document.getElementById('status-temp'),  tc = document.getElementById('card-temp');
     const ms = document.getElementById('status-moist'), mc = document.getElementById('card-moist');
+    const hs = document.getElementById('status-humid'), hc = document.getElementById('card-humid');
     const ns = document.getElementById('status-npk'),   nc = document.getElementById('card-npk');
 
-    // Temperature
     if (temp != null) {
-      if (temp > 30)      { ts.textContent='High';  ts.className='sensor-status danger';  tc.className='sensor-card danger-border';  pushSensorAlert('warning','Temperature High', `Temperature is ${temp}°C — above the safe limit of 30°C.`); }
-      else if (temp < 25) { ts.textContent='Low';   ts.className='sensor-status warning'; tc.className='sensor-card warning-border'; pushSensorAlert('warning','Temperature Low',  `Temperature is ${temp}°C — below the optimal range of 25°C.`); }
-      else if (temp >= 29){ ts.textContent='Watch'; ts.className='sensor-status warning'; tc.className='sensor-card warning-border'; }
-      else                { ts.textContent='Stable';ts.className='sensor-status';         tc.className='sensor-card'; removeSensorAlert('Temperature High'); removeSensorAlert('Temperature Low'); }
+      if (temp > 30)       { ts.textContent='High';  ts.className='sensor-status danger';  tc.className='sensor-card danger-border';  pushSensorAlert('warning','Temperature High',`Temperature is ${temp}°C — above the safe limit of 30°C.`); }
+      else if (temp < 25)  { ts.textContent='Low';   ts.className='sensor-status warning'; tc.className='sensor-card warning-border'; pushSensorAlert('warning','Temperature Low', `Temperature is ${temp}°C — below the optimal range.`); }
+      else if (temp >= 29) { ts.textContent='Watch'; ts.className='sensor-status warning'; tc.className='sensor-card warning-border'; }
+      else                 { ts.textContent='Stable';ts.className='sensor-status';         tc.className='sensor-card'; removeSensorAlert('Temperature High'); removeSensorAlert('Temperature Low'); }
     }
-
-    // Soil Moisture
     if (moist != null) {
-      if (moist < 35)      { ms.textContent='Very Low'; ms.className='sensor-status danger';  mc.className='sensor-card danger-border';  pushSensorAlert('warning','Soil Moisture Critical', `Soil moisture is ${moist}% — critically low. Immediate irrigation needed.`); }
-      else if (moist < 43) { ms.textContent='Low';      ms.className='sensor-status warning'; mc.className='sensor-card warning-border'; pushSensorAlert('warning','Soil Moisture Low',      `Soil moisture is ${moist}% — below optimal minimum of 43%. Consider irrigation.`); }
-      else if (moist > 60) { ms.textContent='High';     ms.className='sensor-status warning'; mc.className='sensor-card warning-border'; pushSensorAlert('warning','Soil Moisture High',     `Soil moisture is ${moist}% — above optimal maximum of 60%.`); }
-      else                 { ms.textContent='Stable';   ms.className='sensor-status';         mc.className='sensor-card'; removeSensorAlert('Soil Moisture Critical'); removeSensorAlert('Soil Moisture Low'); removeSensorAlert('Soil Moisture High'); }
+      if (moist < 35)       { ms.textContent='Very Low'; ms.className='sensor-status danger';  mc.className='sensor-card danger-border';  pushSensorAlert('warning','Soil Moisture Critical',`Soil moisture is ${moist}% — critically low. Irrigate now.`); }
+      else if (moist < 43)  { ms.textContent='Low';      ms.className='sensor-status warning'; mc.className='sensor-card warning-border'; pushSensorAlert('warning','Soil Moisture Low',     `Soil moisture is ${moist}% — below optimal 43%.`); }
+      else if (moist > 60)  { ms.textContent='High';     ms.className='sensor-status warning'; mc.className='sensor-card warning-border'; pushSensorAlert('warning','Soil Moisture High',    `Soil moisture is ${moist}% — above optimal 60%.`); }
+      else                  { ms.textContent='Stable';   ms.className='sensor-status';         mc.className='sensor-card'; removeSensorAlert('Soil Moisture Critical'); removeSensorAlert('Soil Moisture Low'); removeSensorAlert('Soil Moisture High'); }
     }
-
-    // NPK
+    if (humid != null) {
+      if (humid < 60)       { hs.textContent='Very Low'; hs.className='sensor-status danger';  hc.className='sensor-card danger-border';  pushSensorAlert('warning','Humidity Critical Low',`Air humidity is ${humid}% — critically low. Risk of wilting.`); }
+      else if (humid < 70)  { hs.textContent='Low';      hs.className='sensor-status warning'; hc.className='sensor-card warning-border'; pushSensorAlert('warning','Humidity Low',         `Air humidity is ${humid}% — below optimal 70%.`); }
+      else if (humid > 90)  { hs.textContent='High';     hs.className='sensor-status warning'; hc.className='sensor-card warning-border'; pushSensorAlert('warning','Humidity High',        `Air humidity is ${humid}% — above 90%. Fungal risk.`); }
+      else                  { hs.textContent='Stable';   hs.className='sensor-status';         hc.className='sensor-card'; removeSensorAlert('Humidity Critical Low'); removeSensorAlert('Humidity Low'); removeSensorAlert('Humidity High'); }
+    }
     if (data.npk) {
       if (data.npk.status === 'NORMAL') { ns.textContent='Balanced'; ns.className='sensor-status'; nc.className='sensor-card'; removeSensorAlert('NPK Imbalance'); }
-      else                              { ns.textContent=data.npk.status; ns.className='sensor-status warning'; nc.className='sensor-card warning-border'; pushSensorAlert('warning','NPK Imbalance', `NPK sensor reports: ${data.npk.status}. Check nutrient levels.`); }
+      else { ns.textContent=data.npk.status; ns.className='sensor-status warning'; nc.className='sensor-card warning-border'; pushSensorAlert('warning','NPK Imbalance',`NPK sensor reports: ${data.npk.status}.`); }
     }
   }).catch(() => {});
 }
 
-// ══════════════════════════════════════════════════════════
-//  DEVICE STATE SYNC — every 10s
-// ══════════════════════════════════════════════════════════
 function syncDeviceStates() {
   fetch('/api/devices/latest').then(r => r.ok ? r.json() : Promise.reject()).then(data => {
     const ps = document.getElementById('dash-pump-state');
@@ -897,9 +866,6 @@ function syncDeviceStates() {
   }).catch(() => {});
 }
 
-// ══════════════════════════════════════════════════════════
-//  ALERT COUNT POLLING — every 15s
-// ══════════════════════════════════════════════════════════
 function pollAlertCount() {
   fetch('/api/alerts/unread-count').then(r => r.ok ? r.json() : Promise.reject()).then(data => {
     const el = document.getElementById('alert-unread-label');
@@ -907,9 +873,7 @@ function pollAlertCount() {
   }).catch(() => {});
 }
 
-// ══════════════════════════════════════════════════════════
-//  HISTORY LOG
-// ══════════════════════════════════════════════════════════
+// HISTORY LOG
 function loadHistory() {
   const col   = document.getElementById('log-collection').value;
   const days  = document.getElementById('log-days').value;
@@ -936,9 +900,13 @@ function loadHistory() {
 function buildTable(col, records) {
   const t = document.createElement('table'); t.className = 'log-table';
   if (col === 'sensors') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th></tr></thead><tbody id="log-tbody"></tbody>`;
+    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th><th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th></tr></thead><tbody id="log-tbody"></tbody>`;
     const tb = t.querySelector('#log-tbody');
-    records.forEach(r => { const npk = r.npk || {}; const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td class="val">${r.temperature??'—'}</td><td class="val">${fmtMoist(r.soil_moisture)}</td><td>${npk.nitrogen??'—'}</td><td>${npk.phosphorus??'—'}</td><td>${npk.potassium??'—'}</td><td>${fmtNpk(npk.status)}</td>`; tb.appendChild(row); });
+    records.forEach(r => {
+      const npk = r.npk || {}; const row = document.createElement('tr');
+      row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td class="val">${r.temperature??'—'}</td><td class="val">${fmtMoist(r.soil_moisture)}</td><td class="val">${fmtHumid(r.humidity)}</td><td>${npk.nitrogen??'—'}</td><td>${npk.phosphorus??'—'}</td><td>${npk.potassium??'—'}</td><td>${fmtNpk(npk.status)}</td>`;
+      tb.appendChild(row);
+    });
   } else if (col === 'alerts') {
     t.innerHTML = `<thead><tr><th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th></tr></thead><tbody id="log-tbody"></tbody>`;
     const tb = t.querySelector('#log-tbody');
@@ -955,19 +923,17 @@ function buildTable(col, records) {
   return t;
 }
 
-function fmtMoist(v) { if (v == null) return '—'; return v < 43 ? `<span style="color:var(--orange);font-weight:600;">${v}</span>` : `<span style="color:var(--green-primary);font-weight:600;">${v}</span>`; }
-function fmtNpk(s)   { if (!s) return '—'; const c = s==='NORMAL'?'normal':s==='LOW'?'low':'error'; return `<span class="log-badge ${c}">${s}</span>`; }
-function fmtAlertType(t) { if (!t) return '—'; const c = {warning:'warning',info:'info',success:'success'}[t]||'info'; return `<span class="log-badge ${c}">${t.toUpperCase()}</span>`; }
-function fmtDevice(s)    { if (!s) return '—'; return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`; }
+function fmtMoist(v) { if (v==null) return '—'; return v<43?`<span style="color:var(--orange);font-weight:600;">${v}</span>`:`<span style="color:var(--green-primary);font-weight:600;">${v}</span>`; }
+function fmtHumid(v) { if (v==null) return '—'; return (v<70||v>90)?`<span style="color:var(--orange);font-weight:600;">${v}</span>`:`<span style="color:var(--blue);font-weight:600;">${v}</span>`; }
+function fmtNpk(s)   { if (!s) return '—'; const c=s==='NORMAL'?'normal':s==='LOW'?'low':'error'; return `<span class="log-badge ${c}">${s}</span>`; }
+function fmtAlertType(t) { if (!t) return '—'; const c={warning:'warning',info:'info',success:'success'}[t]||'info'; return `<span class="log-badge ${c}">${t.toUpperCase()}</span>`; }
+function fmtDevice(s) { if (!s) return '—'; return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`; }
 
 document.getElementById('log-refresh-btn').addEventListener('click', loadHistory);
 document.getElementById('log-collection').addEventListener('change', loadHistory);
 document.getElementById('log-days').addEventListener('change', loadHistory);
 document.getElementById('log-limit').addEventListener('change', loadHistory);
 
-// ══════════════════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════════════════
 renderAlerts();
 pollSensors();
 pollAlertCount();
