@@ -3,6 +3,7 @@ from flask import Flask, render_template, jsonify, request, Response
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
 from bson import ObjectId
+import uuid   # for command IDs
 from datetime import datetime, timedelta
 import csv, io, os, logging
 
