@@ -346,6 +346,72 @@ canvas { width:100%!important; }
         </div>
       </div>
 
+   <!-- AI Plant Detection -->
+
+      <div class="card card-pad" style="margin-bottom:14px;">
+  <h3 style="margin-bottom:10px;">AI Plant Detection</h3>
+
+ <div
+  style="
+    display:grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap:20px;
+    margin-top:20px;
+    width:100%;
+    align-items:stretch;
+  "
+>
+
+  <!-- CAMERA PANEL -->
+  <div
+    id="webcam-container"
+    style="
+      width:100%;
+      min-height:460px;
+      background:#f1fbf2;
+      border-radius:24px;
+      overflow:hidden;
+      border:2px solid #dcfce7;
+      position:relative;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:15px;
+    "
+  ></div>
+
+  <!-- AI ANALYSIS PANEL -->
+  <div
+    id="prediction-result"
+    style="
+      width:100%;
+      min-height:460px;
+      background:white;
+      border-radius:24px;
+      border:2px solid #dcfce7;
+      padding:30px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.06);
+      font-family:Arial;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    "
+  >
+
+    <h1 style="
+      color:#166534;
+      font-size:40px;
+      margin-bottom:20px;
+    ">
+      AI Crop Analysis
+    </h1>
+
+    <p>Waiting for AI...</p>
+
+  </div>
+  </div>
+</div>
+
       <div class="card card-pad">
         <div class="activity-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -942,5 +1008,237 @@ setInterval(pollSensors,       5000);
 setInterval(pollAlertCount,   15000);
 setInterval(syncDeviceStates, 10000);
 </script>
+
+//AI PLANT CLASSIFIER
+<!-- AI SCRIPT -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+
+<script>
+
+const URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
+
+let model, webcam;
+
+async function initAI() {
+
+    try {
+
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        model = await tmImage.load(modelURL, metadataURL);
+
+        webcam = new tmImage.Webcam(320, 120);
+
+        await webcam.setup();
+
+        await webcam.play();
+
+        const container =
+            document.getElementById("webcam-container");
+
+        container.innerHTML = "";
+
+       container.appendChild(webcam.canvas);
+
+/* CAMERA UI DESIGN */
+
+webcam.canvas.style.width = "100%";
+
+webcam.canvas.style.height = "100%";
+
+webcam.canvas.style.maxWidth = "100%";
+
+webcam.canvas.style.maxHeight = "100%";
+
+webcam.canvas.style.objectFit = "cover";
+
+webcam.canvas.style.display = "block";
+
+webcam.canvas.style.margin = "0 auto";
+
+webcam.canvas.style.borderRadius = "20px";
+
+webcam.canvas.style.border =
+  "4px solid #22c55e";
+
+webcam.canvas.style.boxShadow =
+  "0 10px 25px rgba(0,0,0,0.18)";
+
+webcam.canvas.style.background =
+  "#000";
+
+webcam.canvas.style.transition =
+  "0.3s ease-in-out";
+
+
+
+        document.getElementById("prediction-result").innerHTML =
+            "Camera Connected";
+
+        loop();
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("prediction-result").innerHTML =
+            "ERROR: " + error.message;
+    }
+}
+
+async function loop() {
+
+    webcam.update();
+
+    const predictions =
+        await model.predict(webcam.canvas);
+
+    let highest = predictions[0];
+
+    predictions.forEach((p) => {
+
+        if (p.probability > highest.probability) {
+
+            highest = p;
+        }
+    });
+
+    let statusText = "";
+
+if (highest.className === "early_stage") {
+
+    statusText = "Need More Time";
+
+} else if (highest.className === "mid_stage") {
+
+    statusText = "Approaching Harvest";
+
+} else if (highest.className === "mature_stage") {
+
+    statusText = "Ready for Harvest";
+}
+
+document.getElementById("prediction-result").innerHTML = `
+
+    <h2 style="
+        color:#15803d;
+        margin-bottom:18px;
+        font-size:24px;
+    ">
+        AI Crop Analysis
+    </h2>
+
+    <div style="
+        margin-bottom:16px;
+        background:#f4fbf4;
+        padding:16px;
+        border-radius:16px;
+    ">
+
+        <p style="
+            color:#6b7280;
+            font-size:13px;
+            margin-bottom:6px;
+            letter-spacing:1px;
+        ">
+            DETECTED STAGE
+        </p>
+
+        <h1 style="
+            color:#166534;
+            font-size:30px;
+            margin:0;
+            line-height:1.2;
+            text-transform:capitalize;
+        ">
+            ${highest.className}
+        </h1>
+
+    </div>
+
+    <div style="
+        margin-bottom:16px;
+        background:#f4fbf4;
+        padding:16px;
+        border-radius:16px;
+    ">
+
+        <p style="
+            color:#6b7280;
+            font-size:13px;
+            margin-bottom:6px;
+            letter-spacing:1px;
+        ">
+            CONFIDENCE LEVEL
+        </p>
+
+        <h2 style="
+            color:#22c55e;
+            font-size:26px;
+            margin:0;
+        ">
+            ${(highest.probability * 100).toFixed(1)}%
+        </h2>
+
+        <div style="
+            width:100%;
+            height:12px;
+            background:#dcfce7;
+            border-radius:20px;
+            margin-top:14px;
+            overflow:hidden;
+        ">
+
+            <div style="
+                width:${(highest.probability * 100).toFixed(1)}%;
+                height:100%;
+                background:#22c55e;
+                border-radius:20px;
+            "></div>
+
+        </div>
+
+    </div>
+
+    <div>
+
+        <p style="
+            color:#6b7280;
+            font-size:13px;
+            margin-bottom:6px;
+            letter-spacing:1px;
+        ">
+            STATUS
+        </p>
+
+        <div style="
+            background:#dcfce7;
+            color:#166534;
+            padding:16px;
+            border-radius:16px;
+            font-size:18px;
+            font-weight:bold;
+            text-align:center;
+        ">
+            ${statusText}
+        </div>
+
+    </div>
+`;
+
+    requestAnimationFrame(loop);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    initAI();
+});
+</script>
+
+
+
 </body>
 </html>
