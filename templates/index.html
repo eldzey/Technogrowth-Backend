@@ -57,9 +57,13 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .crop-img { width:36px; height:36px; border-radius:50%; background:var(--green-accent); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
 .crop-info strong { display:block; font-size:13px; font-weight:700; color:#fff; }
 .crop-info span   { font-size:10px; color:rgba(255,255,255,0.75); }
-.topbar-right { margin-left:auto; }
-.notif-btn { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+.live-indicator { display:flex; align-items:center; gap:5px; font-size:10px; color:rgba(255,255,255,0.8); }
+.live-dot { width:7px; height:7px; border-radius:50%; background:#69f0ae; box-shadow:0 0 6px #69f0ae; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+.notif-btn { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
 .notif-btn svg { width:16px; height:16px; color:#fff; }
+.notif-badge { position:absolute; top:-2px; right:-2px; min-width:16px; height:16px; border-radius:8px; background:#F44336; color:#fff; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px; display:none; }
 .page-section { display:none; padding:20px; }
 .page-section.active { display:block; }
 .card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); box-shadow:var(--shadow); }
@@ -73,7 +77,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .health-day svg { width:12px; height:12px; }
 .health-img { width:90px; height:70px; border-radius:var(--r); background:linear-gradient(135deg,#A5D6A7,#66BB6A); display:flex; align-items:center; justify-content:center; font-size:36px; flex-shrink:0; }
 .sensor-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
-.sensor-card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); }
+.sensor-card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); transition:border-color .2s; }
 .sensor-label { font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-bottom:6px; }
 .sensor-label svg { width:11px; height:11px; }
 .sensor-val { font-size:22px; font-weight:700; color:var(--text-dark); margin-bottom:4px; }
@@ -92,8 +96,11 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .device-row:last-child { border-bottom:none; }
 .device-name { font-size:12px; color:var(--text-mid); display:flex; align-items:center; gap:6px; }
 .device-name svg { width:12px; height:12px; color:var(--text-muted); }
-.device-state { font-size:11px; font-weight:500; color:var(--text-muted); }
+.device-state { font-size:11px; font-weight:600; }
+.device-state.on  { color:var(--green-primary); }
+.device-state.off { color:var(--text-muted); }
 .mode-note { font-size:10px; color:var(--text-light); margin-top:6px; font-style:italic; }
+.last-updated { font-size:10px; color:var(--text-light); margin-top:4px; }
 .analytics-header { background:var(--green-primary); border-radius:var(--r); padding:14px 18px; margin-bottom:14px; display:flex; align-items:flex-start; justify-content:space-between; }
 .analytics-header-left strong { font-size:15px; font-weight:700; color:#fff; display:block; }
 .analytics-header-left span   { font-size:11px; color:rgba(255,255,255,.7); }
@@ -110,6 +117,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .stat-pill-label { font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-bottom:4px; }
 .stat-pill-label svg { width:11px; height:11px; }
 .stat-pill-val { font-size:22px; font-weight:700; color:var(--text-dark); }
+.stat-pill-sub { font-size:9px; color:var(--text-light); margin-top:2px; }
 .weekly-perf { margin-bottom:14px; }
 .perf-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .perf-card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); }
@@ -124,6 +132,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .tab-btn:not(.active) { background:var(--green-light); border-color:transparent; color:var(--green-primary); }
 .chart-label { font-size:12px; font-weight:700; color:var(--text-dark); margin-bottom:4px; }
 .on-track { font-size:10px; font-weight:600; color:var(--green-primary); background:var(--green-light); padding:2px 8px; border-radius:99px; }
+.on-track.warn { color:var(--orange); background:var(--orange-light); }
 .chart-legend { display:flex; gap:12px; margin-bottom:8px; }
 .legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-muted); }
 .legend-dot { width:8px; height:8px; border-radius:50%; }
@@ -228,6 +237,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .log-page-btn:hover:not(:disabled) { background:var(--green-light); border-color:var(--green-accent); color:var(--green-primary); }
 .log-page-btn:disabled { opacity:.4; cursor:not-allowed; }
 canvas { width:100%!important; }
+.chart-loading { display:flex; align-items:center; justify-content:center; height:100%; min-height:80px; font-size:11px; color:var(--text-muted); gap:6px; }
 </style>
 </head>
 <body>
@@ -277,8 +287,10 @@ canvas { width:100%!important; }
         </div>
       </div>
       <div class="topbar-right">
-        <div class="notif-btn" onclick="document.querySelector('[data-page=alerts]').click()">
+        <div class="live-indicator"><div class="live-dot"></div>LIVE</div>
+        <div class="notif-btn" onclick="switchPage('alerts')">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notif-badge"></span>
         </div>
       </div>
     </div>
@@ -297,7 +309,7 @@ canvas { width:100%!important; }
           </div>
           <div class="health-day">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
-            Stage: <span id="dash-stage-label" style="margin-left:3px;">Loading…</span>
+            Stage: <span id="dash-stage-label" style="margin-left:3px;font-weight:600;">Loading…</span>
           </div>
         </div>
         <div class="health-img">🥬</div>
@@ -349,7 +361,7 @@ canvas { width:100%!important; }
       <div class="card card-pad">
         <div class="activity-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Last 24 Hours
+          Device Status
         </div>
         <div class="device-row">
           <div class="device-name">
@@ -366,6 +378,7 @@ canvas { width:100%!important; }
           <div class="device-state" id="dash-fan-state">—</div>
         </div>
         <div class="mode-note" id="dash-mode-note">Mode: AUTO · Syncing…</div>
+        <div class="last-updated" id="dash-last-updated"></div>
         <div style="height:130px;margin-top:12px;">
           <canvas id="dashChart"></canvas>
         </div>
@@ -377,7 +390,7 @@ canvas { width:100%!important; }
       <div class="analytics-header">
         <div class="analytics-header-left">
           <strong>Analytics</strong>
-          <span>Environment &amp; Nutrient Data</span>
+          <span id="analytics-data-range">Last 7 days · Live from MongoDB</span>
         </div>
         <div class="export-wrap">
           <button class="export-btn" id="exportBtn">
@@ -388,10 +401,6 @@ canvas { width:100%!important; }
             <a class="export-opt" href="/export/csv">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               Export CSV
-            </a>
-            <a class="export-opt" href="/export/pdf">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Export PDF
             </a>
           </div>
         </div>
@@ -404,6 +413,7 @@ canvas { width:100%!important; }
             Avg Temperature (7d)
           </div>
           <div class="stat-pill-val" id="avg-temp-pill">—</div>
+          <div class="stat-pill-sub" id="avg-temp-status"></div>
         </div>
         <div class="stat-pill">
           <div class="stat-pill-label">
@@ -411,6 +421,7 @@ canvas { width:100%!important; }
             Avg Soil Moisture (7d)
           </div>
           <div class="stat-pill-val" id="avg-moist-pill">—</div>
+          <div class="stat-pill-sub" id="avg-moist-status"></div>
         </div>
         <div class="stat-pill">
           <div class="stat-pill-label">
@@ -418,6 +429,7 @@ canvas { width:100%!important; }
             Avg Air Humidity (7d)
           </div>
           <div class="stat-pill-val" id="avg-humid-pill">—</div>
+          <div class="stat-pill-sub" id="avg-humid-status"></div>
         </div>
       </div>
 
@@ -451,32 +463,42 @@ canvas { width:100%!important; }
       <div class="tab-panel" id="tab-environment">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div class="chart-label">Temperature (Last 7 Days)</div>
-          <span class="on-track">Stable</span>
+          <span class="on-track" id="temp-track-badge">Stable</span>
         </div>
         <div class="chart-legend">
           <div class="legend-item"><div class="legend-dot" style="background:#F44336;"></div>Temperature °C</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(244,67,54,0.3);"></div>Optimal Range</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(244,67,54,0.3);"></div>Optimal Range (25–30°C)</div>
         </div>
-        <div style="height:140px;"><canvas id="envTempChart"></canvas></div>
+        <div style="height:140px;position:relative;" id="envTempWrap">
+          <div class="chart-loading"><div class="spinner"></div>Loading…</div>
+          <canvas id="envTempChart" style="display:none;"></canvas>
+        </div>
 
         <div style="margin-top:14px;">
           <div class="chart-label" style="margin-bottom:6px;">Soil Moisture (Last 7 Days)</div>
           <div class="chart-legend">
             <div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>Soil Moisture %</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(76,175,80,0.3);"></div>Optimal Min (43%)</div>
           </div>
-          <div style="height:120px;"><canvas id="envMoistChart"></canvas></div>
+          <div style="height:120px;position:relative;" id="envMoistWrap">
+            <div class="chart-loading"><div class="spinner"></div>Loading…</div>
+            <canvas id="envMoistChart" style="display:none;"></canvas>
+          </div>
         </div>
 
         <div style="margin-top:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <div class="chart-label">Air Humidity (Last 7 Days)</div>
-            <span class="on-track">Stable</span>
+            <span class="on-track" id="humid-track-badge">Stable</span>
           </div>
           <div class="chart-legend">
             <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>Air Humidity %</div>
             <div class="legend-item"><div class="legend-dot" style="background:rgba(33,150,243,0.3);"></div>Optimal Range (70–85%)</div>
           </div>
-          <div style="height:120px;"><canvas id="envHumidChart"></canvas></div>
+          <div style="height:120px;position:relative;" id="envHumidWrap">
+            <div class="chart-loading"><div class="spinner"></div>Loading…</div>
+            <canvas id="envHumidChart" style="display:none;"></canvas>
+          </div>
         </div>
 
         <div class="env-note">
@@ -488,7 +510,7 @@ canvas { width:100%!important; }
           <div class="metric-row"><span class="metric-name">Avg Temperature (7d)</span><span class="metric-val" id="sum-avg-temp">—</span></div>
           <div class="metric-row"><span class="metric-name">Avg Soil Moisture (7d)</span><span class="metric-val orange" id="sum-avg-moist">—</span></div>
           <div class="metric-row"><span class="metric-name">Avg Air Humidity (7d)</span><span class="metric-val blue" id="sum-avg-humid">—</span></div>
-          <div class="metric-row"><span class="metric-name">Overall Status</span><span class="metric-val green">Stable</span></div>
+          <div class="metric-row"><span class="metric-name">Overall Status</span><span class="metric-val green" id="sum-overall-status">Stable</span></div>
         </div>
       </div>
 
@@ -496,20 +518,26 @@ canvas { width:100%!important; }
       <div class="tab-panel" id="tab-nutrients" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div class="chart-label">NPK Levels (Last 7 Days)</div>
-          <span class="on-track">Balanced</span>
+          <span class="on-track" id="npk-track-badge">Balanced</span>
         </div>
         <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>N</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#FF9800;"></div>P</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>K</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>Nitrogen (N)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FF9800;"></div>Phosphorus (P)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>Potassium (K)</div>
         </div>
-        <div style="height:180px;"><canvas id="npkChart"></canvas></div>
+        <div style="height:180px;position:relative;" id="npkWrap">
+          <div class="chart-loading"><div class="spinner"></div>Loading…</div>
+          <canvas id="npkChart" style="display:none;"></canvas>
+        </div>
         <div class="env-note" style="margin-top:10px;">
-          <strong style="color:var(--green-primary);">Nutrient Note:</strong> NPK levels read from RS-485 sensor via Modbus RTU.
+          <strong style="color:var(--green-primary);">Nutrient Note:</strong> NPK levels read from RS-485 sensor via Modbus RTU. Units: mg/kg.
         </div>
         <div style="margin-top:16px;">
-          <div class="chart-label" style="margin-bottom:8px;">Current NPK Breakdown</div>
-          <div style="height:120px;"><canvas id="npkBarChart"></canvas></div>
+          <div class="chart-label" style="margin-bottom:8px;">Current vs Optimal NPK</div>
+          <div style="height:130px;position:relative;" id="npkBarWrap">
+            <div class="chart-loading"><div class="spinner"></div>Loading…</div>
+            <canvas id="npkBarChart" style="display:none;"></canvas>
+          </div>
         </div>
         <div class="key-metrics">
           <div class="section-title" style="margin-top:14px;">Nutrient Summary</div>
@@ -608,168 +636,471 @@ canvas { width:100%!important; }
 </div>
 
 <script>
-// NAVIGATION
-document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    item.classList.add('active');
-    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-    document.getElementById('page-' + item.dataset.page).classList.add('active');
-    if (item.dataset.page === 'history') setTimeout(loadHistory, 50);
+// ═══════════════════════════════════════════
+//  SHARED LIVE DATA STORE
+// ═══════════════════════════════════════════
+const liveData = {
+  temperature:    null,
+  soil_moisture:  null,
+  humidity:       null,
+  npk:            null,
+  stage:          null,
+  pump:           null,
+  fan:            null,
+  auto_mode:      null,
+  timestamp:      null,
+  historyData:    null,  // cached /api/history response
+  npkTrendData:   null,  // cached /api/npk-trend response
+};
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+function switchPage(page) {
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.page === page);
   });
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+
+  if (page === 'history') loadHistory();
+  if (page === 'analytics') refreshAnalytics();
+  if (page === 'alerts') loadServerAlerts();
+}
+
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => switchPage(item.dataset.page));
 });
 
-// ANALYTICS TABS
-const tabChartInited = {};
+// ═══════════════════════════════════════════
+//  ANALYTICS TABS
+// ═══════════════════════════════════════════
 document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
     document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
-    if (!tabChartInited[btn.dataset.tab]) {
-      tabChartInited[btn.dataset.tab] = true;
-      if (btn.dataset.tab === 'environment') initEnvCharts();
-      if (btn.dataset.tab === 'nutrients')   initNutrientCharts();
-    }
+    if (btn.dataset.tab === 'nutrients') renderNutrientCharts();
   });
 });
 
-// EXPORT DROPDOWN
+// ═══════════════════════════════════════════
+//  EXPORT DROPDOWN
+// ═══════════════════════════════════════════
 const exportBtn = document.getElementById('exportBtn');
 const exportDD  = document.getElementById('exportDropdown');
 exportBtn.addEventListener('click', e => { e.stopPropagation(); exportDD.classList.toggle('open'); });
 document.addEventListener('click', () => exportDD.classList.remove('open'));
 
-// CHART DEFAULTS
-const cOpts = (extra={}) => ({
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend:{ display:false }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } },
-  scales: { x:{ ticks:{ color:'#aaa', font:{ size:10 } }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa', font:{ size:10 } }, grid:{ color:'rgba(0,0,0,0.04)' } } },
-  ...extra
+// ═══════════════════════════════════════════
+//  CHART HELPERS
+// ═══════════════════════════════════════════
+const chartInstances = {};
+
+function destroyChart(id) {
+  if (chartInstances[id]) {
+    chartInstances[id].destroy();
+    delete chartInstances[id];
+  }
+}
+
+function showCanvas(wrapId, canvasId) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const loader = wrap.querySelector('.chart-loading');
+  const canvas = document.getElementById(canvasId);
+  if (loader) loader.style.display = 'none';
+  if (canvas) canvas.style.display = 'block';
+}
+
+function showLoader(wrapId, canvasId) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const loader = wrap.querySelector('.chart-loading');
+  const canvas = document.getElementById(canvasId);
+  if (loader) loader.style.display = 'flex';
+  if (canvas) canvas.style.display = 'none';
+}
+
+const baseOpts = (overrides = {}) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#fff', titleColor: '#333', bodyColor: '#555',
+      borderColor: '#e0e0e0', borderWidth: 1, padding: 8,
+      callbacks: {}
+    }
+  },
+  scales: {
+    x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+    y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }
+  },
+  ...overrides
 });
 
-// DASHBOARD MINI CHART — temp + humidity overlay
-new Chart(document.getElementById('dashChart'), {
+function computeAvg(arr) {
+  const v = (arr || []).filter(x => x != null);
+  return v.length ? parseFloat((v.reduce((a, b) => a + b, 0) / v.length).toFixed(1)) : null;
+}
+
+function setIds(ids, text) {
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = text; });
+}
+
+// ═══════════════════════════════════════════
+//  DASHBOARD MINI CHART
+// ═══════════════════════════════════════════
+const dashChartData = {
+  labels: [],
+  temps: [],
+  humids: [],
+};
+
+const dashChart = new Chart(document.getElementById('dashChart'), {
   type: 'line',
   data: {
-    labels: ['6am','8am','10am','12pm','2pm','4pm','6pm','8pm','10pm','12am'],
+    labels: dashChartData.labels,
     datasets: [
-      { label:'Temp °C', data:[28,27.5,28.2,29,29.4,29.1,28.8,28.5,28.2,28], borderColor:'#F44336', backgroundColor:'rgba(244,67,54,0.07)', tension:0.4, pointRadius:2, borderWidth:2, fill:true },
-      { label:'Humidity %', data:[78,76,75,74,76,77,79,80,78,77], borderColor:'#2196F3', backgroundColor:'rgba(33,150,243,0.06)', tension:0.4, pointRadius:2, borderWidth:2, fill:true }
+      {
+        label: 'Temp °C',
+        data: dashChartData.temps,
+        borderColor: '#F44336', backgroundColor: 'rgba(244,67,54,0.07)',
+        tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true
+      },
+      {
+        label: 'Humidity %',
+        data: dashChartData.humids,
+        borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.06)',
+        tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true
+      }
     ]
   },
-  options: { ...cOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:12 } }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } } }
+  options: {
+    ...baseOpts(),
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, color: '#888', padding: 12 } },
+      tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#666', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 }
+    }
+  }
 });
 
-// ENV CHARTS
-function avg(arr) { const v = arr.filter(x => x != null); return v.length ? (v.reduce((a,b) => a+b, 0) / v.length).toFixed(1) : null; }
+function updateDashChart(temp, humid) {
+  const now = new Date();
+  const label = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+  if (dashChartData.labels.length >= 20) {
+    dashChartData.labels.shift();
+    dashChartData.temps.shift();
+    dashChartData.humids.shift();
+  }
+  dashChartData.labels.push(label);
+  dashChartData.temps.push(temp);
+  dashChartData.humids.push(humid);
+  dashChart.update('none');
+}
 
-function initEnvCharts() {
-  fetch('/api/history').then(r => r.json()).then(data => {
-    const at = avg(data.temperature), am = avg(data.soil_moisture), ah = avg(data.humidity);
-    if (at) ['avg-temp-pill','perf-temp','sum-avg-temp'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = at + '°C'; });
-    if (am) ['avg-moist-pill','perf-moist','sum-avg-moist'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = am + '%'; });
-    if (ah) ['avg-humid-pill','perf-humid','sum-avg-humid'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ah + '%'; });
+// ═══════════════════════════════════════════
+//  ENV CHARTS
+// ═══════════════════════════════════════════
+function renderEnvCharts(data) {
+  const at = computeAvg(data.temperature);
+  const am = computeAvg(data.soil_moisture);
+  const ah = computeAvg(data.humidity);
 
-    new Chart(document.getElementById('envTempChart'), { type:'line', data:{ labels:data.labels, datasets:[
-      { data:data.temperature, borderColor:'#F44336', backgroundColor:'rgba(244,67,54,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true, pointBackgroundColor:'#F44336' },
-      { data:Array(data.labels.length).fill(data.temp_optimal.max), borderColor:'rgba(244,67,54,0.25)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false },
-      { data:Array(data.labels.length).fill(data.temp_optimal.min), borderColor:'rgba(244,67,54,0.25)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false }
-    ]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:22, max:32 } } } });
+  if (at != null) {
+    setIds(['avg-temp-pill', 'perf-temp', 'sum-avg-temp'], at + '°C');
+    const ok = at >= 25 && at <= 30;
+    const el = document.getElementById('avg-temp-status');
+    if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Outside optimal range'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
+    const badge = document.getElementById('temp-track-badge');
+    if (badge) { badge.textContent = ok ? 'Stable' : 'Watch'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
+  }
+  if (am != null) {
+    setIds(['avg-moist-pill', 'perf-moist', 'sum-avg-moist'], am + '%');
+    const ok = am >= 43 && am <= 60;
+    const el = document.getElementById('avg-moist-status');
+    if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Check irrigation'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
+  }
+  if (ah != null) {
+    setIds(['avg-humid-pill', 'perf-humid', 'sum-avg-humid'], ah + '%');
+    const ok = ah >= 70 && ah <= 85;
+    const el = document.getElementById('avg-humid-status');
+    if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Outside optimal range'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
+    const badge = document.getElementById('humid-track-badge');
+    if (badge) { badge.textContent = ok ? 'Stable' : 'Watch'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
+  }
 
-    new Chart(document.getElementById('envMoistChart'), { type:'line', data:{ labels:data.labels, datasets:[
-      { data:data.soil_moisture, borderColor:'#4CAF50', backgroundColor:'rgba(76,175,80,0.08)', tension:0.4, pointRadius:3, borderWidth:2, fill:true, pointBackgroundColor:'#4CAF50' },
-      { data:Array(data.labels.length).fill(data.moist_optimal.min), borderColor:'rgba(76,175,80,0.35)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false }
-    ]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:20, max:70 } } } });
+  // Trend change labels (first vs last)
+  function trendLabel(arr, suffix) {
+    const v = (arr || []).filter(x => x != null);
+    if (v.length < 2) return '';
+    const diff = parseFloat((v[v.length - 1] - v[0]).toFixed(1));
+    return (diff >= 0 ? '▲ +' : '▼ ') + diff + suffix + ' vs 7 days ago';
+  }
+  const tc = document.getElementById('perf-temp-change');
+  const mc = document.getElementById('perf-moist-change');
+  const hc = document.getElementById('perf-humid-change');
+  if (tc) { const s = trendLabel(data.temperature, '°C'); const up = s.startsWith('▲'); tc.textContent = s; tc.className = 'perf-change ' + (up ? 'up' : 'down'); }
+  if (mc) { const s = trendLabel(data.soil_moisture, '%'); const up = s.startsWith('▲'); mc.textContent = s; mc.className = 'perf-change ' + (up ? 'up' : 'down'); }
+  if (hc) { const s = trendLabel(data.humidity, '%'); const up = s.startsWith('▲'); hc.textContent = s; hc.className = 'perf-change ' + (up ? 'up' : 'down'); }
 
-    const hd = data.humidity || [];
-    new Chart(document.getElementById('envHumidChart'), { type:'line', data:{ labels:data.labels, datasets:[
-      { data:hd, borderColor:'#2196F3', backgroundColor:'rgba(33,150,243,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true, pointBackgroundColor:'#2196F3' },
-      { data:Array(data.labels.length).fill(data.humid_optimal ? data.humid_optimal.max : 85), borderColor:'rgba(33,150,243,0.3)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false },
-      { data:Array(data.labels.length).fill(data.humid_optimal ? data.humid_optimal.min : 70), borderColor:'rgba(33,150,243,0.3)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false }
-    ]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:50, max:100 } } } });
-  }).catch(() => {
-    const labels = ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'];
-    const fT = [28.1,28.6,29.0,28.8,29.4,29.1,29.0];
-    const fM = [54,51,48,45,40,43,42];
-    const fH = [78,76,80,82,79,75,77];
-    ['avg-temp-pill','perf-temp','sum-avg-temp'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '28.9°C'; });
-    ['avg-moist-pill','perf-moist','sum-avg-moist'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '46.0%'; });
-    ['avg-humid-pill','perf-humid','sum-avg-humid'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '78.1%'; });
-    new Chart(document.getElementById('envTempChart'), { type:'line', data:{ labels, datasets:[{ data:fT, borderColor:'#F44336', backgroundColor:'rgba(244,67,54,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true }]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:22, max:32 } } } });
-    new Chart(document.getElementById('envMoistChart'), { type:'line', data:{ labels, datasets:[{ data:fM, borderColor:'#4CAF50', backgroundColor:'rgba(76,175,80,0.08)', tension:0.4, pointRadius:3, borderWidth:2, fill:true }]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:20, max:70 } } } });
-    new Chart(document.getElementById('envHumidChart'), { type:'line', data:{ labels, datasets:[
-      { data:fH, borderColor:'#2196F3', backgroundColor:'rgba(33,150,243,0.07)', tension:0.4, pointRadius:3, borderWidth:2, fill:true, pointBackgroundColor:'#2196F3' },
-      { data:Array(7).fill(85), borderColor:'rgba(33,150,243,0.3)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false },
-      { data:Array(7).fill(70), borderColor:'rgba(33,150,243,0.3)', borderDash:[4,4], pointRadius:0, borderWidth:1, fill:false }
-    ]}, options:{ ...cOpts(), scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:50, max:100 } } } });
+  // Overall status
+  const statEl = document.getElementById('sum-overall-status');
+  if (statEl) {
+    const issues = [];
+    if (at != null && (at < 25 || at > 30)) issues.push('temperature');
+    if (am != null && (am < 43 || am > 60)) issues.push('moisture');
+    if (ah != null && (ah < 70 || ah > 85)) issues.push('humidity');
+    statEl.textContent = issues.length ? 'Watch: ' + issues.join(', ') : 'Stable';
+    statEl.className = 'metric-val ' + (issues.length ? 'orange' : 'green');
+  }
+
+  // Temperature chart
+  destroyChart('envTempChart');
+  showCanvas('envTempWrap', 'envTempChart');
+  chartInstances['envTempChart'] = new Chart(document.getElementById('envTempChart'), {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [
+        { data: data.temperature, borderColor: '#F44336', backgroundColor: 'rgba(244,67,54,0.08)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#F44336', label: 'Temp °C' },
+        { data: Array(data.labels.length).fill(data.temp_optimal.max), borderColor: 'rgba(244,67,54,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' },
+        { data: Array(data.labels.length).fill(data.temp_optimal.min), borderColor: 'rgba(244,67,54,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' }
+      ]
+    },
+    options: { ...baseOpts(), scales: { x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' }, min: 20, max: 35 } } }
+  });
+
+  // Soil moisture chart
+  destroyChart('envMoistChart');
+  showCanvas('envMoistWrap', 'envMoistChart');
+  chartInstances['envMoistChart'] = new Chart(document.getElementById('envMoistChart'), {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [
+        { data: data.soil_moisture, borderColor: '#4CAF50', backgroundColor: 'rgba(76,175,80,0.08)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#4CAF50', label: 'Moisture %' },
+        { data: Array(data.labels.length).fill(data.moist_optimal.min), borderColor: 'rgba(76,175,80,0.4)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' },
+        { data: Array(data.labels.length).fill(data.moist_optimal.max), borderColor: 'rgba(76,175,80,0.4)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' }
+      ]
+    },
+    options: { ...baseOpts(), scales: { x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' }, min: 10, max: 80 } } }
+  });
+
+  // Humidity chart
+  destroyChart('envHumidChart');
+  showCanvas('envHumidWrap', 'envHumidChart');
+  const humidOpt = data.humid_optimal || { min: 70, max: 85 };
+  chartInstances['envHumidChart'] = new Chart(document.getElementById('envHumidChart'), {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [
+        { data: data.humidity, borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.07)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#2196F3', label: 'Humidity %' },
+        { data: Array(data.labels.length).fill(humidOpt.max), borderColor: 'rgba(33,150,243,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' },
+        { data: Array(data.labels.length).fill(humidOpt.min), borderColor: 'rgba(33,150,243,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' }
+      ]
+    },
+    options: { ...baseOpts(), scales: { x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' }, min: 40, max: 100 } } }
   });
 }
 
-// NUTRIENT CHARTS
-function initNutrientCharts() {
-  fetch('/api/npk-trend').then(r => r.json()).then(data => {
-    const c = data.current;
-    if (c) {
-      document.getElementById('npk-n-val').textContent      = c.nitrogen   != null ? c.nitrogen   + ' mg/kg' : '—';
-      document.getElementById('npk-p-val').textContent      = c.phosphorus != null ? c.phosphorus + ' mg/kg' : '—';
-      document.getElementById('npk-k-val').textContent      = c.potassium  != null ? c.potassium  + ' mg/kg' : '—';
-      document.getElementById('npk-status-val').textContent = c.status ?? 'NORMAL';
+// ═══════════════════════════════════════════
+//  NUTRIENT CHARTS
+// ═══════════════════════════════════════════
+function renderNutrientCharts() {
+  const data = liveData.npkTrendData;
+  if (!data) return;
+
+  const c = data.current;
+  if (c) {
+    document.getElementById('npk-n-val').textContent      = c.nitrogen   != null ? c.nitrogen   + ' mg/kg' : '—';
+    document.getElementById('npk-p-val').textContent      = c.phosphorus != null ? c.phosphorus + ' mg/kg' : '—';
+    document.getElementById('npk-k-val').textContent      = c.potassium  != null ? c.potassium  + ' mg/kg' : '—';
+    document.getElementById('npk-status-val').textContent = c.status ?? 'NORMAL';
+    const badge = document.getElementById('npk-track-badge');
+    if (badge) { const ok = (c.status ?? 'NORMAL') === 'NORMAL'; badge.textContent = ok ? 'Balanced' : 'Imbalanced'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
+  }
+
+  destroyChart('npkChart');
+  showCanvas('npkWrap', 'npkChart');
+  chartInstances['npkChart'] = new Chart(document.getElementById('npkChart'), {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [
+        { label: 'N', data: data.nitrogen,   borderColor: '#4CAF50', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, borderWidth: 2, pointBackgroundColor: '#4CAF50' },
+        { label: 'P', data: data.phosphorus, borderColor: '#FF9800', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, borderWidth: 2, pointBackgroundColor: '#FF9800' },
+        { label: 'K', data: data.potassium,  borderColor: '#2196F3', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, borderWidth: 2, pointBackgroundColor: '#2196F3' }
+      ]
+    },
+    options: {
+      ...baseOpts(),
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, color: '#888', padding: 10 } },
+        tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#666', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 }
+      }
     }
-    new Chart(document.getElementById('npkChart'), { type:'line', data:{ labels:data.labels, datasets:[
-      { label:'N', data:data.nitrogen,   borderColor:'#4CAF50', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#4CAF50' },
-      { label:'P', data:data.phosphorus, borderColor:'#FF9800', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#FF9800' },
-      { label:'K', data:data.potassium,  borderColor:'#2196F3', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#2196F3' }
-    ]}, options:cOpts() });
-    const o = data.optimal;
-    new Chart(document.getElementById('npkBarChart'), { type:'bar', data:{ labels:['N','P','K'], datasets:[
-      { label:'Current', data:[c.nitrogen,c.phosphorus,c.potassium], backgroundColor:['#4CAF50','#FF9800','#2196F3'], borderRadius:5, borderSkipped:false },
-      { label:'Optimal', data:[o.nitrogen,o.phosphorus,o.potassium], backgroundColor:['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'], borderRadius:5, borderSkipped:false }
-    ]}, options:{ ...cOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:12 } }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } }, scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ display:false } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:0, max:60 } } } });
-  }).catch(() => {
-    const labels = ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'];
-    new Chart(document.getElementById('npkChart'), { type:'line', data:{ labels, datasets:[
-      { data:[42,43,44,44,45,45,45], borderColor:'#4CAF50', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2 },
-      { data:[30,31,31,32,32,32,32], borderColor:'#FF9800', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2 },
-      { data:[26,26,27,27,28,28,28], borderColor:'#2196F3', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2 }
-    ]}, options:cOpts() });
-    new Chart(document.getElementById('npkBarChart'), { type:'bar', data:{ labels:['N','P','K'], datasets:[
-      { label:'Current', data:[45,32,28], backgroundColor:['#4CAF50','#FF9800','#2196F3'], borderRadius:5, borderSkipped:false },
-      { label:'Optimal', data:[50,35,30], backgroundColor:['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'], borderRadius:5, borderSkipped:false }
-    ]}, options:{ ...cOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:12 } }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } }, scales:{ x:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ display:false } }, y:{ ticks:{ color:'#aaa',font:{size:10} }, grid:{ color:'rgba(0,0,0,0.04)' }, min:0, max:60 } } } });
   });
+
+  if (c && data.optimal) {
+    destroyChart('npkBarChart');
+    showCanvas('npkBarWrap', 'npkBarChart');
+    chartInstances['npkBarChart'] = new Chart(document.getElementById('npkBarChart'), {
+      type: 'bar',
+      data: {
+        labels: ['N (Nitrogen)', 'P (Phosphorus)', 'K (Potassium)'],
+        datasets: [
+          { label: 'Current', data: [c.nitrogen, c.phosphorus, c.potassium], backgroundColor: ['#4CAF50','#FF9800','#2196F3'], borderRadius: 5, borderSkipped: false },
+          { label: 'Optimal', data: [data.optimal.nitrogen, data.optimal.phosphorus, data.optimal.potassium], backgroundColor: ['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'], borderRadius: 5, borderSkipped: false }
+        ]
+      },
+      options: {
+        ...baseOpts(),
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, color: '#888', padding: 10 } },
+          tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#666', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 }
+        },
+        scales: {
+          x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' }, min: 0, max: 80 }
+        }
+      }
+    });
+  }
 }
 
-tabChartInited['environment'] = true;
-initEnvCharts();
+// ═══════════════════════════════════════════
+//  ANALYTICS REFRESH (fetches fresh data)
+// ═══════════════════════════════════════════
+function refreshAnalytics() {
+  // Show loaders
+  ['envTempWrap','envMoistWrap','envHumidWrap','npkWrap','npkBarWrap'].forEach(id => {
+    const wrap = document.getElementById(id);
+    if (!wrap) return;
+    const canvasId = wrap.querySelector('canvas')?.id;
+    if (canvasId) showLoader(id, canvasId);
+  });
 
-// ALERTS
+  fetch('/api/history')
+    .then(r => r.ok ? r.json() : Promise.reject('History API failed'))
+    .then(data => {
+      liveData.historyData = data;
+      renderEnvCharts(data);
+    })
+    .catch(err => {
+      console.warn('History fetch failed, using fallback:', err);
+      // Fallback demo data
+      const fallback = {
+        labels: ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'],
+        temperature:   [28.1,28.6,29.0,28.8,29.4,29.1,29.0],
+        soil_moisture: [54,51,48,45,40,43,42],
+        humidity:      [78,76,80,82,79,75,77],
+        temp_optimal:  { min: 25, max: 30 },
+        moist_optimal: { min: 43, max: 60 },
+        humid_optimal: { min: 70, max: 85 },
+      };
+      // Blend live current reading into fallback for accuracy
+      if (liveData.temperature != null) fallback.temperature[fallback.temperature.length - 1] = liveData.temperature;
+      if (liveData.soil_moisture != null) fallback.soil_moisture[fallback.soil_moisture.length - 1] = liveData.soil_moisture;
+      if (liveData.humidity != null) fallback.humidity[fallback.humidity.length - 1] = liveData.humidity;
+      liveData.historyData = fallback;
+      renderEnvCharts(fallback);
+    });
+
+  fetch('/api/npk-trend')
+    .then(r => r.ok ? r.json() : Promise.reject('NPK API failed'))
+    .then(data => {
+      liveData.npkTrendData = data;
+      // Only render if nutrients tab is active
+      const nutrientsTab = document.getElementById('tab-nutrients');
+      if (nutrientsTab && nutrientsTab.style.display !== 'none') renderNutrientCharts();
+    })
+    .catch(() => {
+      liveData.npkTrendData = {
+        labels: ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'],
+        nitrogen:   [42,43,44,44,45,45,45],
+        phosphorus: [30,31,31,32,32,32,32],
+        potassium:  [26,26,27,27,28,28,28],
+        current: { nitrogen: liveData.npk?.nitrogen ?? 45, phosphorus: liveData.npk?.phosphorus ?? 32, potassium: liveData.npk?.potassium ?? 28, status: liveData.npk?.status ?? 'NORMAL' },
+        optimal: { nitrogen: 50, phosphorus: 35, potassium: 30 },
+      };
+      const nutrientsTab = document.getElementById('tab-nutrients');
+      if (nutrientsTab && nutrientsTab.style.display !== 'none') renderNutrientCharts();
+    });
+}
+
+// ═══════════════════════════════════════════
+//  ALERTS
+// ═══════════════════════════════════════════
+let alertsData = [];
 let currentFilter = 'all';
-const alertsData = [
-  { id:1, type:'warning', title:'Soil Moisture Low',         desc:'Soil moisture has dropped to 42%. Optimal is 43–60%. Consider irrigation.',        time:'2 hours ago', read:false },
-  { id:2, type:'warning', title:'Temperature Rising',        desc:'Temperature increased to 29°C. Approaching upper limit (30°C). Monitor closely.',   time:'1 day ago',   read:true  },
-  { id:3, type:'info',    title:'Auto Irrigation Completed', desc:'Irrigation pump ran for 2 hours as scheduled by threshold trigger.',                  time:'2 hours ago', read:false },
-  { id:4, type:'success', title:'Optimal Conditions',        desc:'All sensor readings within ideal ranges. Temperature, humidity, and NPK stable.',     time:'1 day ago',   read:true  },
-];
-let alertIdCounter = 100;
+let alertIdCounter = 1000;
 
 const alertIconMap = {
   warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
   info:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
   success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
 };
-const alertColorMap = { warning:'orange', info:'blue', success:'green' };
+const alertColorMap = { warning: 'orange', info: 'blue', success: 'green' };
+
+// Load alerts from server and merge with any local ones
+function loadServerAlerts() {
+  fetch('/api/alerts?limit=50')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      if (data.records && data.records.length) {
+        // Replace server records (keep local-only ones)
+        const localOnly = alertsData.filter(a => a._local);
+        const serverAlerts = data.records.map(r => ({
+          id: r._id,
+          type: r.type || 'warning',
+          title: r.title || 'Alert',
+          desc: r.desc || '',
+          time: r.timestamp || '—',
+          read: r.read || false,
+          _server: true
+        }));
+        alertsData = [...localOnly, ...serverAlerts];
+        renderAlerts();
+      }
+    })
+    .catch(() => {
+      // Keep existing alerts if API fails
+      if (!alertsData.length) {
+        // Seed defaults when completely offline
+        alertsData = [
+          { id: 1, type: 'info', title: 'System Started', desc: 'Dashboard loaded. Connect your Raspberry Pi to see live alerts.', time: 'Just now', read: false, _local: true }
+        ];
+        renderAlerts();
+      }
+    });
+}
 
 function renderAlerts() {
   const container = document.getElementById('alertsContainer');
   const filtered  = currentFilter === 'all' ? alertsData : alertsData.filter(a => a.type === currentFilter);
   updateFilterCounts();
-  if (!filtered.length) { container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter} alerts</div>`; return; }
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter === 'all' ? '' : currentFilter + ' '}alerts</div>`;
+    return;
+  }
+
   if (currentFilter === 'all') {
-    const groups = [{ label:'⚠ Warnings', type:'warning' }, { label:'ℹ Information', type:'info' }, { label:'✓ Success', type:'success' }];
+    const groups = [
+      { label: '⚠ Warnings', type: 'warning' },
+      { label: 'ℹ Information', type: 'info' },
+      { label: '✓ Success', type: 'success' }
+    ];
     let html = '';
-    groups.forEach(g => { const items = alertsData.filter(a => a.type === g.type); if (!items.length) return; html += `<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`; });
+    groups.forEach(g => {
+      const items = alertsData.filter(a => a.type === g.type);
+      if (!items.length) return;
+      html += `<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`;
+    });
     container.innerHTML = html;
   } else {
     container.innerHTML = `<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`;
@@ -777,12 +1108,16 @@ function renderAlerts() {
 }
 
 function alertCardHTML(a) {
-  const color = alertColorMap[a.type];
-  return `<div class="alert-card ${color} ${a.read ? 'read' : ''}" id="alert-${a.id}">
+  const color = alertColorMap[a.type] || 'blue';
+  const safeId = String(a.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `<div class="alert-card ${color} ${a.read ? 'read' : ''}" id="alert-${safeId}">
     <div class="alert-unread ${color === 'orange' ? 'orange' : ''}"></div>
-    <div class="alert-top"><div class="alert-ico ${color}">${alertIconMap[a.type]}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div>
+    <div class="alert-top">
+      <div class="alert-ico ${color}">${alertIconMap[a.type] || alertIconMap.info}</div>
+      <div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div>
+    </div>
     <div class="alert-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${a.time}</div>
-    <span class="alert-dismiss" onclick="dismissAlert(${a.id})">✕</span>
+    <span class="alert-dismiss" onclick="dismissAlert('${safeId}','${a.id}')">✕</span>
   </div>`;
 }
 
@@ -790,157 +1125,362 @@ function filterAlerts(type) {
   currentFilter = type;
   document.querySelectorAll('.filter-tab').forEach(t => {
     t.className = 'filter-tab';
-    if (t.dataset.filter === type) { const map = { all:'f-all', warning:'f-warning', info:'f-info', success:'f-success' }; t.classList.add(map[type]); }
+    if (t.dataset.filter === type) {
+      const map = { all: 'f-all', warning: 'f-warning', info: 'f-info', success: 'f-success' };
+      t.classList.add(map[type]);
+    }
   });
   renderAlerts();
 }
 
 function updateFilterCounts() {
   const unread = alertsData.filter(a => !a.read).length;
-  const counts = { all:alertsData.length, warning:alertsData.filter(a=>a.type==='warning').length, info:alertsData.filter(a=>a.type==='info').length, success:alertsData.filter(a=>a.type==='success').length };
-  document.getElementById('alert-unread-label').textContent = `${counts.all} alert${counts.all!==1?'s':''} · ${unread} unread`;
+  const counts = {
+    all:     alertsData.length,
+    warning: alertsData.filter(a => a.type === 'warning').length,
+    info:    alertsData.filter(a => a.type === 'info').length,
+    success: alertsData.filter(a => a.type === 'success').length,
+  };
+  document.getElementById('alert-unread-label').textContent = `${counts.all} alert${counts.all !== 1 ? 's' : ''} · ${unread} unread`;
   document.querySelector('[data-filter="all"]').textContent     = `All (${counts.all})`;
   document.querySelector('[data-filter="warning"]').textContent = `⚠ Warnings (${counts.warning})`;
   document.querySelector('[data-filter="info"]').textContent    = `ℹ Info (${counts.info})`;
   document.querySelector('[data-filter="success"]').textContent = `✓ Success (${counts.success})`;
+
+  // Update notification bell badge
+  const badge = document.getElementById('notif-badge');
+  if (badge) {
+    badge.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : '';
+    badge.style.display = unread > 0 ? 'flex' : 'none';
+  }
 }
 
-function dismissAlert(id) { const idx = alertsData.findIndex(a => a.id === id); if (idx !== -1) alertsData.splice(idx, 1); renderAlerts(); }
-function pushSensorAlert(type, title, desc) { if (alertsData.find(a => a.title === title)) return; alertsData.unshift({ id:alertIdCounter++, type, title, desc, time:'Just now', read:false }); renderAlerts(); }
-function removeSensorAlert(title) { const idx = alertsData.findIndex(a => a.title === title); if (idx !== -1) alertsData.splice(idx, 1); renderAlerts(); }
-document.getElementById('markAllBtn').addEventListener('click', () => { alertsData.forEach(a => a.read = true); renderAlerts(); });
+function dismissAlert(safeId, realId) {
+  const idx = alertsData.findIndex(a => String(a.id) === String(realId) || String(a.id).replace(/[^a-zA-Z0-9_-]/g, '_') === safeId);
+  if (idx !== -1) alertsData.splice(idx, 1);
+  renderAlerts();
+}
 
-// LIVE POLLING
+// Push a local sensor alert (deduped by title)
+function pushSensorAlert(type, title, desc) {
+  if (alertsData.find(a => a.title === title && !a.read)) return;
+  alertsData.unshift({ id: alertIdCounter++, type, title, desc, time: 'Just now', read: false, _local: true });
+  renderAlerts();
+}
+
+function removeSensorAlert(title) {
+  const idx = alertsData.findIndex(a => a.title === title && a._local);
+  if (idx !== -1) alertsData.splice(idx, 1);
+  renderAlerts();
+}
+
+document.getElementById('markAllBtn').addEventListener('click', () => {
+  alertsData.forEach(a => a.read = true);
+  renderAlerts();
+  // Also mark read on server
+  fetch('/api/alerts/mark-all-read', { method: 'POST' }).catch(() => {});
+});
+
+// ═══════════════════════════════════════════
+//  LIVE SENSOR POLLING
+// ═══════════════════════════════════════════
+function updateSensorCard(cardId, statusId, value, low, high, unit, warnLabel, dangerLabel, alertTitle, alertDesc) {
+  const card   = document.getElementById(cardId);
+  const status = document.getElementById(statusId);
+  if (!card || !status || value == null) return;
+
+  if (value < low - (low * 0.1)) { // danger zone: >10% below min
+    status.textContent = dangerLabel || 'Very Low';
+    status.className = 'sensor-status danger';
+    card.className = 'sensor-card danger-border';
+    pushSensorAlert('warning', alertTitle + ' Critical', alertDesc + value + unit + ' — critical.');
+  } else if (value < low) {
+    status.textContent = warnLabel || 'Low';
+    status.className = 'sensor-status warning';
+    card.className = 'sensor-card warning-border';
+    pushSensorAlert('warning', alertTitle + ' Low', alertDesc + value + unit + ' — below optimal.');
+  } else if (value > high) {
+    status.textContent = 'High';
+    status.className = 'sensor-status warning';
+    card.className = 'sensor-card warning-border';
+    pushSensorAlert('warning', alertTitle + ' High', alertDesc + value + unit + ' — above optimal.');
+  } else {
+    status.textContent = 'Stable';
+    status.className = 'sensor-status';
+    card.className = 'sensor-card';
+    removeSensorAlert(alertTitle + ' Critical');
+    removeSensorAlert(alertTitle + ' Low');
+    removeSensorAlert(alertTitle + ' High');
+  }
+}
+
 function pollSensors() {
-  fetch('/api/sensors/latest').then(r => r.ok ? r.json() : Promise.reject()).then(data => {
-    const tEl  = document.getElementById('dash-temp');
-    const mEl  = document.getElementById('dash-moist');
-    const hEl  = document.getElementById('dash-humid');
-    const nEl  = document.getElementById('dash-npk');
-    const slEl = document.getElementById('dash-stage-label');
-    if (tEl)  tEl.textContent  = data.temperature  != null ? data.temperature  + '°C' : '—';
-    if (mEl)  mEl.textContent  = data.soil_moisture != null ? data.soil_moisture + '%'  : '—';
-    if (hEl)  hEl.textContent  = data.humidity      != null ? data.humidity      + '%'  : '—';
-    if (nEl && data.npk)  nEl.textContent = data.npk.status ?? '—';
-    if (slEl && data.stage) slEl.textContent = data.stage;
+  fetch('/api/sensors/latest')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      const t = data.temperature, m = data.soil_moisture, h = data.humidity;
 
-    const temp = data.temperature, moist = data.soil_moisture, humid = data.humidity;
-    const ts = document.getElementById('status-temp'),  tc = document.getElementById('card-temp');
-    const ms = document.getElementById('status-moist'), mc = document.getElementById('card-moist');
-    const hs = document.getElementById('status-humid'), hc = document.getElementById('card-humid');
-    const ns = document.getElementById('status-npk'),   nc = document.getElementById('card-npk');
+      // Store in shared live data
+      liveData.temperature   = t;
+      liveData.soil_moisture = m;
+      liveData.humidity      = h;
+      liveData.npk           = data.npk;
+      liveData.stage         = data.stage;
 
-    if (temp != null) {
-      if (temp > 30)       { ts.textContent='High';  ts.className='sensor-status danger';  tc.className='sensor-card danger-border';  pushSensorAlert('warning','Temperature High',`Temperature is ${temp}°C — above the safe limit of 30°C.`); }
-      else if (temp < 25)  { ts.textContent='Low';   ts.className='sensor-status warning'; tc.className='sensor-card warning-border'; pushSensorAlert('warning','Temperature Low', `Temperature is ${temp}°C — below the optimal range.`); }
-      else if (temp >= 29) { ts.textContent='Watch'; ts.className='sensor-status warning'; tc.className='sensor-card warning-border'; }
-      else                 { ts.textContent='Stable';ts.className='sensor-status';         tc.className='sensor-card'; removeSensorAlert('Temperature High'); removeSensorAlert('Temperature Low'); }
-    }
-    if (moist != null) {
-      if (moist < 35)       { ms.textContent='Very Low'; ms.className='sensor-status danger';  mc.className='sensor-card danger-border';  pushSensorAlert('warning','Soil Moisture Critical',`Soil moisture is ${moist}% — critically low. Irrigate now.`); }
-      else if (moist < 43)  { ms.textContent='Low';      ms.className='sensor-status warning'; mc.className='sensor-card warning-border'; pushSensorAlert('warning','Soil Moisture Low',     `Soil moisture is ${moist}% — below optimal 43%.`); }
-      else if (moist > 60)  { ms.textContent='High';     ms.className='sensor-status warning'; mc.className='sensor-card warning-border'; pushSensorAlert('warning','Soil Moisture High',    `Soil moisture is ${moist}% — above optimal 60%.`); }
-      else                  { ms.textContent='Stable';   ms.className='sensor-status';         mc.className='sensor-card'; removeSensorAlert('Soil Moisture Critical'); removeSensorAlert('Soil Moisture Low'); removeSensorAlert('Soil Moisture High'); }
-    }
-    if (humid != null) {
-      if (humid < 60)       { hs.textContent='Very Low'; hs.className='sensor-status danger';  hc.className='sensor-card danger-border';  pushSensorAlert('warning','Humidity Critical Low',`Air humidity is ${humid}% — critically low. Risk of wilting.`); }
-      else if (humid < 70)  { hs.textContent='Low';      hs.className='sensor-status warning'; hc.className='sensor-card warning-border'; pushSensorAlert('warning','Humidity Low',         `Air humidity is ${humid}% — below optimal 70%.`); }
-      else if (humid > 90)  { hs.textContent='High';     hs.className='sensor-status warning'; hc.className='sensor-card warning-border'; pushSensorAlert('warning','Humidity High',        `Air humidity is ${humid}% — above 90%. Fungal risk.`); }
-      else                  { hs.textContent='Stable';   hs.className='sensor-status';         hc.className='sensor-card'; removeSensorAlert('Humidity Critical Low'); removeSensorAlert('Humidity Low'); removeSensorAlert('Humidity High'); }
-    }
-    if (data.npk) {
-      if (data.npk.status === 'NORMAL') { ns.textContent='Balanced'; ns.className='sensor-status'; nc.className='sensor-card'; removeSensorAlert('NPK Imbalance'); }
-      else { ns.textContent=data.npk.status; ns.className='sensor-status warning'; nc.className='sensor-card warning-border'; pushSensorAlert('warning','NPK Imbalance',`NPK sensor reports: ${data.npk.status}.`); }
-    }
-  }).catch(() => {});
+      // Dashboard sensor card values
+      const elT = document.getElementById('dash-temp');
+      const elM = document.getElementById('dash-moist');
+      const elH = document.getElementById('dash-humid');
+      const elN = document.getElementById('dash-npk');
+      const elS = document.getElementById('dash-stage-label');
+      if (elT) elT.textContent = t != null ? t + '°C' : '—';
+      if (elM) elM.textContent = m != null ? m + '%'  : '—';
+      if (elH) elH.textContent = h != null ? h + '%'  : '—';
+      if (elN && data.npk) elN.textContent = data.npk.status ?? '—';
+      if (elS && data.stage) elS.textContent = data.stage;
+
+      // Status logic
+      updateSensorCard('card-temp',  'status-temp',  t, 25, 30, '°C', 'Low', 'Very Low', 'Temperature', 'Temperature is ');
+      updateSensorCard('card-moist', 'status-moist', m, 43, 60, '%',  'Low', 'Very Low', 'Soil Moisture', 'Soil moisture is ');
+      updateSensorCard('card-humid', 'status-humid', h, 70, 85, '%',  'Low', 'Very Low', 'Humidity', 'Air humidity is ');
+
+      // NPK card
+      if (data.npk) {
+        const ns = document.getElementById('status-npk');
+        const nc = document.getElementById('card-npk');
+        if (ns && nc) {
+          if (data.npk.status === 'NORMAL') {
+            ns.textContent = 'Balanced'; ns.className = 'sensor-status'; nc.className = 'sensor-card';
+            removeSensorAlert('NPK Imbalance');
+          } else {
+            ns.textContent = data.npk.status; ns.className = 'sensor-status warning'; nc.className = 'sensor-card warning-border';
+            pushSensorAlert('warning', 'NPK Imbalance', `NPK sensor reports: ${data.npk.status}.`);
+          }
+        }
+      }
+
+      // Last updated timestamp
+      const lu = document.getElementById('dash-last-updated');
+      if (lu) lu.textContent = 'Last update: ' + (data.timestamp || new Date().toLocaleTimeString());
+
+      // Update mini dash chart
+      if (t != null && h != null) updateDashChart(t, h);
+    })
+    .catch(() => {
+      // No live data — show offline state
+      const luEl = document.getElementById('dash-last-updated');
+      if (luEl) luEl.textContent = 'Sensor offline or Flask not reachable';
+    });
 }
 
 function syncDeviceStates() {
-  fetch('/api/devices/latest').then(r => r.ok ? r.json() : Promise.reject()).then(data => {
-    const ps = document.getElementById('dash-pump-state');
-    const fs = document.getElementById('dash-fan-state');
-    const mn = document.getElementById('dash-mode-note');
-    if (ps) ps.textContent = data.irrigation_pump || '—';
-    if (fs) fs.textContent = data.exhaust_fan     || '—';
-    if (mn) mn.textContent = `Mode: ${data.auto_mode ? 'AUTO' : 'MANUAL'} · Last sync: ${data.timestamp || '—'}`;
-  }).catch(() => {});
+  fetch('/api/devices/latest')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      liveData.pump      = data.irrigation_pump;
+      liveData.fan       = data.exhaust_fan;
+      liveData.auto_mode = data.auto_mode;
+
+      const ps = document.getElementById('dash-pump-state');
+      const fs = document.getElementById('dash-fan-state');
+      const mn = document.getElementById('dash-mode-note');
+
+      if (ps) {
+        ps.textContent = data.irrigation_pump || '—';
+        ps.className = 'device-state ' + (data.irrigation_pump === 'ON' ? 'on' : 'off');
+      }
+      if (fs) {
+        fs.textContent = data.exhaust_fan || '—';
+        fs.className = 'device-state ' + (data.exhaust_fan === 'ON' ? 'on' : 'off');
+      }
+      if (mn) mn.textContent = `Mode: ${data.auto_mode ? 'AUTO' : 'MANUAL'} · Last sync: ${data.timestamp || '—'}`;
+    })
+    .catch(() => {});
 }
 
 function pollAlertCount() {
-  fetch('/api/alerts/unread-count').then(r => r.ok ? r.json() : Promise.reject()).then(data => {
-    const el = document.getElementById('alert-unread-label');
-    if (el) el.textContent = `${data.count} unread notification${data.count !== 1 ? 's' : ''}`;
-  }).catch(() => {});
+  fetch('/api/alerts/unread-count')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      const badge = document.getElementById('notif-badge');
+      if (badge) {
+        const count = data.count || 0;
+        badge.textContent = count > 9 ? '9+' : count || '';
+        badge.style.display = count > 0 ? 'flex' : 'none';
+      }
+    })
+    .catch(() => {});
 }
 
-// HISTORY LOG
+// ═══════════════════════════════════════════
+//  HISTORY LOG
+// ═══════════════════════════════════════════
+let logSkip = 0;
+let logTotal = 0;
+
 function loadHistory() {
   const col   = document.getElementById('log-collection').value;
   const days  = document.getElementById('log-days').value;
   const limit = parseInt(document.getElementById('log-limit').value);
-  let url = `/api/logs?collection=${col}&limit=${limit}`;
+  let url = `/api/logs?collection=${col}&limit=${limit}&skip=${logSkip}`;
   if (days) url += `&days=${days}`;
+
   document.getElementById('log-table-container').innerHTML = '<div class="log-loading"><div class="spinner"></div> Loading records…</div>';
   document.getElementById('log-pagination').style.display = 'none';
   document.getElementById('log-count-badge').textContent = '';
-  fetch(url).then(r => r.ok ? r.json() : Promise.reject()).then(data => {
-    document.getElementById('log-count-badge').textContent = `${data.count} record${data.count !== 1 ? 's' : ''}`;
-    document.getElementById('log-header-sub').textContent  = ({sensors:'Sensor Readings',alerts:'Alerts',devices:'Device Events',npk_trends:'NPK Trends'}[col] || col) + ' · MongoDB';
-    if (!data.records || !data.records.length) { document.getElementById('log-table-container').innerHTML = '<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>No records found.</div>'; return; }
-    const table = buildTable(col, data.records);
-    document.getElementById('log-table-container').innerHTML = '';
-    document.getElementById('log-table-container').appendChild(table);
-    document.getElementById('log-pagination').style.display = 'flex';
-    document.getElementById('log-page-info').textContent    = `Showing ${data.records.length} of ${data.count} records`;
-    document.getElementById('log-prev-btn').disabled = true;
-    document.getElementById('log-next-btn').disabled = data.count <= limit;
-  }).catch(() => { document.getElementById('log-table-container').innerHTML = '<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Could not load records. Is Flask running?</div>'; });
+
+  const colLabels = { sensors: 'Sensor Readings', alerts: 'Alerts', devices: 'Device Events', npk_trends: 'NPK Trends' };
+  document.getElementById('log-header-sub').textContent = (colLabels[col] || col) + ' · MongoDB';
+
+  fetch(url)
+    .then(r => r.ok ? r.json() : Promise.reject('API error'))
+    .then(data => {
+      logTotal = data.count || 0;
+      document.getElementById('log-count-badge').textContent = `${logTotal} record${logTotal !== 1 ? 's' : ''} total`;
+
+      if (!data.records || !data.records.length) {
+        document.getElementById('log-table-container').innerHTML = '<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>No records found for this filter.</div>';
+        return;
+      }
+
+      const table = buildTable(col, data.records);
+      document.getElementById('log-table-container').innerHTML = '';
+      document.getElementById('log-table-container').appendChild(table);
+
+      // Pagination
+      const shown = logSkip + data.records.length;
+      document.getElementById('log-pagination').style.display = 'flex';
+      document.getElementById('log-page-info').textContent    = `Showing ${logSkip + 1}–${shown} of ${logTotal}`;
+      document.getElementById('log-prev-btn').disabled = logSkip === 0;
+      document.getElementById('log-next-btn').disabled = shown >= logTotal;
+    })
+    .catch(err => {
+      document.getElementById('log-table-container').innerHTML = `<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Could not load records — is Flask running?<br><small style="color:var(--text-light);margin-top:4px;display:block;">${err}</small></div>`;
+    });
 }
 
 function buildTable(col, records) {
-  const t = document.createElement('table'); t.className = 'log-table';
+  const t = document.createElement('table');
+  t.className = 'log-table';
+
   if (col === 'sensors') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th><th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th></tr></thead><tbody id="log-tbody"></tbody>`;
-    const tb = t.querySelector('#log-tbody');
+    t.innerHTML = `<thead><tr>
+      <th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th>
+      <th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th><th>Stage</th>
+    </tr></thead><tbody></tbody>`;
+    const tb = t.querySelector('tbody');
     records.forEach(r => {
-      const npk = r.npk || {}; const row = document.createElement('tr');
-      row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td class="val">${r.temperature??'—'}</td><td class="val">${fmtMoist(r.soil_moisture)}</td><td class="val">${fmtHumid(r.humidity)}</td><td>${npk.nitrogen??'—'}</td><td>${npk.phosphorus??'—'}</td><td>${npk.potassium??'—'}</td><td>${fmtNpk(npk.status)}</td>`;
+      const npk = r.npk || {};
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="ts">${r.timestamp || '—'}</td>
+        <td class="val">${fmtTemp(r.temperature)}</td>
+        <td class="val">${fmtMoist(r.soil_moisture)}</td>
+        <td class="val">${fmtHumid(r.humidity)}</td>
+        <td>${npk.nitrogen   ?? '—'}</td>
+        <td>${npk.phosphorus ?? '—'}</td>
+        <td>${npk.potassium  ?? '—'}</td>
+        <td>${fmtNpk(npk.status)}</td>
+        <td style="font-size:10px;color:var(--text-muted);">${r.stage || '—'}</td>
+      `;
       tb.appendChild(row);
     });
+
   } else if (col === 'alerts') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th></tr></thead><tbody id="log-tbody"></tbody>`;
-    const tb = t.querySelector('#log-tbody');
-    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td>${fmtAlertType(r.type)}</td><td class="val">${r.title||'—'}</td><td style="max-width:220px;white-space:normal;">${r.desc||'—'}</td><td>${r.read?'<span class="log-badge normal">Read</span>':'<span class="log-badge warning">Unread</span>'}</td>`; tb.appendChild(row); });
+    t.innerHTML = `<thead><tr>
+      <th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th>
+    </tr></thead><tbody></tbody>`;
+    const tb = t.querySelector('tbody');
+    records.forEach(r => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="ts">${r.timestamp || '—'}</td>
+        <td>${fmtAlertType(r.type)}</td>
+        <td class="val">${r.title || '—'}</td>
+        <td style="max-width:240px;white-space:normal;font-size:10px;">${r.desc || '—'}</td>
+        <td>${r.read ? '<span class="log-badge normal">Read</span>' : '<span class="log-badge warning">Unread</span>'}</td>
+      `;
+      tb.appendChild(row);
+    });
+
   } else if (col === 'devices') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Irrigation Pump</th><th>Exhaust Fan</th><th>Auto Mode</th></tr></thead><tbody id="log-tbody"></tbody>`;
-    const tb = t.querySelector('#log-tbody');
-    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td>${fmtDevice(r.irrigation_pump)}</td><td>${fmtDevice(r.exhaust_fan)}</td><td>${r.auto_mode!=null?`<span class="log-badge ${r.auto_mode?'on':'off'}">${r.auto_mode?'AUTO':'MANUAL'}</span>`:'—'}</td>`; tb.appendChild(row); });
+    t.innerHTML = `<thead><tr>
+      <th>Timestamp</th><th>Irrigation Pump</th><th>Exhaust Fan</th><th>Auto Mode</th>
+    </tr></thead><tbody></tbody>`;
+    const tb = t.querySelector('tbody');
+    records.forEach(r => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="ts">${r.timestamp || '—'}</td>
+        <td>${fmtDevice(r.irrigation_pump)}</td>
+        <td>${fmtDevice(r.exhaust_fan)}</td>
+        <td>${r.auto_mode != null ? `<span class="log-badge ${r.auto_mode ? 'on' : 'off'}">${r.auto_mode ? 'AUTO' : 'MANUAL'}</span>` : '—'}</td>
+      `;
+      tb.appendChild(row);
+    });
+
   } else if (col === 'npk_trends') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Nitrogen (mg/kg)</th><th>Phosphorus (mg/kg)</th><th>Potassium (mg/kg)</th><th>Status</th></tr></thead><tbody id="log-tbody"></tbody>`;
-    const tb = t.querySelector('#log-tbody');
-    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td class="val">${r.nitrogen??'—'}</td><td class="val">${r.phosphorus??'—'}</td><td class="val">${r.potassium??'—'}</td><td>${fmtNpk(r.status)}</td>`; tb.appendChild(row); });
+    t.innerHTML = `<thead><tr>
+      <th>Timestamp</th><th>Nitrogen (mg/kg)</th><th>Phosphorus (mg/kg)</th><th>Potassium (mg/kg)</th><th>Status</th>
+    </tr></thead><tbody></tbody>`;
+    const tb = t.querySelector('tbody');
+    records.forEach(r => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="ts">${r.timestamp || '—'}</td>
+        <td class="val">${r.nitrogen   ?? '—'}</td>
+        <td class="val">${r.phosphorus ?? '—'}</td>
+        <td class="val">${r.potassium  ?? '—'}</td>
+        <td>${fmtNpk(r.status)}</td>
+      `;
+      tb.appendChild(row);
+    });
   }
+
   return t;
 }
 
-function fmtMoist(v) { if (v==null) return '—'; return v<43?`<span style="color:var(--orange);font-weight:600;">${v}</span>`:`<span style="color:var(--green-primary);font-weight:600;">${v}</span>`; }
-function fmtHumid(v) { if (v==null) return '—'; return (v<70||v>90)?`<span style="color:var(--orange);font-weight:600;">${v}</span>`:`<span style="color:var(--blue);font-weight:600;">${v}</span>`; }
-function fmtNpk(s)   { if (!s) return '—'; const c=s==='NORMAL'?'normal':s==='LOW'?'low':'error'; return `<span class="log-badge ${c}">${s}</span>`; }
-function fmtAlertType(t) { if (!t) return '—'; const c={warning:'warning',info:'info',success:'success'}[t]||'info'; return `<span class="log-badge ${c}">${t.toUpperCase()}</span>`; }
-function fmtDevice(s) { if (!s) return '—'; return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`; }
+// Format helpers
+function fmtTemp(v)  { if (v == null) return '—'; const ok = v >= 25 && v <= 30; return `<span style="color:${ok ? 'var(--green-primary)' : 'var(--orange)'};font-weight:600;">${v}</span>`; }
+function fmtMoist(v) { if (v == null) return '—'; const ok = v >= 43 && v <= 60; return `<span style="color:${ok ? 'var(--green-primary)' : 'var(--orange)'};font-weight:600;">${v}</span>`; }
+function fmtHumid(v) { if (v == null) return '—'; const ok = v >= 70 && v <= 85; return `<span style="color:${ok ? 'var(--blue)' : 'var(--orange)'};font-weight:600;">${v}</span>`; }
+function fmtNpk(s)   { if (!s) return '—'; const c = s === 'NORMAL' ? 'normal' : s === 'LOW' ? 'low' : 'error'; return `<span class="log-badge ${c}">${s}</span>`; }
+function fmtAlertType(t) { if (!t) return '—'; const c = { warning:'warning', info:'info', success:'success' }[t] || 'info'; return `<span class="log-badge ${c}">${t.toUpperCase()}</span>`; }
+function fmtDevice(s) { if (!s) return '—'; return `<span class="log-badge ${s === 'ON' ? 'on' : 'off'}">${s}</span>`; }
 
-document.getElementById('log-refresh-btn').addEventListener('click', loadHistory);
-document.getElementById('log-collection').addEventListener('change', loadHistory);
-document.getElementById('log-days').addEventListener('change', loadHistory);
-document.getElementById('log-limit').addEventListener('change', loadHistory);
+// Pagination
+document.getElementById('log-prev-btn').addEventListener('click', () => {
+  const limit = parseInt(document.getElementById('log-limit').value);
+  logSkip = Math.max(0, logSkip - limit);
+  loadHistory();
+});
+document.getElementById('log-next-btn').addEventListener('click', () => {
+  const limit = parseInt(document.getElementById('log-limit').value);
+  logSkip = logSkip + limit;
+  loadHistory();
+});
 
-renderAlerts();
+// Reset skip on filter change
+['log-collection','log-days','log-limit'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => { logSkip = 0; loadHistory(); });
+});
+document.getElementById('log-refresh-btn').addEventListener('click', () => { logSkip = 0; loadHistory(); });
+
+// ═══════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════
+loadServerAlerts();
 pollSensors();
-pollAlertCount();
 syncDeviceStates();
+pollAlertCount();
+
 setInterval(pollSensors,       5000);
-setInterval(pollAlertCount,   15000);
 setInterval(syncDeviceStates, 10000);
+setInterval(pollAlertCount,   15000);
+// Auto-refresh analytics data every 60s if analytics page is open
+setInterval(() => {
+  if (document.getElementById('page-analytics').classList.contains('active')) refreshAnalytics();
+}, 60000);
 </script>
 </body>
 </html>
