@@ -282,8 +282,8 @@ canvas { width:100%!important; }
       <div class="topbar-crop">
         <div class="crop-img">🥬</div>
         <div class="crop-info">
-          <strong>Chinese Cabbage Monitor</strong>
-          <span>Live Sensor Data · Raspberry Pi</span>
+          <strong>Pechay Monitor for Smart Growth Management System </strong>
+          <span>Live Sensor Data </span>
         </div>
       </div>
       <div class="topbar-right">
@@ -295,7 +295,7 @@ canvas { width:100%!important; }
       </div>
     </div>
 
-    <!-- ══ DASHBOARD ══ -->
+    <!-- DASHBOARD -->
     <div class="page-section active" id="page-dashboard">
       <div class="health-banner">
         <div>
@@ -323,7 +323,7 @@ canvas { width:100%!important; }
             Temperature
           </div>
           <div class="sensor-val" id="dash-temp">—</div>
-          <div class="sensor-range">Optimal: 25–30°C</div>
+          <div class="sensor-range" id="range-temp">Optimal: 25–30°C</div>
           <div class="sensor-status" id="status-temp">Loading…</div>
         </div>
 
@@ -333,7 +333,7 @@ canvas { width:100%!important; }
             Soil Moisture
           </div>
           <div class="sensor-val" id="dash-moist">—</div>
-          <div class="sensor-range">Optimal: 43–60%</div>
+          <div class="sensor-range" id="range-moist">Optimal: 43–60%</div>
           <div class="sensor-status" id="status-moist">Loading…</div>
         </div>
 
@@ -343,7 +343,7 @@ canvas { width:100%!important; }
             Air Humidity
           </div>
           <div class="sensor-val" id="dash-humid">—</div>
-          <div class="sensor-range">Optimal: 70–85%</div>
+          <div class="sensor-range" id="range-humid">Optimal: 70–85%</div>
           <div class="sensor-status" id="status-humid">Loading…</div>
         </div>
 
@@ -358,71 +358,17 @@ canvas { width:100%!important; }
         </div>
       </div>
 
-   <!-- AI Plant Detection -->
-
+      <!-- AI Plant Detection -->
       <div class="card card-pad" style="margin-bottom:14px;">
-  <h3 style="margin-bottom:10px;">AI Plant Detection</h3>
-
- <div
-  style="
-    display:grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap:20px;
-    margin-top:20px;
-    width:100%;
-    align-items:stretch;
-  "
->
-
-  <!-- CAMERA PANEL -->
-  <div
-    id="webcam-container"
-    style="
-      width:100%;
-      min-height:460px;
-      background:#f1fbf2;
-      border-radius:24px;
-      overflow:hidden;
-      border:2px solid #dcfce7;
-      position:relative;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      padding:15px;
-    "
-  ></div>
-
-  <!-- AI ANALYSIS PANEL -->
-  <div
-    id="prediction-result"
-    style="
-      width:100%;
-      min-height:460px;
-      background:white;
-      border-radius:24px;
-      border:2px solid #dcfce7;
-      padding:30px;
-      box-shadow:0 8px 25px rgba(0,0,0,0.06);
-      font-family:Arial;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-    "
-  >
-
-    <h1 style="
-      color:#166534;
-      font-size:40px;
-      margin-bottom:20px;
-    ">
-      AI Crop Analysis
-    </h1>
-
-    <p>Waiting for AI...</p>
-
-  </div>
-  </div>
-</div>
+        <h3 style="margin-bottom:10px;">AI Plant Detection</h3>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-top:20px;width:100%;align-items:stretch;">
+          <div id="webcam-container" style="width:100%;min-height:460px;background:#f1fbf2;border-radius:24px;overflow:hidden;border:2px solid #dcfce7;position:relative;display:flex;justify-content:center;align-items:center;padding:15px;"></div>
+          <div id="prediction-result" style="width:100%;min-height:460px;background:white;border-radius:24px;border:2px solid #dcfce7;padding:30px;box-shadow:0 8px 25px rgba(0,0,0,0.06);font-family:Arial;display:flex;flex-direction:column;justify-content:center;">
+            <h1 style="color:#166534;font-size:40px;margin-bottom:20px;">AI Crop Analysis</h1>
+            <p>Waiting for AI...</p>
+          </div>
+        </div>
+      </div>
 
       <div class="card card-pad">
         <div class="activity-title">
@@ -451,7 +397,7 @@ canvas { width:100%!important; }
       </div>
     </div>
 
-    <!-- ══ ANALYTICS ══ -->
+    <!-- ANALYTICS -->
     <div class="page-section" id="page-analytics">
       <div class="analytics-header">
         <div class="analytics-header-left">
@@ -474,26 +420,17 @@ canvas { width:100%!important; }
 
       <div class="stat-grid-3">
         <div class="stat-pill">
-          <div class="stat-pill-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-            Avg Temperature (7d)
-          </div>
+          <div class="stat-pill-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>Avg Temperature (7d)</div>
           <div class="stat-pill-val" id="avg-temp-pill">—</div>
           <div class="stat-pill-sub" id="avg-temp-status"></div>
         </div>
         <div class="stat-pill">
-          <div class="stat-pill-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
-            Avg Soil Moisture (7d)
-          </div>
+          <div class="stat-pill-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Avg Soil Moisture (7d)</div>
           <div class="stat-pill-val" id="avg-moist-pill">—</div>
           <div class="stat-pill-sub" id="avg-moist-status"></div>
         </div>
         <div class="stat-pill">
-          <div class="stat-pill-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0 0 16 0c0-3-2-7-8-13z"/></svg>
-            Avg Air Humidity (7d)
-          </div>
+          <div class="stat-pill-label"><svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0 0 16 0c0-3-2-7-8-13z"/></svg>Avg Air Humidity (7d)</div>
           <div class="stat-pill-val" id="avg-humid-pill">—</div>
           <div class="stat-pill-sub" id="avg-humid-status"></div>
         </div>
@@ -502,21 +439,9 @@ canvas { width:100%!important; }
       <div class="weekly-perf">
         <div class="section-title">Weekly Performance</div>
         <div class="perf-grid">
-          <div class="perf-card">
-            <div class="perf-label">Avg Temperature</div>
-            <div class="perf-val" id="perf-temp">—</div>
-            <div class="perf-change" id="perf-temp-change"></div>
-          </div>
-          <div class="perf-card">
-            <div class="perf-label">Avg Soil Moisture</div>
-            <div class="perf-val" id="perf-moist">—</div>
-            <div class="perf-change" id="perf-moist-change"></div>
-          </div>
-          <div class="perf-card">
-            <div class="perf-label">Avg Air Humidity</div>
-            <div class="perf-val" id="perf-humid">—</div>
-            <div class="perf-change" id="perf-humid-change"></div>
-          </div>
+          <div class="perf-card"><div class="perf-label">Avg Temperature</div><div class="perf-val" id="perf-temp">—</div><div class="perf-change" id="perf-temp-change"></div></div>
+          <div class="perf-card"><div class="perf-label">Avg Soil Moisture</div><div class="perf-val" id="perf-moist">—</div><div class="perf-change" id="perf-moist-change"></div></div>
+          <div class="perf-card"><div class="perf-label">Avg Air Humidity</div><div class="perf-val" id="perf-humid">—</div><div class="perf-change" id="perf-humid-change"></div></div>
         </div>
       </div>
 
@@ -525,7 +450,6 @@ canvas { width:100%!important; }
         <button class="tab-btn" data-tab="nutrients">Nutrients</button>
       </div>
 
-      <!-- Environment Tab -->
       <div class="tab-panel" id="tab-environment">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div class="chart-label">Temperature (Last 7 Days)</div>
@@ -533,23 +457,17 @@ canvas { width:100%!important; }
         </div>
         <div class="chart-legend">
           <div class="legend-item"><div class="legend-dot" style="background:#F44336;"></div>Temperature °C</div>
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(244,67,54,0.3);"></div>Optimal Range (25–30°C)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(244,67,54,0.3);"></div>Optimal Range</div>
         </div>
-        <div style="height:140px;position:relative;" id="envTempWrap">
-          <div class="chart-loading"><div class="spinner"></div>Loading…</div>
-          <canvas id="envTempChart" style="display:none;"></canvas>
-        </div>
+        <div style="height:140px;position:relative;" id="envTempWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envTempChart" style="display:none;"></canvas></div>
 
         <div style="margin-top:14px;">
           <div class="chart-label" style="margin-bottom:6px;">Soil Moisture (Last 7 Days)</div>
           <div class="chart-legend">
             <div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>Soil Moisture %</div>
-            <div class="legend-item"><div class="legend-dot" style="background:rgba(76,175,80,0.3);"></div>Optimal Min (43%)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(76,175,80,0.3);"></div>Optimal Range</div>
           </div>
-          <div style="height:120px;position:relative;" id="envMoistWrap">
-            <div class="chart-loading"><div class="spinner"></div>Loading…</div>
-            <canvas id="envMoistChart" style="display:none;"></canvas>
-          </div>
+          <div style="height:120px;position:relative;" id="envMoistWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envMoistChart" style="display:none;"></canvas></div>
         </div>
 
         <div style="margin-top:14px;">
@@ -559,16 +477,13 @@ canvas { width:100%!important; }
           </div>
           <div class="chart-legend">
             <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>Air Humidity %</div>
-            <div class="legend-item"><div class="legend-dot" style="background:rgba(33,150,243,0.3);"></div>Optimal Range (70–85%)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(33,150,243,0.3);"></div>Optimal Range</div>
           </div>
-          <div style="height:120px;position:relative;" id="envHumidWrap">
-            <div class="chart-loading"><div class="spinner"></div>Loading…</div>
-            <canvas id="envHumidChart" style="display:none;"></canvas>
-          </div>
+          <div style="height:120px;position:relative;" id="envHumidWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envHumidChart" style="display:none;"></canvas></div>
         </div>
 
         <div class="env-note">
-          <strong>Environment Note:</strong> Data pulled live from MongoDB. Soil moisture below 43% triggers auto irrigation. Humidity outside 70–85% can promote fungal disease or plant stress.
+          <strong>Environment Note:</strong> Data pulled live from MongoDB. Thresholds are loaded dynamically from your configuration.
         </div>
 
         <div class="key-metrics">
@@ -580,7 +495,6 @@ canvas { width:100%!important; }
         </div>
       </div>
 
-      <!-- Nutrients Tab -->
       <div class="tab-panel" id="tab-nutrients" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div class="chart-label">NPK Levels (Last 7 Days)</div>
@@ -591,19 +505,11 @@ canvas { width:100%!important; }
           <div class="legend-item"><div class="legend-dot" style="background:#FF9800;"></div>Phosphorus (P)</div>
           <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>Potassium (K)</div>
         </div>
-        <div style="height:180px;position:relative;" id="npkWrap">
-          <div class="chart-loading"><div class="spinner"></div>Loading…</div>
-          <canvas id="npkChart" style="display:none;"></canvas>
-        </div>
-        <div class="env-note" style="margin-top:10px;">
-          <strong style="color:var(--green-primary);">Nutrient Note:</strong> NPK levels read from RS-485 sensor via Modbus RTU. Units: mg/kg.
-        </div>
+        <div style="height:180px;position:relative;" id="npkWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="npkChart" style="display:none;"></canvas></div>
+        <div class="env-note" style="margin-top:10px;"><strong style="color:var(--green-primary);">Nutrient Note:</strong> NPK levels read from RS-485 sensor via Modbus RTU. Units: mg/kg.</div>
         <div style="margin-top:16px;">
           <div class="chart-label" style="margin-bottom:8px;">Current vs Optimal NPK</div>
-          <div style="height:130px;position:relative;" id="npkBarWrap">
-            <div class="chart-loading"><div class="spinner"></div>Loading…</div>
-            <canvas id="npkBarChart" style="display:none;"></canvas>
-          </div>
+          <div style="height:130px;position:relative;" id="npkBarWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="npkBarChart" style="display:none;"></canvas></div>
         </div>
         <div class="key-metrics">
           <div class="section-title" style="margin-top:14px;">Nutrient Summary</div>
@@ -615,23 +521,20 @@ canvas { width:100%!important; }
       </div>
     </div>
 
-    <!-- ══ ALERTS ══ -->
+    <!-- ALERTS -->
     <div class="page-section" id="page-alerts">
       <div class="alerts-header">
         <div class="alerts-header-left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <div class="alerts-header-txt">
-            <strong>Alerts</strong>
-            <span id="alert-unread-label">Loading…</span>
-          </div>
+          <div class="alerts-header-txt"><strong>Alerts</strong><span id="alert-unread-label">Loading…</span></div>
         </div>
         <button class="mark-all" id="markAllBtn">Mark all read</button>
       </div>
       <div class="filter-tabs">
-        <button class="filter-tab f-all"     data-filter="all"     onclick="filterAlerts('all')">All</button>
-        <button class="filter-tab"           data-filter="warning" onclick="filterAlerts('warning')">⚠ Warnings</button>
-        <button class="filter-tab"           data-filter="info"    onclick="filterAlerts('info')">ℹ Info</button>
-        <button class="filter-tab"           data-filter="success" onclick="filterAlerts('success')">✓ Success</button>
+        <button class="filter-tab f-all" data-filter="all" onclick="filterAlerts('all')">All</button>
+        <button class="filter-tab" data-filter="warning" onclick="filterAlerts('warning')">⚠ Warnings</button>
+        <button class="filter-tab" data-filter="info" onclick="filterAlerts('info')">ℹ Info</button>
+        <button class="filter-tab" data-filter="success" onclick="filterAlerts('success')">✓ Success</button>
       </div>
       <div id="alertsContainer"></div>
       <div class="notif-section">
@@ -644,15 +547,12 @@ canvas { width:100%!important; }
       </div>
     </div>
 
-    <!-- ══ HISTORY ══ -->
+    <!-- HISTORY -->
     <div class="page-section" id="page-history">
       <div class="log-header">
         <div class="log-header-left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>
-          <div class="log-header-txt">
-            <strong>History Log</strong>
-            <span id="log-header-sub">Full back-tracking records from MongoDB</span>
-          </div>
+          <div class="log-header-txt"><strong>History Log</strong><span id="log-header-sub">Full back-tracking records from MongoDB</span></div>
         </div>
         <a href="/export/csv" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;text-decoration:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -703,37 +603,72 @@ canvas { width:100%!important; }
 
 <script>
 // ═══════════════════════════════════════════
+//  THRESHOLDS — loaded once from /api/thresholds
+//  All hardcoded values replaced by this object
+// ═══════════════════════════════════════════
+const THRESHOLDS = {
+  temperature:   { min: 25,  max: 30,  danger: 35  },
+  soil_moisture: { min: 43,  max: 60,  danger: 35  },
+  humidity:      { min: 70,  max: 85,  danger: 60, fungal: 90 },
+  npk: {
+    nitrogen:   { min: 30, max: 70, optimal: 50 },
+    phosphorus: { min: 20, max: 50, optimal: 35 },
+    potassium:  { min: 18, max: 50, optimal: 30 },
+  }
+};
+
+// Fetch real thresholds from backend and update everything
+async function loadThresholds() {
+  try {
+    const res  = await fetch('/api/thresholds');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Merge into THRESHOLDS object
+    if (data.temperature)   Object.assign(THRESHOLDS.temperature,   data.temperature);
+    if (data.soil_moisture) Object.assign(THRESHOLDS.soil_moisture, data.soil_moisture);
+    if (data.humidity)      Object.assign(THRESHOLDS.humidity,      data.humidity);
+    if (data.npk) {
+      if (data.npk.nitrogen)   Object.assign(THRESHOLDS.npk.nitrogen,   data.npk.nitrogen);
+      if (data.npk.phosphorus) Object.assign(THRESHOLDS.npk.phosphorus, data.npk.phosphorus);
+      if (data.npk.potassium)  Object.assign(THRESHOLDS.npk.potassium,  data.npk.potassium);
+    }
+
+    // Update sensor range labels in the UI
+    const T = THRESHOLDS;
+    const rangeTemp  = document.getElementById('range-temp');
+    const rangeMoist = document.getElementById('range-moist');
+    const rangeHumid = document.getElementById('range-humid');
+    if (rangeTemp)  rangeTemp.textContent  = `Optimal: ${T.temperature.min}–${T.temperature.max}°C`;
+    if (rangeMoist) rangeMoist.textContent = `Optimal: ${T.soil_moisture.min}–${T.soil_moisture.max}%`;
+    if (rangeHumid) rangeHumid.textContent = `Optimal: ${T.humidity.min}–${T.humidity.max}%`;
+
+  } catch (e) {
+    console.warn('Could not load thresholds from API, using defaults:', e);
+  }
+}
+
+// ═══════════════════════════════════════════
 //  SHARED LIVE DATA STORE
 // ═══════════════════════════════════════════
 const liveData = {
-  temperature:    null,
-  soil_moisture:  null,
-  humidity:       null,
-  npk:            null,
-  stage:          null,
-  pump:           null,
-  fan:            null,
-  auto_mode:      null,
-  timestamp:      null,
-  historyData:    null,  // cached /api/history response
-  npkTrendData:   null,  // cached /api/npk-trend response
+  temperature: null, soil_moisture: null, humidity: null,
+  npk: null, stage: null, pump: null, fan: null,
+  auto_mode: null, timestamp: null,
+  historyData: null, npkTrendData: null,
 };
 
 // ═══════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════
 function switchPage(page) {
-  document.querySelectorAll('.nav-item').forEach(n => {
-    n.classList.toggle('active', n.dataset.page === page);
-  });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-
-  if (page === 'history') loadHistory();
+  if (page === 'history')   loadHistory();
   if (page === 'analytics') refreshAnalytics();
-  if (page === 'alerts') loadServerAlerts();
+  if (page === 'alerts')    loadServerAlerts();
 }
-
 document.querySelectorAll('.nav-item[data-page]').forEach(item => {
   item.addEventListener('click', () => switchPage(item.dataset.page));
 });
@@ -763,213 +698,146 @@ document.addEventListener('click', () => exportDD.classList.remove('open'));
 //  CHART HELPERS
 // ═══════════════════════════════════════════
 const chartInstances = {};
-
-function destroyChart(id) {
-  if (chartInstances[id]) {
-    chartInstances[id].destroy();
-    delete chartInstances[id];
-  }
-}
-
+function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
 function showCanvas(wrapId, canvasId) {
-  const wrap = document.getElementById(wrapId);
-  if (!wrap) return;
-  const loader = wrap.querySelector('.chart-loading');
-  const canvas = document.getElementById(canvasId);
+  const wrap = document.getElementById(wrapId); if (!wrap) return;
+  const loader = wrap.querySelector('.chart-loading'), canvas = document.getElementById(canvasId);
   if (loader) loader.style.display = 'none';
   if (canvas) canvas.style.display = 'block';
 }
-
 function showLoader(wrapId, canvasId) {
-  const wrap = document.getElementById(wrapId);
-  if (!wrap) return;
-  const loader = wrap.querySelector('.chart-loading');
-  const canvas = document.getElementById(canvasId);
+  const wrap = document.getElementById(wrapId); if (!wrap) return;
+  const loader = wrap.querySelector('.chart-loading'), canvas = document.getElementById(canvasId);
   if (loader) loader.style.display = 'flex';
   if (canvas) canvas.style.display = 'none';
 }
-
 const baseOpts = (overrides = {}) => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: '#fff', titleColor: '#333', bodyColor: '#555',
-      borderColor: '#e0e0e0', borderWidth: 1, padding: 8,
-      callbacks: {}
-    }
-  },
-  scales: {
-    x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
-    y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }
-  },
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#555', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 } },
+  scales: { x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } } },
   ...overrides
 });
-
-function computeAvg(arr) {
-  const v = (arr || []).filter(x => x != null);
-  return v.length ? parseFloat((v.reduce((a, b) => a + b, 0) / v.length).toFixed(1)) : null;
-}
-
-function setIds(ids, text) {
-  ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = text; });
-}
+function computeAvg(arr) { const v = (arr || []).filter(x => x != null); return v.length ? parseFloat((v.reduce((a,b) => a+b, 0) / v.length).toFixed(1)) : null; }
+function setIds(ids, text) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = text; }); }
 
 // ═══════════════════════════════════════════
 //  DASHBOARD MINI CHART
 // ═══════════════════════════════════════════
-const dashChartData = {
-  labels: [],
-  temps: [],
-  humids: [],
-};
-
+const dashChartData = { labels: [], temps: [], humids: [] };
 const dashChart = new Chart(document.getElementById('dashChart'), {
   type: 'line',
   data: {
     labels: dashChartData.labels,
     datasets: [
-      {
-        label: 'Temp °C',
-        data: dashChartData.temps,
-        borderColor: '#F44336', backgroundColor: 'rgba(244,67,54,0.07)',
-        tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true
-      },
-      {
-        label: 'Humidity %',
-        data: dashChartData.humids,
-        borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.06)',
-        tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true
-      }
+      { label: 'Temp °C', data: dashChartData.temps, borderColor: '#F44336', backgroundColor: 'rgba(244,67,54,0.07)', tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true },
+      { label: 'Humidity %', data: dashChartData.humids, borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.06)', tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true }
     ]
   },
-  options: {
-    ...baseOpts(),
-    plugins: {
-      legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, color: '#888', padding: 12 } },
-      tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#666', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 }
-    }
-  }
+  options: { ...baseOpts(), plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, color: '#888', padding: 12 } }, tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#666', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 } } }
 });
 
 function updateDashChart(temp, humid) {
   const now = new Date();
-  const label = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-  if (dashChartData.labels.length >= 20) {
-    dashChartData.labels.shift();
-    dashChartData.temps.shift();
-    dashChartData.humids.shift();
-  }
-  dashChartData.labels.push(label);
-  dashChartData.temps.push(temp);
-  dashChartData.humids.push(humid);
+  const label = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  if (dashChartData.labels.length >= 20) { dashChartData.labels.shift(); dashChartData.temps.shift(); dashChartData.humids.shift(); }
+  dashChartData.labels.push(label); dashChartData.temps.push(temp); dashChartData.humids.push(humid);
   dashChart.update('none');
 }
 
 // ═══════════════════════════════════════════
-//  ENV CHARTS
+//  ENV CHARTS — uses THRESHOLDS dynamically
 // ═══════════════════════════════════════════
 function renderEnvCharts(data) {
+  const T  = THRESHOLDS;
   const at = computeAvg(data.temperature);
   const am = computeAvg(data.soil_moisture);
   const ah = computeAvg(data.humidity);
 
+  // Use thresholds from API response if available, else fall back to THRESHOLDS object
+  const tOpt = data.temp_optimal  || { min: T.temperature.min,   max: T.temperature.max };
+  const mOpt = data.moist_optimal || { min: T.soil_moisture.min, max: T.soil_moisture.max };
+  const hOpt = data.humid_optimal || { min: T.humidity.min,      max: T.humidity.max };
+
   if (at != null) {
-    setIds(['avg-temp-pill', 'perf-temp', 'sum-avg-temp'], at + '°C');
-    const ok = at >= 25 && at <= 30;
+    setIds(['avg-temp-pill','perf-temp','sum-avg-temp'], at + '°C');
+    const ok = at >= tOpt.min && at <= tOpt.max;
     const el = document.getElementById('avg-temp-status');
     if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Outside optimal range'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
     const badge = document.getElementById('temp-track-badge');
     if (badge) { badge.textContent = ok ? 'Stable' : 'Watch'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
   }
   if (am != null) {
-    setIds(['avg-moist-pill', 'perf-moist', 'sum-avg-moist'], am + '%');
-    const ok = am >= 43 && am <= 60;
+    setIds(['avg-moist-pill','perf-moist','sum-avg-moist'], am + '%');
+    const ok = am >= mOpt.min && am <= mOpt.max;
     const el = document.getElementById('avg-moist-status');
     if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Check irrigation'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
   }
   if (ah != null) {
-    setIds(['avg-humid-pill', 'perf-humid', 'sum-avg-humid'], ah + '%');
-    const ok = ah >= 70 && ah <= 85;
+    setIds(['avg-humid-pill','perf-humid','sum-avg-humid'], ah + '%');
+    const ok = ah >= hOpt.min && ah <= hOpt.max;
     const el = document.getElementById('avg-humid-status');
     if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Outside optimal range'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
     const badge = document.getElementById('humid-track-badge');
     if (badge) { badge.textContent = ok ? 'Stable' : 'Watch'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
   }
 
-  // Trend change labels (first vs last)
   function trendLabel(arr, suffix) {
     const v = (arr || []).filter(x => x != null);
     if (v.length < 2) return '';
-    const diff = parseFloat((v[v.length - 1] - v[0]).toFixed(1));
+    const diff = parseFloat((v[v.length-1] - v[0]).toFixed(1));
     return (diff >= 0 ? '▲ +' : '▼ ') + diff + suffix + ' vs 7 days ago';
   }
   const tc = document.getElementById('perf-temp-change');
   const mc = document.getElementById('perf-moist-change');
   const hc = document.getElementById('perf-humid-change');
-  if (tc) { const s = trendLabel(data.temperature, '°C'); const up = s.startsWith('▲'); tc.textContent = s; tc.className = 'perf-change ' + (up ? 'up' : 'down'); }
-  if (mc) { const s = trendLabel(data.soil_moisture, '%'); const up = s.startsWith('▲'); mc.textContent = s; mc.className = 'perf-change ' + (up ? 'up' : 'down'); }
-  if (hc) { const s = trendLabel(data.humidity, '%'); const up = s.startsWith('▲'); hc.textContent = s; hc.className = 'perf-change ' + (up ? 'up' : 'down'); }
+  if (tc) { const s = trendLabel(data.temperature,'°C'); const up = s.startsWith('▲'); tc.textContent = s; tc.className = 'perf-change ' + (up ? 'up' : 'down'); }
+  if (mc) { const s = trendLabel(data.soil_moisture,'%'); const up = s.startsWith('▲'); mc.textContent = s; mc.className = 'perf-change ' + (up ? 'up' : 'down'); }
+  if (hc) { const s = trendLabel(data.humidity,'%'); const up = s.startsWith('▲'); hc.textContent = s; hc.className = 'perf-change ' + (up ? 'up' : 'down'); }
 
-  // Overall status
   const statEl = document.getElementById('sum-overall-status');
   if (statEl) {
     const issues = [];
-    if (at != null && (at < 25 || at > 30)) issues.push('temperature');
-    if (am != null && (am < 43 || am > 60)) issues.push('moisture');
-    if (ah != null && (ah < 70 || ah > 85)) issues.push('humidity');
+    if (at != null && (at < tOpt.min || at > tOpt.max)) issues.push('temperature');
+    if (am != null && (am < mOpt.min || am > mOpt.max)) issues.push('moisture');
+    if (ah != null && (ah < hOpt.min || ah > hOpt.max)) issues.push('humidity');
     statEl.textContent = issues.length ? 'Watch: ' + issues.join(', ') : 'Stable';
-    statEl.className = 'metric-val ' + (issues.length ? 'orange' : 'green');
+    statEl.className   = 'metric-val ' + (issues.length ? 'orange' : 'green');
   }
 
   // Temperature chart
-  destroyChart('envTempChart');
-  showCanvas('envTempWrap', 'envTempChart');
+  destroyChart('envTempChart'); showCanvas('envTempWrap','envTempChart');
   chartInstances['envTempChart'] = new Chart(document.getElementById('envTempChart'), {
     type: 'line',
-    data: {
-      labels: data.labels,
-      datasets: [
-        { data: data.temperature, borderColor: '#F44336', backgroundColor: 'rgba(244,67,54,0.08)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#F44336', label: 'Temp °C' },
-        { data: Array(data.labels.length).fill(data.temp_optimal.max), borderColor: 'rgba(244,67,54,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' },
-        { data: Array(data.labels.length).fill(data.temp_optimal.min), borderColor: 'rgba(244,67,54,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' }
-      ]
-    },
-    options: { ...baseOpts(), scales: { x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' }, min: 20, max: 35 } } }
+    data: { labels: data.labels, datasets: [
+      { data: data.temperature, borderColor: '#F44336', backgroundColor: 'rgba(244,67,54,0.08)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#F44336', label: 'Temp °C' },
+      { data: Array(data.labels.length).fill(tOpt.max), borderColor: 'rgba(244,67,54,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' },
+      { data: Array(data.labels.length).fill(tOpt.min), borderColor: 'rgba(244,67,54,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' }
+    ]},
+    options: { ...baseOpts(), scales: { x: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} }, y: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, min: tOpt.min - 5, max: tOpt.max + 5 } } }
   });
 
   // Soil moisture chart
-  destroyChart('envMoistChart');
-  showCanvas('envMoistWrap', 'envMoistChart');
+  destroyChart('envMoistChart'); showCanvas('envMoistWrap','envMoistChart');
   chartInstances['envMoistChart'] = new Chart(document.getElementById('envMoistChart'), {
     type: 'line',
-    data: {
-      labels: data.labels,
-      datasets: [
-        { data: data.soil_moisture, borderColor: '#4CAF50', backgroundColor: 'rgba(76,175,80,0.08)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#4CAF50', label: 'Moisture %' },
-        { data: Array(data.labels.length).fill(data.moist_optimal.min), borderColor: 'rgba(76,175,80,0.4)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' },
-        { data: Array(data.labels.length).fill(data.moist_optimal.max), borderColor: 'rgba(76,175,80,0.4)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' }
-      ]
-    },
-    options: { ...baseOpts(), scales: { x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' }, min: 10, max: 80 } } }
+    data: { labels: data.labels, datasets: [
+      { data: data.soil_moisture, borderColor: '#4CAF50', backgroundColor: 'rgba(76,175,80,0.08)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#4CAF50', label: 'Moisture %' },
+      { data: Array(data.labels.length).fill(mOpt.min), borderColor: 'rgba(76,175,80,0.4)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' },
+      { data: Array(data.labels.length).fill(mOpt.max), borderColor: 'rgba(76,175,80,0.4)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' }
+    ]},
+    options: { ...baseOpts(), scales: { x: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} }, y: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, min: 10, max: 80 } } }
   });
 
   // Humidity chart
-  destroyChart('envHumidChart');
-  showCanvas('envHumidWrap', 'envHumidChart');
-  const humidOpt = data.humid_optimal || { min: 70, max: 85 };
+  destroyChart('envHumidChart'); showCanvas('envHumidWrap','envHumidChart');
   chartInstances['envHumidChart'] = new Chart(document.getElementById('envHumidChart'), {
     type: 'line',
-    data: {
-      labels: data.labels,
-      datasets: [
-        { data: data.humidity, borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.07)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#2196F3', label: 'Humidity %' },
-        { data: Array(data.labels.length).fill(humidOpt.max), borderColor: 'rgba(33,150,243,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' },
-        { data: Array(data.labels.length).fill(humidOpt.min), borderColor: 'rgba(33,150,243,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' }
-      ]
-    },
-    options: { ...baseOpts(), scales: { x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' }, min: 40, max: 100 } } }
+    data: { labels: data.labels, datasets: [
+      { data: data.humidity, borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.07)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#2196F3', label: 'Humidity %' },
+      { data: Array(data.labels.length).fill(hOpt.max), borderColor: 'rgba(33,150,243,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' },
+      { data: Array(data.labels.length).fill(hOpt.min), borderColor: 'rgba(33,150,243,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' }
+    ]},
+    options: { ...baseOpts(), scales: { x: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} }, y: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, min: 40, max: 100 } } }
   });
 }
 
@@ -979,7 +847,6 @@ function renderEnvCharts(data) {
 function renderNutrientCharts() {
   const data = liveData.npkTrendData;
   if (!data) return;
-
   const c = data.current;
   if (c) {
     document.getElementById('npk-n-val').textContent      = c.nitrogen   != null ? c.nitrogen   + ' mg/kg' : '—';
@@ -989,89 +856,70 @@ function renderNutrientCharts() {
     const badge = document.getElementById('npk-track-badge');
     if (badge) { const ok = (c.status ?? 'NORMAL') === 'NORMAL'; badge.textContent = ok ? 'Balanced' : 'Imbalanced'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
   }
-
-  destroyChart('npkChart');
-  showCanvas('npkWrap', 'npkChart');
+  destroyChart('npkChart'); showCanvas('npkWrap','npkChart');
   chartInstances['npkChart'] = new Chart(document.getElementById('npkChart'), {
     type: 'line',
-    data: {
-      labels: data.labels,
-      datasets: [
-        { label: 'N', data: data.nitrogen,   borderColor: '#4CAF50', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, borderWidth: 2, pointBackgroundColor: '#4CAF50' },
-        { label: 'P', data: data.phosphorus, borderColor: '#FF9800', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, borderWidth: 2, pointBackgroundColor: '#FF9800' },
-        { label: 'K', data: data.potassium,  borderColor: '#2196F3', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, borderWidth: 2, pointBackgroundColor: '#2196F3' }
-      ]
-    },
-    options: {
-      ...baseOpts(),
-      plugins: {
-        legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, color: '#888', padding: 10 } },
-        tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#666', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 }
-      }
-    }
+    data: { labels: data.labels, datasets: [
+      { label:'N', data:data.nitrogen,   borderColor:'#4CAF50', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#4CAF50' },
+      { label:'P', data:data.phosphorus, borderColor:'#FF9800', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#FF9800' },
+      { label:'K', data:data.potassium,  borderColor:'#2196F3', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#2196F3' }
+    ]},
+    options: { ...baseOpts(), plugins: { legend: { display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:10 } }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } } }
   });
 
-  if (c && data.optimal) {
-    destroyChart('npkBarChart');
-    showCanvas('npkBarWrap', 'npkBarChart');
+  // Use THRESHOLDS for optimal NPK if API doesn't return it
+  const optimal = data.optimal || {
+    nitrogen:   THRESHOLDS.npk.nitrogen.optimal,
+    phosphorus: THRESHOLDS.npk.phosphorus.optimal,
+    potassium:  THRESHOLDS.npk.potassium.optimal,
+  };
+
+  if (c && optimal) {
+    destroyChart('npkBarChart'); showCanvas('npkBarWrap','npkBarChart');
     chartInstances['npkBarChart'] = new Chart(document.getElementById('npkBarChart'), {
       type: 'bar',
       data: {
-        labels: ['N (Nitrogen)', 'P (Phosphorus)', 'K (Potassium)'],
+        labels: ['N (Nitrogen)','P (Phosphorus)','K (Potassium)'],
         datasets: [
-          { label: 'Current', data: [c.nitrogen, c.phosphorus, c.potassium], backgroundColor: ['#4CAF50','#FF9800','#2196F3'], borderRadius: 5, borderSkipped: false },
-          { label: 'Optimal', data: [data.optimal.nitrogen, data.optimal.phosphorus, data.optimal.potassium], backgroundColor: ['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'], borderRadius: 5, borderSkipped: false }
+          { label:'Current', data:[c.nitrogen,c.phosphorus,c.potassium], backgroundColor:['#4CAF50','#FF9800','#2196F3'], borderRadius:5, borderSkipped:false },
+          { label:'Optimal', data:[optimal.nitrogen,optimal.phosphorus,optimal.potassium], backgroundColor:['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'], borderRadius:5, borderSkipped:false }
         ]
       },
-      options: {
-        ...baseOpts(),
-        plugins: {
-          legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, color: '#888', padding: 10 } },
-          tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#666', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 }
-        },
-        scales: {
-          x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { display: false } },
-          y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' }, min: 0, max: 80 }
-        }
-      }
+      options: { ...baseOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:10 } }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } }, scales:{ x:{ ticks:{color:'#aaa',font:{size:10}}, grid:{display:false} }, y:{ ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, min:0, max:80 } } }
     });
   }
 }
 
 // ═══════════════════════════════════════════
-//  ANALYTICS REFRESH (fetches fresh data)
+//  ANALYTICS REFRESH
 // ═══════════════════════════════════════════
 function refreshAnalytics() {
-  // Show loaders
   ['envTempWrap','envMoistWrap','envHumidWrap','npkWrap','npkBarWrap'].forEach(id => {
-    const wrap = document.getElementById(id);
-    if (!wrap) return;
+    const wrap = document.getElementById(id); if (!wrap) return;
     const canvasId = wrap.querySelector('canvas')?.id;
     if (canvasId) showLoader(id, canvasId);
   });
 
+  const T = THRESHOLDS;
+
   fetch('/api/history')
     .then(r => r.ok ? r.json() : Promise.reject('History API failed'))
-    .then(data => {
-      liveData.historyData = data;
-      renderEnvCharts(data);
-    })
+    .then(data => { liveData.historyData = data; renderEnvCharts(data); })
     .catch(err => {
       console.warn('History fetch failed, using fallback:', err);
-      // Fallback demo data
       const fallback = {
-        labels: ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'],
-        temperature:   [28.1,28.6,29.0,28.8,29.4,29.1,29.0],
-        soil_moisture: [54,51,48,45,40,43,42],
-        humidity:      [78,76,80,82,79,75,77],
-        temp_optimal:  { min: 25, max: 30 },
-        moist_optimal: { min: 43, max: 60 },
-        humid_optimal: { min: 70, max: 85 },
+        labels:        ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'],
+        temperature:   [28.1, 28.6, 29.0, 28.8, 29.4, 29.1, 29.0],
+        soil_moisture: [54, 51, 48, 45, 40, 43, 42],
+        humidity:      [78, 76, 80, 82, 79, 75, 77],
+        // Use dynamic thresholds in fallback too
+        temp_optimal:  { min: T.temperature.min,   max: T.temperature.max },
+        moist_optimal: { min: T.soil_moisture.min, max: T.soil_moisture.max },
+        humid_optimal: { min: T.humidity.min,      max: T.humidity.max },
       };
-      // Blend live current reading into fallback for accuracy
-      if (liveData.temperature != null) fallback.temperature[fallback.temperature.length - 1] = liveData.temperature;
-      if (liveData.soil_moisture != null) fallback.soil_moisture[fallback.soil_moisture.length - 1] = liveData.soil_moisture;
-      if (liveData.humidity != null) fallback.humidity[fallback.humidity.length - 1] = liveData.humidity;
+      if (liveData.temperature   != null) fallback.temperature[fallback.temperature.length-1]     = liveData.temperature;
+      if (liveData.soil_moisture != null) fallback.soil_moisture[fallback.soil_moisture.length-1] = liveData.soil_moisture;
+      if (liveData.humidity      != null) fallback.humidity[fallback.humidity.length-1]           = liveData.humidity;
       liveData.historyData = fallback;
       renderEnvCharts(fallback);
     });
@@ -1080,18 +928,18 @@ function refreshAnalytics() {
     .then(r => r.ok ? r.json() : Promise.reject('NPK API failed'))
     .then(data => {
       liveData.npkTrendData = data;
-      // Only render if nutrients tab is active
       const nutrientsTab = document.getElementById('tab-nutrients');
       if (nutrientsTab && nutrientsTab.style.display !== 'none') renderNutrientCharts();
     })
     .catch(() => {
       liveData.npkTrendData = {
-        labels: ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'],
+        labels:     ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'],
         nitrogen:   [42,43,44,44,45,45,45],
         phosphorus: [30,31,31,32,32,32,32],
         potassium:  [26,26,27,27,28,28,28],
         current: { nitrogen: liveData.npk?.nitrogen ?? 45, phosphorus: liveData.npk?.phosphorus ?? 32, potassium: liveData.npk?.potassium ?? 28, status: liveData.npk?.status ?? 'NORMAL' },
-        optimal: { nitrogen: 50, phosphorus: 35, potassium: 30 },
+        // Use dynamic optimal from THRESHOLDS
+        optimal: { nitrogen: T.npk.nitrogen.optimal, phosphorus: T.npk.phosphorus.optimal, potassium: T.npk.potassium.optimal },
       };
       const nutrientsTab = document.getElementById('tab-nutrients');
       if (nutrientsTab && nutrientsTab.style.display !== 'none') renderNutrientCharts();
@@ -1101,10 +949,7 @@ function refreshAnalytics() {
 // ═══════════════════════════════════════════
 //  ALERTS
 // ═══════════════════════════════════════════
-let alertsData = [];
-let currentFilter = 'all';
-let alertIdCounter = 1000;
-
+let alertsData = [], currentFilter = 'all', alertIdCounter = 1000;
 const alertIconMap = {
   warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
   info:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
@@ -1112,34 +957,20 @@ const alertIconMap = {
 };
 const alertColorMap = { warning: 'orange', info: 'blue', success: 'green' };
 
-// Load alerts from server and merge with any local ones
 function loadServerAlerts() {
   fetch('/api/alerts?limit=50')
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(data => {
       if (data.records && data.records.length) {
-        // Replace server records (keep local-only ones)
         const localOnly = alertsData.filter(a => a._local);
-        const serverAlerts = data.records.map(r => ({
-          id: r._id,
-          type: r.type || 'warning',
-          title: r.title || 'Alert',
-          desc: r.desc || '',
-          time: r.timestamp || '—',
-          read: r.read || false,
-          _server: true
-        }));
+        const serverAlerts = data.records.map(r => ({ id: r._id, type: r.type || 'warning', title: r.title || 'Alert', desc: r.desc || '', time: r.timestamp || '—', read: r.read || false, _server: true }));
         alertsData = [...localOnly, ...serverAlerts];
         renderAlerts();
       }
     })
     .catch(() => {
-      // Keep existing alerts if API fails
       if (!alertsData.length) {
-        // Seed defaults when completely offline
-        alertsData = [
-          { id: 1, type: 'info', title: 'System Started', desc: 'Dashboard loaded. Connect your Raspberry Pi to see live alerts.', time: 'Just now', read: false, _local: true }
-        ];
+        alertsData = [{ id: 1, type: 'info', title: 'System Started', desc: 'Dashboard loaded. Connect your Raspberry Pi to see live alerts.', time: 'Just now', read: false, _local: true }];
         renderAlerts();
       }
     });
@@ -1149,28 +980,13 @@ function renderAlerts() {
   const container = document.getElementById('alertsContainer');
   const filtered  = currentFilter === 'all' ? alertsData : alertsData.filter(a => a.type === currentFilter);
   updateFilterCounts();
-
-  if (!filtered.length) {
-    container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter === 'all' ? '' : currentFilter + ' '}alerts</div>`;
-    return;
-  }
-
+  if (!filtered.length) { container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter === 'all' ? '' : currentFilter + ' '}alerts</div>`; return; }
   if (currentFilter === 'all') {
-    const groups = [
-      { label: '⚠ Warnings', type: 'warning' },
-      { label: 'ℹ Information', type: 'info' },
-      { label: '✓ Success', type: 'success' }
-    ];
+    const groups = [{ label:'⚠ Warnings', type:'warning' }, { label:'ℹ Information', type:'info' }, { label:'✓ Success', type:'success' }];
     let html = '';
-    groups.forEach(g => {
-      const items = alertsData.filter(a => a.type === g.type);
-      if (!items.length) return;
-      html += `<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`;
-    });
+    groups.forEach(g => { const items = alertsData.filter(a => a.type === g.type); if (!items.length) return; html += `<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`; });
     container.innerHTML = html;
-  } else {
-    container.innerHTML = `<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`;
-  }
+  } else { container.innerHTML = `<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`; }
 }
 
 function alertCardHTML(a) {
@@ -1178,10 +994,7 @@ function alertCardHTML(a) {
   const safeId = String(a.id).replace(/[^a-zA-Z0-9_-]/g, '_');
   return `<div class="alert-card ${color} ${a.read ? 'read' : ''}" id="alert-${safeId}">
     <div class="alert-unread ${color === 'orange' ? 'orange' : ''}"></div>
-    <div class="alert-top">
-      <div class="alert-ico ${color}">${alertIconMap[a.type] || alertIconMap.info}</div>
-      <div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div>
-    </div>
+    <div class="alert-top"><div class="alert-ico ${color}">${alertIconMap[a.type] || alertIconMap.info}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div>
     <div class="alert-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${a.time}</div>
     <span class="alert-dismiss" onclick="dismissAlert('${safeId}','${a.id}')">✕</span>
   </div>`;
@@ -1189,36 +1002,20 @@ function alertCardHTML(a) {
 
 function filterAlerts(type) {
   currentFilter = type;
-  document.querySelectorAll('.filter-tab').forEach(t => {
-    t.className = 'filter-tab';
-    if (t.dataset.filter === type) {
-      const map = { all: 'f-all', warning: 'f-warning', info: 'f-info', success: 'f-success' };
-      t.classList.add(map[type]);
-    }
-  });
+  document.querySelectorAll('.filter-tab').forEach(t => { t.className = 'filter-tab'; if (t.dataset.filter === type) { const map = { all:'f-all', warning:'f-warning', info:'f-info', success:'f-success' }; t.classList.add(map[type]); } });
   renderAlerts();
 }
 
 function updateFilterCounts() {
   const unread = alertsData.filter(a => !a.read).length;
-  const counts = {
-    all:     alertsData.length,
-    warning: alertsData.filter(a => a.type === 'warning').length,
-    info:    alertsData.filter(a => a.type === 'info').length,
-    success: alertsData.filter(a => a.type === 'success').length,
-  };
+  const counts = { all: alertsData.length, warning: alertsData.filter(a => a.type==='warning').length, info: alertsData.filter(a => a.type==='info').length, success: alertsData.filter(a => a.type==='success').length };
   document.getElementById('alert-unread-label').textContent = `${counts.all} alert${counts.all !== 1 ? 's' : ''} · ${unread} unread`;
   document.querySelector('[data-filter="all"]').textContent     = `All (${counts.all})`;
   document.querySelector('[data-filter="warning"]').textContent = `⚠ Warnings (${counts.warning})`;
   document.querySelector('[data-filter="info"]').textContent    = `ℹ Info (${counts.info})`;
   document.querySelector('[data-filter="success"]').textContent = `✓ Success (${counts.success})`;
-
-  // Update notification bell badge
   const badge = document.getElementById('notif-badge');
-  if (badge) {
-    badge.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : '';
-    badge.style.display = unread > 0 ? 'flex' : 'none';
-  }
+  if (badge) { badge.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : ''; badge.style.display = unread > 0 ? 'flex' : 'none'; }
 }
 
 function dismissAlert(safeId, realId) {
@@ -1227,7 +1024,6 @@ function dismissAlert(safeId, realId) {
   renderAlerts();
 }
 
-// Push a local sensor alert (deduped by title)
 function pushSensorAlert(type, title, desc) {
   if (alertsData.find(a => a.title === title && !a.read)) return;
   alertsData.unshift({ id: alertIdCounter++, type, title, desc, time: 'Just now', read: false, _local: true });
@@ -1243,57 +1039,58 @@ function removeSensorAlert(title) {
 document.getElementById('markAllBtn').addEventListener('click', () => {
   alertsData.forEach(a => a.read = true);
   renderAlerts();
-  // Also mark read on server
   fetch('/api/alerts/mark-all-read', { method: 'POST' }).catch(() => {});
 });
 
 // ═══════════════════════════════════════════
-//  LIVE SENSOR POLLING
+//  SENSOR CARD STATUS — uses THRESHOLDS dynamically
 // ═══════════════════════════════════════════
-function updateSensorCard(cardId, statusId, value, low, high, unit, warnLabel, dangerLabel, alertTitle, alertDesc) {
+function updateSensorCard(cardId, statusId, value, threshKey, unit, alertTitle) {
   const card   = document.getElementById(cardId);
   const status = document.getElementById(statusId);
   if (!card || !status || value == null) return;
 
-  if (value < low - (low * 0.1)) { // danger zone: >10% below min
-    status.textContent = dangerLabel || 'Very Low';
-    status.className = 'sensor-status danger';
-    card.className = 'sensor-card danger-border';
-    pushSensorAlert('warning', alertTitle + ' Critical', alertDesc + value + unit + ' — critical.');
-  } else if (value < low) {
-    status.textContent = warnLabel || 'Low';
-    status.className = 'sensor-status warning';
-    card.className = 'sensor-card warning-border';
-    pushSensorAlert('warning', alertTitle + ' Low', alertDesc + value + unit + ' — below optimal.');
-  } else if (value > high) {
+  const T      = THRESHOLDS[threshKey];
+  const min    = T.min;
+  const max    = T.max;
+  const danger = T.danger;
+
+  if (value <= danger) {
+    status.textContent = 'Critical';
+    status.className   = 'sensor-status danger';
+    card.className     = 'sensor-card danger-border';
+    pushSensorAlert('warning', alertTitle + ' Critical', `${alertTitle} is ${value}${unit} — critical (threshold: ${danger}${unit}).`);
+  } else if (value < min) {
+    status.textContent = 'Low';
+    status.className   = 'sensor-status warning';
+    card.className     = 'sensor-card warning-border';
+    pushSensorAlert('warning', alertTitle + ' Low', `${alertTitle} is ${value}${unit} — below optimal ${min}${unit}.`);
+  } else if (value > max) {
     status.textContent = 'High';
-    status.className = 'sensor-status warning';
-    card.className = 'sensor-card warning-border';
-    pushSensorAlert('warning', alertTitle + ' High', alertDesc + value + unit + ' — above optimal.');
+    status.className   = 'sensor-status warning';
+    card.className     = 'sensor-card warning-border';
+    pushSensorAlert('warning', alertTitle + ' High', `${alertTitle} is ${value}${unit} — above optimal ${max}${unit}.`);
   } else {
     status.textContent = 'Stable';
-    status.className = 'sensor-status';
-    card.className = 'sensor-card';
+    status.className   = 'sensor-status';
+    card.className     = 'sensor-card';
     removeSensorAlert(alertTitle + ' Critical');
     removeSensorAlert(alertTitle + ' Low');
     removeSensorAlert(alertTitle + ' High');
   }
 }
 
+// ═══════════════════════════════════════════
+//  LIVE SENSOR POLLING
+// ═══════════════════════════════════════════
 function pollSensors() {
   fetch('/api/sensors/latest')
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(data => {
       const t = data.temperature, m = data.soil_moisture, h = data.humidity;
+      liveData.temperature = t; liveData.soil_moisture = m; liveData.humidity = h;
+      liveData.npk = data.npk; liveData.stage = data.stage;
 
-      // Store in shared live data
-      liveData.temperature   = t;
-      liveData.soil_moisture = m;
-      liveData.humidity      = h;
-      liveData.npk           = data.npk;
-      liveData.stage         = data.stage;
-
-      // Dashboard sensor card values
       const elT = document.getElementById('dash-temp');
       const elM = document.getElementById('dash-moist');
       const elH = document.getElementById('dash-humid');
@@ -1305,10 +1102,10 @@ function pollSensors() {
       if (elN && data.npk) elN.textContent = data.npk.status ?? '—';
       if (elS && data.stage) elS.textContent = data.stage;
 
-      // Status logic
-      updateSensorCard('card-temp',  'status-temp',  t, 25, 30, '°C', 'Low', 'Very Low', 'Temperature', 'Temperature is ');
-      updateSensorCard('card-moist', 'status-moist', m, 43, 60, '%',  'Low', 'Very Low', 'Soil Moisture', 'Soil moisture is ');
-      updateSensorCard('card-humid', 'status-humid', h, 70, 85, '%',  'Low', 'Very Low', 'Humidity', 'Air humidity is ');
+      // ✅ Status now driven by THRESHOLDS object (loaded from /api/thresholds)
+      updateSensorCard('card-temp',  'status-temp',  t, 'temperature',   '°C', 'Temperature');
+      updateSensorCard('card-moist', 'status-moist', m, 'soil_moisture', '%',  'Soil Moisture');
+      updateSensorCard('card-humid', 'status-humid', h, 'humidity',      '%',  'Humidity');
 
       // NPK card
       if (data.npk) {
@@ -1325,15 +1122,11 @@ function pollSensors() {
         }
       }
 
-      // Last updated timestamp
       const lu = document.getElementById('dash-last-updated');
       if (lu) lu.textContent = 'Last update: ' + (data.timestamp || new Date().toLocaleTimeString());
-
-      // Update mini dash chart
       if (t != null && h != null) updateDashChart(t, h);
     })
     .catch(() => {
-      // No live data — show offline state
       const luEl = document.getElementById('dash-last-updated');
       if (luEl) luEl.textContent = 'Sensor offline or Flask not reachable';
     });
@@ -1343,22 +1136,12 @@ function syncDeviceStates() {
   fetch('/api/devices/latest')
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(data => {
-      liveData.pump      = data.irrigation_pump;
-      liveData.fan       = data.exhaust_fan;
-      liveData.auto_mode = data.auto_mode;
-
+      liveData.pump = data.irrigation_pump; liveData.fan = data.exhaust_fan; liveData.auto_mode = data.auto_mode;
       const ps = document.getElementById('dash-pump-state');
       const fs = document.getElementById('dash-fan-state');
       const mn = document.getElementById('dash-mode-note');
-
-      if (ps) {
-        ps.textContent = data.irrigation_pump || '—';
-        ps.className = 'device-state ' + (data.irrigation_pump === 'ON' ? 'on' : 'off');
-      }
-      if (fs) {
-        fs.textContent = data.exhaust_fan || '—';
-        fs.className = 'device-state ' + (data.exhaust_fan === 'ON' ? 'on' : 'off');
-      }
+      if (ps) { ps.textContent = data.irrigation_pump || '—'; ps.className = 'device-state ' + (data.irrigation_pump === 'ON' ? 'on' : 'off'); }
+      if (fs) { fs.textContent = data.exhaust_fan || '—'; fs.className = 'device-state ' + (data.exhaust_fan === 'ON' ? 'on' : 'off'); }
       if (mn) mn.textContent = `Mode: ${data.auto_mode ? 'AUTO' : 'MANUAL'} · Last sync: ${data.timestamp || '—'}`;
     })
     .catch(() => {});
@@ -1369,11 +1152,7 @@ function pollAlertCount() {
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(data => {
       const badge = document.getElementById('notif-badge');
-      if (badge) {
-        const count = data.count || 0;
-        badge.textContent = count > 9 ? '9+' : count || '';
-        badge.style.display = count > 0 ? 'flex' : 'none';
-      }
+      if (badge) { const count = data.count || 0; badge.textContent = count > 9 ? '9+' : count || ''; badge.style.display = count > 0 ? 'flex' : 'none'; }
     })
     .catch(() => {});
 }
@@ -1381,12 +1160,11 @@ function pollAlertCount() {
 // ═══════════════════════════════════════════
 //  HISTORY LOG
 // ═══════════════════════════════════════════
-let logSkip = 0;
-let logTotal = 0;
+let logSkip = 0, logTotal = 0;
 
 function loadHistory() {
-  const col   = document.getElementById('log-collection').value;
-  const days  = document.getElementById('log-days').value;
+  const col = document.getElementById('log-collection').value;
+  const days = document.getElementById('log-days').value;
   const limit = parseInt(document.getElementById('log-limit').value);
   let url = `/api/logs?collection=${col}&limit=${limit}&skip=${logSkip}`;
   if (days) url += `&days=${days}`;
@@ -1395,7 +1173,7 @@ function loadHistory() {
   document.getElementById('log-pagination').style.display = 'none';
   document.getElementById('log-count-badge').textContent = '';
 
-  const colLabels = { sensors: 'Sensor Readings', alerts: 'Alerts', devices: 'Device Events', npk_trends: 'NPK Trends' };
+  const colLabels = { sensors:'Sensor Readings', alerts:'Alerts', devices:'Device Events', npk_trends:'NPK Trends' };
   document.getElementById('log-header-sub').textContent = (colLabels[col] || col) + ' · MongoDB';
 
   fetch(url)
@@ -1403,46 +1181,35 @@ function loadHistory() {
     .then(data => {
       logTotal = data.count || 0;
       document.getElementById('log-count-badge').textContent = `${logTotal} record${logTotal !== 1 ? 's' : ''} total`;
-
-      if (!data.records || !data.records.length) {
-        document.getElementById('log-table-container').innerHTML = '<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>No records found for this filter.</div>';
-        return;
-      }
-
+      if (!data.records || !data.records.length) { document.getElementById('log-table-container').innerHTML = '<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>No records found for this filter.</div>'; return; }
       const table = buildTable(col, data.records);
       document.getElementById('log-table-container').innerHTML = '';
       document.getElementById('log-table-container').appendChild(table);
-
-      // Pagination
       const shown = logSkip + data.records.length;
       document.getElementById('log-pagination').style.display = 'flex';
-      document.getElementById('log-page-info').textContent    = `Showing ${logSkip + 1}–${shown} of ${logTotal}`;
+      document.getElementById('log-page-info').textContent    = `Showing ${logSkip+1}–${shown} of ${logTotal}`;
       document.getElementById('log-prev-btn').disabled = logSkip === 0;
       document.getElementById('log-next-btn').disabled = shown >= logTotal;
     })
-    .catch(err => {
-      document.getElementById('log-table-container').innerHTML = `<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Could not load records — is Flask running?<br><small style="color:var(--text-light);margin-top:4px;display:block;">${err}</small></div>`;
-    });
+    .catch(err => { document.getElementById('log-table-container').innerHTML = `<div class="log-empty">Could not load records — is Flask running?<br><small style="color:var(--text-light);margin-top:4px;display:block;">${err}</small></div>`; });
 }
 
 function buildTable(col, records) {
+  const T = THRESHOLDS; // ✅ use dynamic thresholds in table color coding
   const t = document.createElement('table');
   t.className = 'log-table';
 
   if (col === 'sensors') {
-    t.innerHTML = `<thead><tr>
-      <th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th>
-      <th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th><th>Stage</th>
-    </tr></thead><tbody></tbody>`;
+    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th><th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th><th>Stage</th></tr></thead><tbody></tbody>`;
     const tb = t.querySelector('tbody');
     records.forEach(r => {
       const npk = r.npk || {};
       const row = document.createElement('tr');
       row.innerHTML = `
         <td class="ts">${r.timestamp || '—'}</td>
-        <td class="val">${fmtTemp(r.temperature)}</td>
-        <td class="val">${fmtMoist(r.soil_moisture)}</td>
-        <td class="val">${fmtHumid(r.humidity)}</td>
+        <td class="val">${fmtVal(r.temperature,   T.temperature.min,   T.temperature.max,   '°C')}</td>
+        <td class="val">${fmtVal(r.soil_moisture,  T.soil_moisture.min, T.soil_moisture.max, '%')}</td>
+        <td class="val">${fmtVal(r.humidity,       T.humidity.min,      T.humidity.max,      '%', 'var(--blue)')}</td>
         <td>${npk.nitrogen   ?? '—'}</td>
         <td>${npk.phosphorus ?? '—'}</td>
         <td>${npk.potassium  ?? '—'}</td>
@@ -1451,334 +1218,113 @@ function buildTable(col, records) {
       `;
       tb.appendChild(row);
     });
-
   } else if (col === 'alerts') {
-    t.innerHTML = `<thead><tr>
-      <th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th>
-    </tr></thead><tbody></tbody>`;
+    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th></tr></thead><tbody></tbody>`;
     const tb = t.querySelector('tbody');
-    records.forEach(r => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="ts">${r.timestamp || '—'}</td>
-        <td>${fmtAlertType(r.type)}</td>
-        <td class="val">${r.title || '—'}</td>
-        <td style="max-width:240px;white-space:normal;font-size:10px;">${r.desc || '—'}</td>
-        <td>${r.read ? '<span class="log-badge normal">Read</span>' : '<span class="log-badge warning">Unread</span>'}</td>
-      `;
-      tb.appendChild(row);
-    });
-
+    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td>${fmtAlertType(r.type)}</td><td class="val">${r.title||'—'}</td><td style="max-width:240px;white-space:normal;font-size:10px;">${r.desc||'—'}</td><td>${r.read ? '<span class="log-badge normal">Read</span>' : '<span class="log-badge warning">Unread</span>'}</td>`; tb.appendChild(row); });
   } else if (col === 'devices') {
-    t.innerHTML = `<thead><tr>
-      <th>Timestamp</th><th>Irrigation Pump</th><th>Exhaust Fan</th><th>Auto Mode</th>
-    </tr></thead><tbody></tbody>`;
+    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Irrigation Pump</th><th>Exhaust Fan</th><th>Auto Mode</th></tr></thead><tbody></tbody>`;
     const tb = t.querySelector('tbody');
-    records.forEach(r => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="ts">${r.timestamp || '—'}</td>
-        <td>${fmtDevice(r.irrigation_pump)}</td>
-        <td>${fmtDevice(r.exhaust_fan)}</td>
-        <td>${r.auto_mode != null ? `<span class="log-badge ${r.auto_mode ? 'on' : 'off'}">${r.auto_mode ? 'AUTO' : 'MANUAL'}</span>` : '—'}</td>
-      `;
-      tb.appendChild(row);
-    });
-
+    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td>${fmtDevice(r.irrigation_pump)}</td><td>${fmtDevice(r.exhaust_fan)}</td><td>${r.auto_mode != null ? `<span class="log-badge ${r.auto_mode ? 'on' : 'off'}">${r.auto_mode ? 'AUTO' : 'MANUAL'}</span>` : '—'}</td>`; tb.appendChild(row); });
   } else if (col === 'npk_trends') {
-    t.innerHTML = `<thead><tr>
-      <th>Timestamp</th><th>Nitrogen (mg/kg)</th><th>Phosphorus (mg/kg)</th><th>Potassium (mg/kg)</th><th>Status</th>
-    </tr></thead><tbody></tbody>`;
+    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Nitrogen (mg/kg)</th><th>Phosphorus (mg/kg)</th><th>Potassium (mg/kg)</th><th>Status</th></tr></thead><tbody></tbody>`;
     const tb = t.querySelector('tbody');
-    records.forEach(r => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="ts">${r.timestamp || '—'}</td>
-        <td class="val">${r.nitrogen   ?? '—'}</td>
-        <td class="val">${r.phosphorus ?? '—'}</td>
-        <td class="val">${r.potassium  ?? '—'}</td>
-        <td>${fmtNpk(r.status)}</td>
-      `;
-      tb.appendChild(row);
-    });
+    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td class="val">${r.nitrogen??'—'}</td><td class="val">${r.phosphorus??'—'}</td><td class="val">${r.potassium??'—'}</td><td>${fmtNpk(r.status)}</td>`; tb.appendChild(row); });
   }
-
   return t;
 }
 
-// Format helpers
-function fmtTemp(v)  { if (v == null) return '—'; const ok = v >= 25 && v <= 30; return `<span style="color:${ok ? 'var(--green-primary)' : 'var(--orange)'};font-weight:600;">${v}</span>`; }
-function fmtMoist(v) { if (v == null) return '—'; const ok = v >= 43 && v <= 60; return `<span style="color:${ok ? 'var(--green-primary)' : 'var(--orange)'};font-weight:600;">${v}</span>`; }
-function fmtHumid(v) { if (v == null) return '—'; const ok = v >= 70 && v <= 85; return `<span style="color:${ok ? 'var(--blue)' : 'var(--orange)'};font-weight:600;">${v}</span>`; }
-function fmtNpk(s)   { if (!s) return '—'; const c = s === 'NORMAL' ? 'normal' : s === 'LOW' ? 'low' : 'error'; return `<span class="log-badge ${c}">${s}</span>`; }
-function fmtAlertType(t) { if (!t) return '—'; const c = { warning:'warning', info:'info', success:'success' }[t] || 'info'; return `<span class="log-badge ${c}">${t.toUpperCase()}</span>`; }
-function fmtDevice(s) { if (!s) return '—'; return `<span class="log-badge ${s === 'ON' ? 'on' : 'off'}">${s}</span>`; }
+// ✅ Single unified format helper — uses dynamic min/max
+function fmtVal(v, min, max, unit, okColor = 'var(--green-primary)') {
+  if (v == null) return '—';
+  const ok = v >= min && v <= max;
+  return `<span style="color:${ok ? okColor : 'var(--orange)'};font-weight:600;">${v}</span>`;
+}
+function fmtNpk(s)       { if (!s) return '—'; const c = s==='NORMAL' ? 'normal' : s==='LOW' ? 'low' : 'error'; return `<span class="log-badge ${c}">${s}</span>`; }
+function fmtAlertType(t) { if (!t) return '—'; const c = {warning:'warning',info:'info',success:'success'}[t]||'info'; return `<span class="log-badge ${c}">${t.toUpperCase()}</span>`; }
+function fmtDevice(s)    { if (!s) return '—'; return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`; }
 
 // Pagination
-document.getElementById('log-prev-btn').addEventListener('click', () => {
-  const limit = parseInt(document.getElementById('log-limit').value);
-  logSkip = Math.max(0, logSkip - limit);
-  loadHistory();
-});
-document.getElementById('log-next-btn').addEventListener('click', () => {
-  const limit = parseInt(document.getElementById('log-limit').value);
-  logSkip = logSkip + limit;
-  loadHistory();
-});
-
-// Reset skip on filter change
-['log-collection','log-days','log-limit'].forEach(id => {
-  document.getElementById(id).addEventListener('change', () => { logSkip = 0; loadHistory(); });
-});
+document.getElementById('log-prev-btn').addEventListener('click', () => { const limit = parseInt(document.getElementById('log-limit').value); logSkip = Math.max(0, logSkip - limit); loadHistory(); });
+document.getElementById('log-next-btn').addEventListener('click', () => { const limit = parseInt(document.getElementById('log-limit').value); logSkip += limit; loadHistory(); });
+['log-collection','log-days','log-limit'].forEach(id => { document.getElementById(id).addEventListener('change', () => { logSkip = 0; loadHistory(); }); });
 document.getElementById('log-refresh-btn').addEventListener('click', () => { logSkip = 0; loadHistory(); });
 
 // ═══════════════════════════════════════════
-//  BOOT
+//  BOOT — load thresholds FIRST, then start polling
 // ═══════════════════════════════════════════
-loadServerAlerts();
-pollSensors();
-syncDeviceStates();
-pollAlertCount();
+loadThresholds().then(() => {
+  loadServerAlerts();
+  pollSensors();
+  syncDeviceStates();
+  pollAlertCount();
+});
 
-setInterval(pollSensors,       5000);
+setInterval(pollSensors,      5000);
 setInterval(syncDeviceStates, 10000);
 setInterval(pollAlertCount,   15000);
-// Auto-refresh analytics data every 60s if analytics page is open
 setInterval(() => {
   if (document.getElementById('page-analytics').classList.contains('active')) refreshAnalytics();
 }, 60000);
 </script>
 
-//AI PLANT CLASSIFIER
-<!-- AI SCRIPT -->
+<!-- AI PLANT CLASSIFIER -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-
 <script>
-
 const URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
-
 let model, webcam;
 
 async function initAI() {
-
-    try {
-
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-
-        model = await tmImage.load(modelURL, metadataURL);
-
-        webcam = new tmImage.Webcam(320, 120);
-
-        await webcam.setup();
-
-        await webcam.play();
-
-        const container =
-            document.getElementById("webcam-container");
-
-        container.innerHTML = "";
-
-       container.appendChild(webcam.canvas);
-
-/* CAMERA UI DESIGN */
-
-webcam.canvas.style.width = "100%";
-
-webcam.canvas.style.height = "100%";
-
-webcam.canvas.style.maxWidth = "100%";
-
-webcam.canvas.style.maxHeight = "100%";
-
-webcam.canvas.style.objectFit = "cover";
-
-webcam.canvas.style.display = "block";
-
-webcam.canvas.style.margin = "0 auto";
-
-webcam.canvas.style.borderRadius = "20px";
-
-webcam.canvas.style.border =
-  "4px solid #22c55e";
-
-webcam.canvas.style.boxShadow =
-  "0 10px 25px rgba(0,0,0,0.18)";
-
-webcam.canvas.style.background =
-  "#000";
-
-webcam.canvas.style.transition =
-  "0.3s ease-in-out";
-
-
-
-        document.getElementById("prediction-result").innerHTML =
-            "Camera Connected";
-
-        loop();
-
-    } catch (error) {
-
-        console.error(error);
-
-        document.getElementById("prediction-result").innerHTML =
-            "ERROR: " + error.message;
-    }
+  try {
+    model  = await tmImage.load(URL + "model.json", URL + "metadata.json");
+    webcam = new tmImage.Webcam(320, 120);
+    await webcam.setup();
+    await webcam.play();
+    const container = document.getElementById("webcam-container");
+    container.innerHTML = "";
+    container.appendChild(webcam.canvas);
+    webcam.canvas.style.cssText = "width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;display:block;margin:0 auto;border-radius:20px;border:4px solid #22c55e;box-shadow:0 10px 25px rgba(0,0,0,0.18);background:#000;transition:0.3s ease-in-out;";
+    document.getElementById("prediction-result").innerHTML = "Camera Connected";
+    loop();
+  } catch (error) {
+    console.error(error);
+    document.getElementById("prediction-result").innerHTML = "ERROR: " + error.message;
+  }
 }
 
 async function loop() {
+  webcam.update();
+  const predictions = await model.predict(webcam.canvas);
+  let highest = predictions[0];
+  predictions.forEach(p => { if (p.probability > highest.probability) highest = p; });
 
-    webcam.update();
+  const statusMap = { early_stage: "Need More Time", mid_stage: "Approaching Harvest", mature_stage: "Ready for Harvest" };
+  const statusText = statusMap[highest.className] || highest.className;
 
-    const predictions =
-        await model.predict(webcam.canvas);
-
-    let highest = predictions[0];
-
-    predictions.forEach((p) => {
-
-        if (p.probability > highest.probability) {
-
-            highest = p;
-        }
-    });
-
-    let statusText = "";
-
-if (highest.className === "early_stage") {
-
-    statusText = "Need More Time";
-
-} else if (highest.className === "mid_stage") {
-
-    statusText = "Approaching Harvest";
-
-} else if (highest.className === "mature_stage") {
-
-    statusText = "Ready for Harvest";
-}
-
-document.getElementById("prediction-result").innerHTML = `
-
-    <h2 style="
-        color:#15803d;
-        margin-bottom:18px;
-        font-size:24px;
-    ">
-        AI Crop Analysis
-    </h2>
-
-    <div style="
-        margin-bottom:16px;
-        background:#f4fbf4;
-        padding:16px;
-        border-radius:16px;
-    ">
-
-        <p style="
-            color:#6b7280;
-            font-size:13px;
-            margin-bottom:6px;
-            letter-spacing:1px;
-        ">
-            DETECTED STAGE
-        </p>
-
-        <h1 style="
-            color:#166534;
-            font-size:30px;
-            margin:0;
-            line-height:1.2;
-            text-transform:capitalize;
-        ">
-            ${highest.className}
-        </h1>
-
+  document.getElementById("prediction-result").innerHTML = `
+    <h2 style="color:#15803d;margin-bottom:18px;font-size:24px;">AI Crop Analysis</h2>
+    <div style="margin-bottom:16px;background:#f4fbf4;padding:16px;border-radius:16px;">
+      <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">DETECTED STAGE</p>
+      <h1 style="color:#166534;font-size:30px;margin:0;line-height:1.2;text-transform:capitalize;">${highest.className}</h1>
     </div>
-
-    <div style="
-        margin-bottom:16px;
-        background:#f4fbf4;
-        padding:16px;
-        border-radius:16px;
-    ">
-
-        <p style="
-            color:#6b7280;
-            font-size:13px;
-            margin-bottom:6px;
-            letter-spacing:1px;
-        ">
-            CONFIDENCE LEVEL
-        </p>
-
-        <h2 style="
-            color:#22c55e;
-            font-size:26px;
-            margin:0;
-        ">
-            ${(highest.probability * 100).toFixed(1)}%
-        </h2>
-
-        <div style="
-            width:100%;
-            height:12px;
-            background:#dcfce7;
-            border-radius:20px;
-            margin-top:14px;
-            overflow:hidden;
-        ">
-
-            <div style="
-                width:${(highest.probability * 100).toFixed(1)}%;
-                height:100%;
-                background:#22c55e;
-                border-radius:20px;
-            "></div>
-
-        </div>
-
+    <div style="margin-bottom:16px;background:#f4fbf4;padding:16px;border-radius:16px;">
+      <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">CONFIDENCE LEVEL</p>
+      <h2 style="color:#22c55e;font-size:26px;margin:0;">${(highest.probability * 100).toFixed(1)}%</h2>
+      <div style="width:100%;height:12px;background:#dcfce7;border-radius:20px;margin-top:14px;overflow:hidden;">
+        <div style="width:${(highest.probability * 100).toFixed(1)}%;height:100%;background:#22c55e;border-radius:20px;"></div>
+      </div>
     </div>
-
     <div>
-
-        <p style="
-            color:#6b7280;
-            font-size:13px;
-            margin-bottom:6px;
-            letter-spacing:1px;
-        ">
-            STATUS
-        </p>
-
-        <div style="
-            background:#dcfce7;
-            color:#166534;
-            padding:16px;
-            border-radius:16px;
-            font-size:18px;
-            font-weight:bold;
-            text-align:center;
-        ">
-            ${statusText}
-        </div>
-
+      <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">STATUS</p>
+      <div style="background:#dcfce7;color:#166534;padding:16px;border-radius:16px;font-size:18px;font-weight:bold;text-align:center;">${statusText}</div>
     </div>
-`;
-
-    requestAnimationFrame(loop);
+  `;
+  requestAnimationFrame(loop);
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-
-    initAI();
-});
+document.addEventListener("DOMContentLoaded", initAI);
 </script>
-
-
 
 </body>
 </html>
