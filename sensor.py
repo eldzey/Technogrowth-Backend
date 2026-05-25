@@ -1,28 +1,23 @@
 """
 TechnoGrowth · Chinese Cabbage Monitor
 Raspberry Pi sensor reader — posts to Flask every 30 s
-
-Hardware:
-  - DHT22  → GPIO 4   (temperature + humidity)
-  - YL-69 / capacitive moisture sensor → MCP3008 CH0 (SPI)
-  - NPK RS-485 sensor → /dev/ttyUSB0  (Modbus RTU)
-  - Relay 1 → GPIO 17  (irrigation pump)
-  - Relay 2 → GPIO 27  (exhaust fan)
-
-Install deps:
-  pip install adafruit-circuitpython-dht adafruit-blinka \
-              minimalmodbus spidev RPi.GPIO requests
-
-Run:
-  python3 pi_sensor.py
 """
 
-import time, requests, logging, struct
+import time, requests, logging
 import RPi.GPIO as GPIO
 import adafruit_dht
 import board
 import spidev
 import minimalmodbus
+
+from thresholds import (
+    TEMP_MAX,
+    MOIST_MIN, MOIST_MAX,
+    HUMID_FUNGAL,
+    NPK_N_MIN, NPK_N_MAX,
+    NPK_P_MIN, NPK_P_MAX,
+    NPK_K_MIN, NPK_K_MAX,
+)
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s [%(levelname)s] %(message)s")
@@ -30,18 +25,11 @@ log = logging.getLogger(__name__)
 
 # ── Config ───────────────────────────────────────────────
 FLASK_URL      = "http://localhost:5000/api/ingest"
-POLL_INTERVAL  = 30          # seconds between readings
+POLL_INTERVAL  = 30
 
 # GPIO
-PUMP_PIN       = 17          # Relay: irrigation pump (active LOW)
-FAN_PIN        = 27          # Relay: exhaust fan     (active LOW)
-
-# Thresholds (auto mode)
-TEMP_MAX       = 30.0        # °C  — fan ON above this
-MOIST_MIN      = 43          # %   — pump ON below this
-MOIST_MAX      = 60          # %   — pump OFF above this
-HUMID_MAX      = 88          # %   — fan ON above this (fungal risk)
-HUMID_MIN      = 65          # %   — alert below this
+PUMP_PIN       = 17
+FAN_PIN        = 27
 
 # Growth stages (days since transplant)
 STAGES = [
@@ -54,25 +42,24 @@ STAGES = [
 # NPK RS-485
 NPK_PORT       = "/dev/ttyUSB0"
 NPK_BAUDRATE   = 4800
-NPK_ADDR       = 1           # Modbus slave address
+NPK_ADDR       = 1
 
-# MCP3008 SPI (soil moisture ADC)
+# MCP3008 SPI
 SPI_BUS        = 0
 SPI_DEVICE     = 0
 SPI_SPEED      = 1_350_000
-MOISTURE_CH    = 0           # MCP3008 channel
+MOISTURE_CH    = 0
 
 # ── GPIO Setup ───────────────────────────────────────────
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-GPIO.setup(PUMP_PIN, GPIO.OUT, initial=GPIO.HIGH)   # HIGH = relay OFF
+GPIO.setup(PUMP_PIN, GPIO.OUT, initial=GPIO.HIGH)
 GPIO.setup(FAN_PIN,  GPIO.OUT, initial=GPIO.HIGH)
 
 # ── DHT22 ────────────────────────────────────────────────
 dht = adafruit_dht.DHT22(board.D4, use_pulseio=False)
 
 def read_dht22():
-    """Return (temperature_c, humidity_pct) or (None, None) on error."""
     for _ in range(3):
         try:
             t = dht.temperature
@@ -84,26 +71,23 @@ def read_dht22():
             time.sleep(2)
     return None, None
 
-# ── MCP3008 SPI (soil moisture) ──────────────────────────
+# ── MCP3008 SPI ──────────────────────────────────────────
 spi = spidev.SpiDev()
 spi.open(SPI_BUS, SPI_DEVICE)
 spi.max_speed_hz = SPI_SPEED
 
 def read_mcp3008(channel: int) -> int:
-    """Read 10-bit ADC value (0-1023) from MCP3008."""
     assert 0 <= channel <= 7
     r = spi.xfer2([1, (8 + channel) << 4, 0])
     return ((r[1] & 3) << 8) | r[2]
 
 def read_soil_moisture() -> int:
-    """Convert ADC reading to moisture percentage (0-100%)."""
     raw = read_mcp3008(MOISTURE_CH)
-    # Calibrate: 0 = dry (ADC ~900), 100 = wet (ADC ~100)
     DRY, WET = 900, 100
     pct = (DRY - raw) / (DRY - WET) * 100
     return max(0, min(100, round(pct)))
 
-# ── NPK Sensor (RS-485 Modbus RTU) ──────────────────────
+# ── NPK Sensor ───────────────────────────────────────────
 try:
     npk_instrument = minimalmodbus.Instrument(NPK_PORT, NPK_ADDR)
     npk_instrument.serial.baudrate = NPK_BAUDRATE
@@ -118,10 +102,6 @@ except Exception as e:
     NPK_AVAILABLE = False
 
 def read_npk() -> dict:
-    """
-    Read N, P, K from RS-485 sensor (registers 0x001E–0x0020).
-    Returns dict with nitrogen, phosphorus, potassium (mg/kg) and status.
-    """
     if not NPK_AVAILABLE:
         return {"nitrogen": None, "phosphorus": None, "potassium": None, "status": "UNAVAILABLE"}
     try:
@@ -135,20 +115,20 @@ def read_npk() -> dict:
         return {"nitrogen": None, "phosphorus": None, "potassium": None, "status": "ERROR"}
 
 def classify_npk(n, p, k) -> str:
-    """Simple threshold classification for Chinese cabbage."""
-    LOW_N, LOW_P, LOW_K   = 30, 20, 18
-    HIGH_N, HIGH_P, HIGH_K = 70, 50, 50
+    """
+    Uses NPK thresholds from thresholds.py — edit there to change limits.
+    """
     issues = []
-    if n < LOW_N:   issues.append("N-LOW")
-    elif n > HIGH_N: issues.append("N-HIGH")
-    if p < LOW_P:   issues.append("P-LOW")
-    elif p > HIGH_P: issues.append("P-HIGH")
-    if k < LOW_K:   issues.append("K-LOW")
-    elif k > HIGH_K: issues.append("K-HIGH")
+    if n < NPK_N_MIN:   issues.append("N-LOW")
+    elif n > NPK_N_MAX: issues.append("N-HIGH")
+    if p < NPK_P_MIN:   issues.append("P-LOW")
+    elif p > NPK_P_MAX: issues.append("P-HIGH")
+    if k < NPK_K_MIN:   issues.append("K-LOW")
+    elif k > NPK_K_MAX: issues.append("K-HIGH")
     return "NORMAL" if not issues else ",".join(issues)
 
 # ── Growth stage ─────────────────────────────────────────
-_transplant_day = 21   # update to actual day-since-transplant counter
+_transplant_day = 21
 
 def current_stage() -> str:
     for start, end, label in STAGES:
@@ -161,23 +141,24 @@ _pump_on = False
 _fan_on  = False
 
 def update_relays(temp, moist, humid):
+    """
+    Relay logic uses MOIST_MIN/MAX, TEMP_MAX, HUMID_FUNGAL from thresholds.py.
+    """
     global _pump_on, _fan_on
 
-    # Irrigation pump: ON when moisture too low, OFF when restored
     if moist is not None:
         if moist < MOIST_MIN and not _pump_on:
-            GPIO.output(PUMP_PIN, GPIO.LOW)   # relay ON
+            GPIO.output(PUMP_PIN, GPIO.LOW)
             _pump_on = True
-            log.info("Pump ON — moisture %s%%", moist)
+            log.info("Pump ON — moisture %s%% (threshold: %s%%)", moist, MOIST_MIN)
         elif moist >= MOIST_MAX and _pump_on:
-            GPIO.output(PUMP_PIN, GPIO.HIGH)  # relay OFF
+            GPIO.output(PUMP_PIN, GPIO.HIGH)
             _pump_on = False
-            log.info("Pump OFF — moisture %s%%", moist)
+            log.info("Pump OFF — moisture %s%% (threshold: %s%%)", moist, MOIST_MAX)
 
-    # Exhaust fan: ON when temp too high OR humidity too high
     fan_needed = (
-        (temp  is not None and temp  > TEMP_MAX)  or
-        (humid is not None and humid > HUMID_MAX)
+        (temp  is not None and temp  > TEMP_MAX)    or
+        (humid is not None and humid > HUMID_FUNGAL)
     )
     if fan_needed and not _fan_on:
         GPIO.output(FAN_PIN, GPIO.LOW)
@@ -194,11 +175,11 @@ def relay_state(pin_on: bool) -> str:
 # ── Post to Flask ────────────────────────────────────────
 def post_reading(temp, humid, moist, npk):
     payload = {
-        "temperature":    temp,
-        "humidity":       humid,
-        "soil_moisture":  moist,
-        "npk":            npk,
-        "stage":          current_stage(),
+        "temperature":     temp,
+        "humidity":        humid,
+        "soil_moisture":   moist,
+        "npk":             npk,
+        "stage":           current_stage(),
         "irrigation_pump": relay_state(_pump_on),
         "exhaust_fan":     relay_state(_fan_on),
         "auto_mode":       True,
@@ -213,7 +194,9 @@ def post_reading(temp, humid, moist, npk):
 
 # ── Main loop ────────────────────────────────────────────
 def main():
-    log.info("Chinese Cabbage Monitor — sensor loop starting (interval %ds)", POLL_INTERVAL)
+    log.info("Sensor loop starting (interval %ds)", POLL_INTERVAL)
+    log.info("Thresholds — Temp: %s–%s°C | Moist: %s–%s%% | Humid fungal: %s%%",
+             "25", TEMP_MAX, MOIST_MIN, MOIST_MAX, HUMID_FUNGAL)
     try:
         while True:
             temp,  humid = read_dht22()
@@ -227,7 +210,7 @@ def main():
     except KeyboardInterrupt:
         log.info("Stopped by user.")
     finally:
-        GPIO.output(PUMP_PIN, GPIO.HIGH)   # safety: relays off
+        GPIO.output(PUMP_PIN, GPIO.HIGH)
         GPIO.output(FAN_PIN,  GPIO.HIGH)
         GPIO.cleanup()
         spi.close()
