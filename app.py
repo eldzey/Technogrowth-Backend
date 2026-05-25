@@ -353,6 +353,55 @@ def _auto_alert(now, payload):
     if npk.get("status") and npk["status"] != "NORMAL":
         push("warning", "NPK Imbalance", f"NPK sensor reports: {npk['status']}. Check nutrient levels.")
 
+# ══════════════════════════════════════════════════════════
+#  AI PREDICTIONS
+# ══════════════════════════════════════════════════════════
+
+ai_predictions_col = db["ai_predictions"]
+
+
+@app.route("/api/ai/predict", methods=["POST"])
+def ai_predict():
+    """
+    Receives AI predictions from React frontend.
+    """
+
+    data = request.get_json(force=True)
+
+    if not data:
+        return jsonify({"error": "No data received"}), 400
+
+    prediction = data.get("prediction")
+    confidence = data.get("confidence")
+
+    ai_doc = {
+        "timestamp": datetime.utcnow(),
+        "prediction": prediction,
+        "confidence": confidence,
+    }
+
+    ai_predictions_col.insert_one(ai_doc)
+
+    log.info(f"AI Prediction: {prediction} ({confidence}%)")
+
+    return jsonify({
+        "ok": True,
+        "message": "AI prediction saved successfully"
+    })
+
+
+@app.route("/api/ai/history")
+def ai_history():
+    docs = list(
+        ai_predictions_col.find(
+            {},
+            sort=[("timestamp", DESCENDING)]
+        ).limit(50)
+    )
+
+    return jsonify({
+        "records": [serialize(d) for d in docs]
+    })
 
 # ══════════════════════════════════════════════════════════
 #  THRESHOLDS API — lets frontend read current thresholds

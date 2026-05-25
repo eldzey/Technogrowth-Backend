@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import * as tmImage from "@teachablemachine/image";
 
 const URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
+import React, { useEffect, useRef, useState } from "react";
+import * as tmImage from "@teachablemachine/image";
+
+const URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
 
 export default function AI() {
   const webcamRef = useRef<any>(null);
@@ -78,6 +82,8 @@ export default function AI() {
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-md">
+      <h1 className="text-2xl font-bold text-green-600 mb-4">
+        AI Detection System
       <h1 className="text-2xl font-bold text-green-600 mb-4">
         AI Detection System
       </h1>
