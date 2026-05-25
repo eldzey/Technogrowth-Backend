@@ -2,17 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import * as tmImage from "@teachablemachine/image";
 
 const URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
-import React, { useEffect, useRef, useState } from "react";
-import * as tmImage from "@teachablemachine/image";
-
-const URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
 
 export default function AI() {
   const webcamRef = useRef<any>(null);
-  const modelRef = useRef<any>(null); // ✅ Fix: ref to avoid stale closure
+  const modelRef  = useRef<any>(null);
 
   const [prediction, setPrediction] = useState<string>("Loading...");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading,    setLoading]    = useState<boolean>(true);
 
   useEffect(() => {
     loadModel();
@@ -20,12 +16,11 @@ export default function AI() {
 
   async function loadModel() {
     try {
-      const modelURL = URL + "model.json";
+      const modelURL    = URL + "model.json";
       const metadataURL = URL + "metadata.json";
 
       const loadedModel = await tmImage.load(modelURL, metadataURL);
-
-      modelRef.current = loadedModel; // ✅ Fix: assign to ref immediately
+      modelRef.current  = loadedModel;
 
       const webcam = new tmImage.Webcam(300, 300, true);
       await webcam.setup();
@@ -38,7 +33,7 @@ export default function AI() {
         ?.appendChild(webcam.canvas);
 
       setLoading(false);
-      window.requestAnimationFrame(loop); // ✅ Safe now — modelRef is already set
+      window.requestAnimationFrame(loop);
     } catch (error) {
       console.error(error);
     }
@@ -53,7 +48,7 @@ export default function AI() {
   }
 
   async function predict() {
-    if (!modelRef.current || !webcamRef.current) return; // ✅ Fix: read from ref
+    if (!modelRef.current || !webcamRef.current) return;
 
     const predictions = await modelRef.current.predict(webcamRef.current.canvas);
 
@@ -82,8 +77,6 @@ export default function AI() {
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-md">
-      <h1 className="text-2xl font-bold text-green-600 mb-4">
-        AI Detection System
       <h1 className="text-2xl font-bold text-green-600 mb-4">
         AI Detection System
       </h1>
