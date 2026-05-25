@@ -313,7 +313,7 @@ def logs():
     }
     col = col_map.get(col_name, sensors_col)
 
-    # if this collection actually has timestamp fields
+    # Check if this collection actually has timestamp fields
     # If not, skip the days filter entirely and query by _id instead
     has_timestamps = col.find_one({"timestamp": {"$exists": True}}) is not None
 
@@ -346,7 +346,7 @@ def ingest():
 
     now = datetime.utcnow()
 
-    #  Store using actual MongoDB field names
+    # ✅ Store using actual MongoDB field names
     sensor_doc = {
         "timestamp":   now,
         "temp":        payload.get("temperature", payload.get("temp")),
@@ -388,7 +388,7 @@ def _auto_alert(now, payload):
                 "read":      False
             })
 
-    #  Accept both naming conventions from Pi
+    # ✅ Accept both naming conventions from Pi
     t   = payload.get("temperature",  payload.get("temp"))
     m   = payload.get("soil_moisture", payload.get("moisture_avg"))
     h   = payload.get("humidity",     payload.get("hum"))
@@ -506,9 +506,9 @@ def export_csv():
         ts = d["timestamp"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(d.get("timestamp"), datetime) else ""
         writer.writerow([
             ts,
-            d.get("temp",         ""),   #  actual field name
-            d.get("moisture_avg", ""),   #  actual field name
-            d.get("hum",          ""),   #  actual field name
+            d.get("temp",         ""),   # ✅ actual field name
+            d.get("moisture_avg", ""),   # ✅ actual field name
+            d.get("hum",          ""),   # ✅ actual field name
             d.get("nitrogen",     ""),
             d.get("phosphorus",   ""),
             d.get("potassium",    ""),
