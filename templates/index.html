@@ -490,7 +490,7 @@ canvas { width:100%!important; }
         </div>
 
         <div class="env-note">
-          <strong>Environment Note:</strong> Data pulled live from MongoDB. Thresholds are loaded dynamically from your configuration.
+          <strong>Environment Note:</strong> Data pulled live from MongoDB. Thresholds are loaded dynamically from configuration.
         </div>
 
         <div class="key-metrics">
@@ -1109,7 +1109,7 @@ function pollSensors() {
       if (elN && data.npk) elN.textContent = data.npk.status ?? '—';
       if (elS && data.stage) elS.textContent = data.stage;
 
-      // ✅ Status now driven by THRESHOLDS object (loaded from /api/thresholds)
+      // Status now driven by THRESHOLDS object (loaded from /api/thresholds)
       updateSensorCard('card-temp',  'status-temp',  t, 'temperature',   '°C', 'Temperature');
       updateSensorCard('card-moist', 'status-moist', m, 'soil_moisture', '%',  'Soil Moisture');
       updateSensorCard('card-humid', 'status-humid', h, 'humidity',      '%',  'Humidity');

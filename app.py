@@ -109,7 +109,10 @@ def dashboard():
 
 @app.route("/api/sensors/latest")
 def sensors_latest():
+    # Try timestamp sort first, fall back to _id (insertion order)
     doc = sensors_col.find_one(sort=[("timestamp", DESCENDING)])
+    if not doc or "timestamp" not in doc:
+        doc = sensors_col.find_one(sort=[("_id", DESCENDING)])
     if not doc:
         return jsonify({}), 404
     return jsonify(normalize_sensor(doc))
@@ -132,15 +135,29 @@ def sensors_list():
 @app.route("/api/history")
 def history():
     since = datetime.utcnow() - timedelta(days=7)
-    docs  = list(sensors_col.find(
-        {"timestamp": {"$gte": since}},
-        sort=[("timestamp", ASCENDING)]
-    ))
+
+    # Check if documents have timestamps before filtering
+    has_timestamps = sensors_col.find_one({"timestamp": {"$exists": True}}) is not None
+
+    if has_timestamps:
+        docs = list(sensors_col.find(
+            {"timestamp": {"$gte": since}},
+            sort=[("timestamp", ASCENDING)]
+        ))
+    else:
+        # No timestamps — fetch last 200 records by insertion order
+        docs = list(sensors_col.find({}, sort=[("_id", ASCENDING)]).limit(200))
 
     buckets = {}
+    counter = 0
     for d in docs:
         ts = d.get("timestamp")
-        label = ts.strftime("%m-%d") if isinstance(ts, datetime) else "?"
+        if isinstance(ts, datetime):
+            label = ts.strftime("%m-%d")
+        else:
+            # No timestamp: group every 28 docs into a bucket (simulate daily avg)
+            label = f"#{counter // 28 + 1}"
+        counter += 1
         buckets.setdefault(label, {"temp": [], "moist": [], "humid": []})
 
         # ✅ Read using actual MongoDB field names
@@ -178,17 +195,29 @@ def history():
 @app.route("/api/npk-trend")
 def npk_trend():
     since  = datetime.utcnow() - timedelta(days=7)
-    # Read NPK directly from sensor_logs since they're stored flat
-    docs   = list(sensors_col.find(
-        {"timestamp": {"$gte": since}},
-        sort=[("timestamp", ASCENDING)]
-    ))
-    latest = sensors_col.find_one(sort=[("timestamp", DESCENDING)])
+
+    # Check if documents have timestamps before filtering
+    has_timestamps = sensors_col.find_one({"timestamp": {"$exists": True}}) is not None
+
+    if has_timestamps:
+        docs = list(sensors_col.find(
+            {"timestamp": {"$gte": since}},
+            sort=[("timestamp", ASCENDING)]
+        ))
+    else:
+        docs = list(sensors_col.find({}, sort=[("_id", ASCENDING)]).limit(200))
+
+    latest = sensors_col.find_one(sort=[("_id", DESCENDING)])
 
     labels, ns, ps, ks = [], [], [], []
+    counter = 0
     for d in docs:
         ts = d.get("timestamp")
-        labels.append(ts.strftime("%m-%d") if isinstance(ts, datetime) else "?")
+        if isinstance(ts, datetime):
+            labels.append(ts.strftime("%m-%d"))
+        else:
+            labels.append(f"#{counter // 28 + 1}")
+        counter += 1
         ns.append(d.get("nitrogen"))
         ps.append(d.get("phosphorus"))
         ks.append(d.get("potassium"))
@@ -277,14 +306,24 @@ def logs():
     filt     = days_filter(request.args.get("days"))
 
     col_map = {
-        "sensors":    sensors_col,   # ✅ points to sensor_logs
+        "sensors":    sensors_col,
         "alerts":     alerts_col,
         "devices":    devices_col,
         "npk_trends": npk_trends_col,
     }
-    col   = col_map.get(col_name, sensors_col)
-    docs  = list(col.find(filt, sort=[("timestamp", DESCENDING)]).skip(skip).limit(limit))
-    total = col.count_documents(filt)
+    col = col_map.get(col_name, sensors_col)
+
+    # if this collection actually has timestamp fields
+    # If not, skip the days filter entirely and query by _id instead
+    has_timestamps = col.find_one({"timestamp": {"$exists": True}}) is not None
+
+    if has_timestamps and filt:
+        docs  = list(col.find(filt, sort=[("timestamp", DESCENDING)]).skip(skip).limit(limit))
+        total = col.count_documents(filt)
+    else:
+        # No timestamps — fetch all records sorted by insertion order
+        docs  = list(col.find({}, sort=[("_id", DESCENDING)]).skip(skip).limit(limit))
+        total = col.count_documents({})
 
     # Normalize sensor docs so frontend gets standard field names
     if col_name == "sensors":
@@ -307,7 +346,7 @@ def ingest():
 
     now = datetime.utcnow()
 
-    # ✅ Store using actual MongoDB field names
+    #  Store using actual MongoDB field names
     sensor_doc = {
         "timestamp":   now,
         "temp":        payload.get("temperature", payload.get("temp")),
@@ -349,7 +388,7 @@ def _auto_alert(now, payload):
                 "read":      False
             })
 
-    # ✅ Accept both naming conventions from Pi
+    #  Accept both naming conventions from Pi
     t   = payload.get("temperature",  payload.get("temp"))
     m   = payload.get("soil_moisture", payload.get("moisture_avg"))
     h   = payload.get("humidity",     payload.get("hum"))
@@ -467,9 +506,9 @@ def export_csv():
         ts = d["timestamp"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(d.get("timestamp"), datetime) else ""
         writer.writerow([
             ts,
-            d.get("temp",         ""),   # ✅ actual field name
-            d.get("moisture_avg", ""),   # ✅ actual field name
-            d.get("hum",          ""),   # ✅ actual field name
+            d.get("temp",         ""),   #  actual field name
+            d.get("moisture_avg", ""),   #  actual field name
+            d.get("hum",          ""),   #  actual field name
             d.get("nitrogen",     ""),
             d.get("phosphorus",   ""),
             d.get("potassium",    ""),
