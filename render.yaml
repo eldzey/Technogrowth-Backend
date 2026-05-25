@@ -1,6 +1,7 @@
 services:
   - type: web
     name: technogrowth-backend
-    env: python
+    runtime: python
+    rootDir: Technogrowth-Backend        
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT
+    startCommand: gunicorn app:app

@@ -1,19 +1,16 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-
-import uuid
-import csv
-import io
-import os
-import logging
-
-from flask import Flask, render_template, jsonify, request, Response, send_file
+from flask import Flask, request, jsonify, render_template, Response, send_file
 from flask_cors import CORS
 from flask_pymongo import PyMongo
 from pymongo import MongoClient, ASCENDING, DESCENDING
 from dotenv import load_dotenv
 from bson import ObjectId
 from datetime import datetime, timedelta
+
+import uuid
+import csv
+import io
+import os
+import logging
 
 from thresholds import (
     TEMP_MIN, TEMP_MAX, TEMP_DANGER,
@@ -39,10 +36,11 @@ MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 client    = MongoClient(MONGO_URI)
 db        = client["cabbage_monitor"]
 
-sensors_col    = db["sensors"]
-alerts_col     = db["alerts"]
-devices_col    = db["devices"]
-npk_trends_col = db["npk_trends"]
+sensors_col        = db["sensors"]
+alerts_col         = db["alerts"]
+devices_col        = db["devices"]
+npk_trends_col     = db["npk_trends"]
+ai_predictions_col = db["ai_predictions"]
 
 log.info(f"Connected to MongoDB: {MONGO_URI}")
 
@@ -139,7 +137,6 @@ def history():
         "temperature":   temps,
         "soil_moisture": moists,
         "humidity":      humids,
-        # ← thresholds now come from thresholds.py
         **OPTIMAL_RANGES,
     })
 
@@ -181,7 +178,6 @@ def npk_trend():
         "phosphorus": ps,
         "potassium":  ks,
         "current":    current,
-        # ← optimal values from thresholds.py
         "optimal":    OPTIMAL_RANGES["npk_optimal"],
     })
 
@@ -353,21 +349,15 @@ def _auto_alert(now, payload):
     if npk.get("status") and npk["status"] != "NORMAL":
         push("warning", "NPK Imbalance", f"NPK sensor reports: {npk['status']}. Check nutrient levels.")
 
+
 # ══════════════════════════════════════════════════════════
 #  AI PREDICTIONS
 # ══════════════════════════════════════════════════════════
 
-ai_predictions_col = db["ai_predictions"]
-
-
 @app.route("/api/ai/predict", methods=["POST"])
 def ai_predict():
-    """
-    Receives AI predictions from React frontend.
-    """
-
+    """Receives AI predictions from React frontend."""
     data = request.get_json(force=True)
-
     if not data:
         return jsonify({"error": "No data received"}), 400
 
@@ -375,19 +365,14 @@ def ai_predict():
     confidence = data.get("confidence")
 
     ai_doc = {
-        "timestamp": datetime.utcnow(),
+        "timestamp":  datetime.utcnow(),
         "prediction": prediction,
         "confidence": confidence,
     }
-
     ai_predictions_col.insert_one(ai_doc)
-
     log.info(f"AI Prediction: {prediction} ({confidence}%)")
 
-    return jsonify({
-        "ok": True,
-        "message": "AI prediction saved successfully"
-    })
+    return jsonify({"ok": True, "message": "AI prediction saved successfully"})
 
 
 @app.route("/api/ai/history")
@@ -398,22 +383,20 @@ def ai_history():
             sort=[("timestamp", DESCENDING)]
         ).limit(50)
     )
+    return jsonify({"records": [serialize(d) for d in docs]})
 
-    return jsonify({
-        "records": [serialize(d) for d in docs]
-    })
 
 # ══════════════════════════════════════════════════════════
-#  THRESHOLDS API — lets frontend read current thresholds
+#  THRESHOLDS API
 # ══════════════════════════════════════════════════════════
 
 @app.route("/api/thresholds")
 def get_thresholds():
-    """Returns all configured threshold values (for display or future UI editing)."""
+    """Returns all configured threshold values."""
     return jsonify({
-        "temperature":    {"min": TEMP_MIN,    "max": TEMP_MAX,    "danger": TEMP_DANGER},
-        "soil_moisture":  {"min": MOIST_MIN,   "max": MOIST_MAX,   "danger": MOIST_DANGER},
-        "humidity":       {"min": HUMID_MIN,   "max": HUMID_MAX,   "danger": HUMID_DANGER, "fungal": HUMID_FUNGAL},
+        "temperature":   {"min": TEMP_MIN,  "max": TEMP_MAX,  "danger": TEMP_DANGER},
+        "soil_moisture": {"min": MOIST_MIN, "max": MOIST_MAX, "danger": MOIST_DANGER},
+        "humidity":      {"min": HUMID_MIN, "max": HUMID_MAX, "danger": HUMID_DANGER, "fungal": HUMID_FUNGAL},
         "npk": {
             "nitrogen":   {"min": NPK_N_MIN, "max": NPK_N_MAX, "optimal": OPTIMAL_RANGES["npk_optimal"]["nitrogen"]},
             "phosphorus": {"min": NPK_P_MIN, "max": NPK_P_MAX, "optimal": OPTIMAL_RANGES["npk_optimal"]["phosphorus"]},
@@ -421,55 +404,6 @@ def get_thresholds():
         }
     })
 
-# ══════════════════════════════════════════════════════════
-#  AI PREDICTIONS
-# ══════════════════════════════════════════════════════════
-
-ai_predictions_col = db["ai_predictions"]
-
-
-@app.route("/api/ai/predict", methods=["POST"])
-def ai_predict():
-    """
-    Receives AI predictions from React frontend.
-    """
-
-    data = request.get_json(force=True)
-
-    if not data:
-        return jsonify({"error": "No data received"}), 400
-
-    prediction = data.get("prediction")
-    confidence = data.get("confidence")
-
-    ai_doc = {
-        "timestamp": datetime.utcnow(),
-        "prediction": prediction,
-        "confidence": confidence,
-    }
-
-    ai_predictions_col.insert_one(ai_doc)
-
-    log.info(f"AI Prediction: {prediction} ({confidence}%)")
-
-    return jsonify({
-        "ok": True,
-        "message": "AI prediction saved successfully"
-    })
-
-
-@app.route("/api/ai/history")
-def ai_history():
-    docs = list(
-        ai_predictions_col.find(
-            {},
-            sort=[("timestamp", DESCENDING)]
-        ).limit(50)
-    )
-
-    return jsonify({
-        "records": [serialize(d) for d in docs]
-    })
 
 # ══════════════════════════════════════════════════════════
 #  EXPORT
@@ -523,10 +457,10 @@ def health():
     latest       = sensors_col.find_one(sort=[("timestamp", DESCENDING)])
     last_reading = latest["timestamp"].isoformat() if latest and isinstance(latest.get("timestamp"), datetime) else None
     return jsonify({
-        "status":        "ok",
-        "time":          datetime.utcnow().isoformat(),
-        "sensor_count":  sensor_count,
-        "last_reading":  last_reading,
+        "status":       "ok",
+        "time":         datetime.utcnow().isoformat(),
+        "sensor_count": sensor_count,
+        "last_reading": last_reading,
     })
 
 
