@@ -51,7 +51,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .nav-item:hover  { background:var(--green-light); color:var(--green-primary); }
 .nav-item.active { background:var(--green-light); color:var(--green-primary); font-weight:600; }
 .nav-item svg { width:14px; height:14px; flex-shrink:0; }
-.content { background:var(--white); margin:12px 12px 12px 0; border-radius:12px; flex:1; overflow:hidden; box-shadow:var(--shadow-md); }
+.content { background:var(--white); margin:12px 12px 12px 0; border-radius:12px; flex:1; overflow-y:auto; box-shadow:var(--shadow-md); }
 .topbar { background:var(--green-primary); padding:12px 20px; display:flex; align-items:center; gap:12px; border-radius:12px 12px 0 0; }
 .topbar-crop { display:flex; align-items:center; gap:10px; }
 .crop-img { width:36px; height:36px; border-radius:50%; background:var(--green-accent); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
@@ -389,9 +389,16 @@ canvas { width:100%!important; }
           </div>
           <div class="device-state" id="dash-fan-state">—</div>
         </div>
+        <div class="device-row">
+          <div class="device-name">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0 0 16 0c0-3-2-7-8-13z"/><path d="M12 18a3 3 0 0 1-3-3"/></svg>
+            Humidifier
+          </div>
+          <div class="device-state" id="dash-humidifier-state">—</div>
+        </div>
         <div class="mode-note" id="dash-mode-note">Mode: AUTO · Syncing…</div>
         <div class="last-updated" id="dash-last-updated"></div>
-        <div style="height:130px;margin-top:12px;">
+        <div style="height:100px;margin-top:10px;">
           <canvas id="dashChart"></canvas>
         </div>
       </div>
@@ -1139,9 +1146,11 @@ function syncDeviceStates() {
       liveData.pump = data.irrigation_pump; liveData.fan = data.exhaust_fan; liveData.auto_mode = data.auto_mode;
       const ps = document.getElementById('dash-pump-state');
       const fs = document.getElementById('dash-fan-state');
+      const hs = document.getElementById('dash-humidifier-state');
       const mn = document.getElementById('dash-mode-note');
       if (ps) { ps.textContent = data.irrigation_pump || '—'; ps.className = 'device-state ' + (data.irrigation_pump === 'ON' ? 'on' : 'off'); }
-      if (fs) { fs.textContent = data.exhaust_fan || '—'; fs.className = 'device-state ' + (data.exhaust_fan === 'ON' ? 'on' : 'off'); }
+      if (fs) { fs.textContent = data.exhaust_fan || '—';     fs.className = 'device-state ' + (data.exhaust_fan === 'ON' ? 'on' : 'off'); }
+      if (hs) { const hState = data.humidifier || 'OFF';       hs.textContent = hState; hs.className = 'device-state ' + (hState === 'ON' ? 'on' : 'off'); }
       if (mn) mn.textContent = `Mode: ${data.auto_mode ? 'AUTO' : 'MANUAL'} · Last sync: ${data.timestamp || '—'}`;
     })
     .catch(() => {});

@@ -1,12 +1,10 @@
 from flask import Flask, request, jsonify, render_template, Response, send_file
 from flask_cors import CORS
-from flask_pymongo import PyMongo
 from pymongo import MongoClient, ASCENDING, DESCENDING
 from dotenv import load_dotenv
 from bson import ObjectId
 from datetime import datetime, timedelta
 
-import uuid
 import csv
 import io
 import os
@@ -34,9 +32,9 @@ log = logging.getLogger("technogrowth")
 # ── MONGODB ───────────────────────────────────────────────
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 client    = MongoClient(MONGO_URI)
-db        = client["cabbage_monitor"]
+db        = client["Technogrowth"]        # ✅ correct database name
 
-sensors_col        = db["sensors"]
+sensors_col        = db["sensor_logs"]    # ✅ correct collection name
 alerts_col         = db["alerts"]
 devices_col        = db["devices"]
 npk_trends_col     = db["npk_trends"]
@@ -67,6 +65,36 @@ def days_filter(days_str):
 
 
 # ══════════════════════════════════════════════════════════
+#  FIELD NAME MAPPER
+#  MongoDB stores: temp, hum, moisture_avg
+#  App/frontend expects: temperature, humidity, soil_moisture
+# ══════════════════════════════════════════════════════════
+
+def normalize_sensor(doc):
+    """Map MongoDB field names to standard field names used by the frontend."""
+    if doc is None:
+        return None
+    doc["_id"] = str(doc["_id"])
+    if isinstance(doc.get("timestamp"), datetime):
+        doc["timestamp"] = doc["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+
+    # ✅ Map actual field names → frontend field names
+    doc["temperature"]   = doc.pop("temp",         doc.get("temperature"))
+    doc["humidity"]      = doc.pop("hum",          doc.get("humidity"))
+    doc["soil_moisture"] = doc.pop("moisture_avg", doc.get("soil_moisture"))
+
+    # Build npk sub-object if stored flat
+    if "npk" not in doc or not doc["npk"]:
+        doc["npk"] = {
+            "nitrogen":   doc.get("nitrogen"),
+            "phosphorus": doc.get("phosphorus"),
+            "potassium":  doc.get("potassium"),
+            "status":     doc.get("npk_status", "NORMAL"),
+        }
+    return doc
+
+
+# ══════════════════════════════════════════════════════════
 #  FRONTEND
 # ══════════════════════════════════════════════════════════
 
@@ -84,7 +112,7 @@ def sensors_latest():
     doc = sensors_col.find_one(sort=[("timestamp", DESCENDING)])
     if not doc:
         return jsonify({}), 404
-    return jsonify(serialize(doc))
+    return jsonify(normalize_sensor(doc))
 
 
 @app.route("/api/sensors")
@@ -94,7 +122,7 @@ def sensors_list():
     filt  = days_filter(request.args.get("days"))
     docs  = list(sensors_col.find(filt, sort=[("timestamp", DESCENDING)]).skip(skip).limit(limit))
     total = sensors_col.count_documents(filt)
-    return jsonify({"records": [serialize(d) for d in docs], "count": total})
+    return jsonify({"records": [normalize_sensor(d) for d in docs], "count": total})
 
 
 # ══════════════════════════════════════════════════════════
@@ -114,9 +142,11 @@ def history():
         ts = d.get("timestamp")
         label = ts.strftime("%m-%d") if isinstance(ts, datetime) else "?"
         buckets.setdefault(label, {"temp": [], "moist": [], "humid": []})
-        if d.get("temperature")   is not None: buckets[label]["temp"].append(d["temperature"])
-        if d.get("soil_moisture") is not None: buckets[label]["moist"].append(d["soil_moisture"])
-        if d.get("humidity")      is not None: buckets[label]["humid"].append(d["humidity"])
+
+        # ✅ Read using actual MongoDB field names
+        if d.get("temp")         is not None: buckets[label]["temp"].append(d["temp"])
+        if d.get("moisture_avg") is not None: buckets[label]["moist"].append(d["moisture_avg"])
+        if d.get("hum")          is not None: buckets[label]["humid"].append(d["hum"])
 
     labels, temps, moists, humids = [], [], [], []
     for label in sorted(buckets.keys()):
@@ -148,11 +178,12 @@ def history():
 @app.route("/api/npk-trend")
 def npk_trend():
     since  = datetime.utcnow() - timedelta(days=7)
-    docs   = list(npk_trends_col.find(
+    # Read NPK directly from sensor_logs since they're stored flat
+    docs   = list(sensors_col.find(
         {"timestamp": {"$gte": since}},
         sort=[("timestamp", ASCENDING)]
     ))
-    latest = npk_trends_col.find_one(sort=[("timestamp", DESCENDING)])
+    latest = sensors_col.find_one(sort=[("timestamp", DESCENDING)])
 
     labels, ns, ps, ks = [], [], [], []
     for d in docs:
@@ -168,8 +199,11 @@ def npk_trend():
         ps = [30, 31, 31, 32, 32, 32, 32]
         ks = [26, 26, 27, 27, 28, 28, 28]
 
-    current = serialize(latest) if latest else {
-        "nitrogen": 45, "phosphorus": 32, "potassium": 28, "status": "NORMAL"
+    current = {
+        "nitrogen":   latest.get("nitrogen")   if latest else 45,
+        "phosphorus": latest.get("phosphorus") if latest else 32,
+        "potassium":  latest.get("potassium")  if latest else 28,
+        "status":     latest.get("npk_status", "NORMAL") if latest else "NORMAL",
     }
 
     return jsonify({
@@ -193,6 +227,7 @@ def devices_latest():
         return jsonify({
             "irrigation_pump": "OFF",
             "exhaust_fan":     "OFF",
+            "humidifier":      "OFF",
             "auto_mode":       True,
             "timestamp":       "—"
         })
@@ -242,7 +277,7 @@ def logs():
     filt     = days_filter(request.args.get("days"))
 
     col_map = {
-        "sensors":    sensors_col,
+        "sensors":    sensors_col,   # ✅ points to sensor_logs
         "alerts":     alerts_col,
         "devices":    devices_col,
         "npk_trends": npk_trends_col,
@@ -250,7 +285,14 @@ def logs():
     col   = col_map.get(col_name, sensors_col)
     docs  = list(col.find(filt, sort=[("timestamp", DESCENDING)]).skip(skip).limit(limit))
     total = col.count_documents(filt)
-    return jsonify({"records": [serialize(d) for d in docs], "count": total})
+
+    # Normalize sensor docs so frontend gets standard field names
+    if col_name == "sensors":
+        records = [normalize_sensor(d) for d in docs]
+    else:
+        records = [serialize(d) for d in docs]
+
+    return jsonify({"records": records, "count": total})
 
 
 # ══════════════════════════════════════════════════════════
@@ -265,13 +307,18 @@ def ingest():
 
     now = datetime.utcnow()
 
+    # ✅ Store using actual MongoDB field names
     sensor_doc = {
-        "timestamp":     now,
-        "temperature":   payload.get("temperature"),
-        "soil_moisture": payload.get("soil_moisture"),
-        "humidity":      payload.get("humidity"),
-        "npk":           payload.get("npk", {}),
-        "stage":         payload.get("stage"),
+        "timestamp":   now,
+        "temp":        payload.get("temperature", payload.get("temp")),
+        "hum":         payload.get("humidity",    payload.get("hum")),
+        "moisture_avg":payload.get("soil_moisture", payload.get("moisture_avg")),
+        "nitrogen":    payload.get("npk", {}).get("nitrogen",   payload.get("nitrogen")),
+        "phosphorus":  payload.get("npk", {}).get("phosphorus", payload.get("phosphorus")),
+        "potassium":   payload.get("npk", {}).get("potassium",  payload.get("potassium")),
+        "npk_status":  payload.get("npk", {}).get("status",     payload.get("npk_status", "NORMAL")),
+        "image":       payload.get("image", "latest_cabbage.jpg"),
+        "stage":       payload.get("stage"),
     }
     sensors_col.insert_one(sensor_doc)
 
@@ -279,23 +326,14 @@ def ingest():
         "timestamp":       now,
         "irrigation_pump": payload.get("irrigation_pump", "OFF"),
         "exhaust_fan":     payload.get("exhaust_fan", "OFF"),
+        "humidifier":      payload.get("humidifier", "OFF"),
         "auto_mode":       payload.get("auto_mode", True),
     }
     devices_col.insert_one(device_doc)
 
-    npk = payload.get("npk")
-    if npk:
-        npk_trends_col.insert_one({
-            "timestamp":  now,
-            "nitrogen":   npk.get("nitrogen"),
-            "phosphorus": npk.get("phosphorus"),
-            "potassium":  npk.get("potassium"),
-            "status":     npk.get("status", "NORMAL"),
-        })
-
     _auto_alert(now, payload)
 
-    log.info(f"Ingest OK — temp={payload.get('temperature')} moist={payload.get('soil_moisture')} hum={payload.get('humidity')}")
+    log.info(f"Ingest OK — temp={sensor_doc['temp']} moisture={sensor_doc['moisture_avg']} hum={sensor_doc['hum']}")
     return jsonify({"ok": True, "timestamp": now.isoformat()}), 201
 
 
@@ -311,9 +349,10 @@ def _auto_alert(now, payload):
                 "read":      False
             })
 
-    t   = payload.get("temperature")
-    m   = payload.get("soil_moisture")
-    h   = payload.get("humidity")
+    # ✅ Accept both naming conventions from Pi
+    t   = payload.get("temperature",  payload.get("temp"))
+    m   = payload.get("soil_moisture", payload.get("moisture_avg"))
+    h   = payload.get("humidity",     payload.get("hum"))
     npk = payload.get("npk", {})
 
     # ── Temperature
@@ -346,8 +385,9 @@ def _auto_alert(now, payload):
             push("warning", "Humidity Elevated",  f"Humidity is {h}% — above optimal {HUMID_MAX}%.")
 
     # ── NPK
-    if npk.get("status") and npk["status"] != "NORMAL":
-        push("warning", "NPK Imbalance", f"NPK sensor reports: {npk['status']}. Check nutrient levels.")
+    npk_status = npk.get("status") or payload.get("npk_status")
+    if npk_status and npk_status != "NORMAL":
+        push("warning", "NPK Imbalance", f"NPK sensor reports: {npk_status}. Check nutrient levels.")
 
 
 # ══════════════════════════════════════════════════════════
@@ -356,7 +396,7 @@ def _auto_alert(now, payload):
 
 @app.route("/api/ai/predict", methods=["POST"])
 def ai_predict():
-    """Receives AI predictions from React frontend."""
+    """Receives AI predictions from React/HTML frontend."""
     data = request.get_json(force=True)
     if not data:
         return jsonify({"error": "No data received"}), 400
@@ -406,7 +446,7 @@ def get_thresholds():
 
 
 # ══════════════════════════════════════════════════════════
-#  EXPORT
+#  EXPORT CSV
 # ══════════════════════════════════════════════════════════
 
 @app.route("/export/csv")
@@ -424,18 +464,17 @@ def export_csv():
         "Humidity (%)", "Nitrogen", "Phosphorus", "Potassium", "NPK Status", "Stage"
     ])
     for d in docs:
-        npk = d.get("npk", {})
-        ts  = d["timestamp"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(d.get("timestamp"), datetime) else ""
+        ts = d["timestamp"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(d.get("timestamp"), datetime) else ""
         writer.writerow([
             ts,
-            d.get("temperature",   ""),
-            d.get("soil_moisture", ""),
-            d.get("humidity",      ""),
-            npk.get("nitrogen",    ""),
-            npk.get("phosphorus",  ""),
-            npk.get("potassium",   ""),
-            npk.get("status",      ""),
-            d.get("stage",         ""),
+            d.get("temp",         ""),   # ✅ actual field name
+            d.get("moisture_avg", ""),   # ✅ actual field name
+            d.get("hum",          ""),   # ✅ actual field name
+            d.get("nitrogen",     ""),
+            d.get("phosphorus",   ""),
+            d.get("potassium",    ""),
+            d.get("npk_status",   ""),
+            d.get("stage",        ""),
         ])
 
     buf.seek(0)

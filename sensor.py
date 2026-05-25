@@ -28,8 +28,8 @@ FLASK_URL      = "http://localhost:5000/api/ingest"
 POLL_INTERVAL  = 30
 
 # GPIO
-PUMP_PIN       = 17
-FAN_PIN        = 27
+PUMP_PIN       = 21
+FAN_PIN        = 23
 
 # Growth stages (days since transplant)
 STAGES = [
