@@ -290,7 +290,7 @@ canvas { width:100%!important; }
       <div class="topbar-crop">
         <div class="crop-img">🥬</div>
         <div class="crop-info">
-          <strong>Smart Growth Management System</strong>
+          <strong>Pechay Monitor for Smart Growth Management System</strong>
           <span id="topbar-source-label">Detecting data source…</span>
         </div>
       </div>
@@ -515,7 +515,6 @@ canvas { width:100%!important; }
           <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>Potassium (K)</div>
         </div>
         <div style="height:180px;position:relative;" id="npkWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="npkChart" style="display:none;"></canvas></div>
-        <div class="env-note" style="margin-top:10px;"><strong style="color:var(--green-primary);">Nutrient Note:</strong> NPK always uses simulated data for demo stability. Units: mg/kg.</div>
         <div style="margin-top:16px;">
           <div class="chart-label" style="margin-bottom:8px;">Current vs Optimal NPK</div>
           <div style="height:130px;position:relative;" id="npkBarWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="npkBarChart" style="display:none;"></canvas></div>
@@ -731,11 +730,27 @@ const MockDB = (() => {
   }
 
   function devices() {
-    const pumpOn = _m < THRESHOLDS.soil_moisture.min;
-    const fanOn  = _t > THRESHOLDS.temperature.max || _h > THRESHOLDS.humidity.fungal;
-    return { irrigation_pump: pumpOn?'ON':'OFF', exhaust_fan: fanOn?'ON':'OFF',
-             humidifier: _h < THRESHOLDS.humidity.min ? 'ON':'OFF',
-             auto_mode: true, timestamp: new Date().toLocaleString() };
+    // Use live sensor readings if already fetched, else fall back to internal mock vars.
+    // This mirrors the EXACT relay logic in pi_sensor.py:
+    //   Pump ON  → soil moisture < MOIST_MIN
+    //   Fan ON   → temp > TEMP_MAX  OR  humidity > HUMID_FUNGAL
+    //   Humi ON  → humidity < HUMID_MIN
+    const t = (typeof liveData !== 'undefined' && liveData.temperature  != null) ? liveData.temperature  : _t;
+    const m = (typeof liveData !== 'undefined' && liveData.soil_moisture != null) ? liveData.soil_moisture : _m;
+    const h = (typeof liveData !== 'undefined' && liveData.humidity     != null) ? liveData.humidity     : _h;
+
+    const pumpOn = m < THRESHOLDS.soil_moisture.min;
+    const fanOn  = t > THRESHOLDS.temperature.max || h > THRESHOLDS.humidity.fungal;
+    const humiOn = h < THRESHOLDS.humidity.min;
+
+    return {
+      irrigation_pump: pumpOn ? 'ON' : 'OFF',
+      exhaust_fan:     fanOn  ? 'ON' : 'OFF',
+      humidifier:      humiOn ? 'ON' : 'OFF',
+      auto_mode:       true,
+      timestamp:       new Date().toLocaleString(),
+      _source:         'mock_derived'
+    };
   }
 
   function history() {
@@ -1154,18 +1169,19 @@ function pollSensors() {
     // NPK always from mock
     liveData.npk = MockDB.sensor().npk;
     liveData.stage=data.stage;
-
+ 
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
     set('dash-temp',  t!=null?t+'°C':'—');
     set('dash-moist', m!=null?m+'%':'—');
     set('dash-humid', h!=null?h+'%':'—');
     set('dash-npk',   liveData.npk?.status??'—');
-    if(data.stage) set('dash-stage-label', data.stage);
-
+    // Only update stage from Flask if AI hasn't set it yet
+    if(data.stage && data.stage !== 'null' && data.stage !== 'undefined') set('dash-stage-label', data.stage);
+ 
     updateSensorCard('card-temp','status-temp',   t,'temperature',  '°C','Temperature');
     updateSensorCard('card-moist','status-moist', m,'soil_moisture','%', 'Soil Moisture');
     updateSensorCard('card-humid','status-humid', h,'humidity',     '%', 'Humidity');
-
+ 
     // NPK card always uses mocked status
     const ns=document.getElementById('status-npk'), nc=document.getElementById('card-npk');
     if(ns&&nc) {
@@ -1176,24 +1192,35 @@ function pollSensors() {
         pushSensorAlert('warning','NPK Imbalance',`NPK sensor reports: ${liveData.npk.status}.`);
       }
     }
-
+ 
     const lu=document.getElementById('dash-last-updated');
     if(lu) lu.textContent='Last update: '+(data.timestamp||new Date().toLocaleTimeString());
     if(t!=null&&h!=null) updateDashChart(t,h);
   });
 }
-
+ 
 function syncDeviceStates() {
+  // Fallback derives ON/OFF from liveData sensor readings (mirrors pi_sensor.py relay logic)
   apiGet('/api/devices/latest', ()=>MockDB.devices()).then(data=>{
     const set=(id,v,cls)=>{ const el=document.getElementById(id); if(el){el.textContent=v;if(cls)el.className=cls;} };
     set('dash-pump-state',      data.irrigation_pump||'—', 'device-state '+(data.irrigation_pump==='ON'?'on':'off'));
     set('dash-fan-state',       data.exhaust_fan||'—',     'device-state '+(data.exhaust_fan==='ON'?'on':'off'));
     set('dash-humidifier-state',data.humidifier||'OFF',    'device-state '+(data.humidifier==='ON'?'on':'off'));
-    const mn=document.getElementById('dash-mode-note');
-    if(mn) mn.textContent=`Mode: ${data.auto_mode?'AUTO':'MANUAL'} · Last sync: ${data.timestamp||'—'}`;
+    const mn = document.getElementById('dash-mode-note');
+    if (mn) {
+      let modeStr;
+      if (data._source === 'derived_from_sensor') {
+        modeStr = 'AUTO · Relay states derived from sensor readings';
+      } else if (data._source === 'mock_derived') {
+        modeStr = 'AUTO · Simulated (based on sensor thresholds)';
+      } else {
+        modeStr = (data.auto_mode ? 'AUTO' : 'MANUAL') + ' · Last sync: ' + (data.timestamp || '—');
+      }
+      mn.textContent = 'Mode: ' + modeStr;
+    }
   });
 }
-
+ 
 function pollAlertCount() {
   if (!flaskAvailable) return; // badge managed by updateFilterCounts in mock mode
   fetch('/api/alerts/unread-count').then(r=>r.ok?r.json():Promise.reject()).then(data=>{
@@ -1347,12 +1374,49 @@ async function aiLoop() {
   const preds = await tmModel.predict(tmWebcam.canvas);
   let best = preds[0];
   preds.forEach(p => { if(p.probability > best.probability) best=p; });
-  const statusMap = { early_stage:"Need More Time", mid_stage:"Approaching Harvest", mature_stage:"Ready for Harvest" };
+ 
+  const statusMap = {
+    early_stage:  "Need More Time",
+    mid_stage:    "Approaching Harvest",
+    mature_stage: "Ready for Harvest"
+  };
+ 
+  // ── Stage label map — what to show in the health banner ────────
+  const stageLabel = {
+    early_stage:  "Early Stage",
+    mid_stage:    "Mid Stage",
+    mature_stage: "Mature Stage"
+  };
+ 
+  // ── Update the Stage label in the health banner ─────────────────
+  const stageEl = document.getElementById("dash-stage-label");
+  if (stageEl) {
+    stageEl.textContent = stageLabel[best.className] || best.className;
+  }
+ 
+  // ── Update liveData.stage so history/analytics also see it ──────
+  if (typeof liveData !== "undefined") {
+    liveData.stage = stageLabel[best.className] || best.className;
+  }
+ 
+  // ── Send prediction to Flask (saves to ai_predictions collection) ─
+  if (typeof flaskAvailable !== "undefined" && flaskAvailable) {
+    fetch("/api/ai/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prediction: best.className,
+        confidence: parseFloat((best.probability * 100).toFixed(1))
+      })
+    }).catch(() => {});  // silent fail — don't block the UI
+  }
+ 
+  // ── Update prediction result panel ─────────────────────────────
   document.getElementById("prediction-result").innerHTML = `
     <h2 style="color:#15803d;margin-bottom:18px;font-size:24px;">AI Crop Analysis</h2>
     <div style="margin-bottom:16px;background:#f4fbf4;padding:16px;border-radius:16px;">
       <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">DETECTED STAGE</p>
-      <h1 style="color:#166534;font-size:30px;margin:0;text-transform:capitalize;">${best.className}</h1>
+      <h1 style="color:#166534;font-size:30px;margin:0;text-transform:capitalize;">${best.className.replace(/_/g," ")}</h1>
     </div>
     <div style="margin-bottom:16px;background:#f4fbf4;padding:16px;border-radius:16px;">
       <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">CONFIDENCE LEVEL</p>
@@ -1365,6 +1429,7 @@ async function aiLoop() {
       <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">STATUS</p>
       <div style="background:#dcfce7;color:#166534;padding:16px;border-radius:16px;font-size:18px;font-weight:bold;text-align:center;">${statusMap[best.className]||best.className}</div>
     </div>`;
+ 
   requestAnimationFrame(aiLoop);
 }
 

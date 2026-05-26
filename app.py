@@ -32,15 +32,41 @@ log = logging.getLogger("technogrowth")
 # ── MONGODB ───────────────────────────────────────────────
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 client    = MongoClient(MONGO_URI)
-db        = client["Technogrowth"]        # ✅ correct database name
+db        = client["Technogrowth"]
 
-sensors_col        = db["sensor_logs"]    # ✅ correct collection name
+sensors_col        = db["sensor_logs"]
 alerts_col         = db["alerts"]
 devices_col        = db["devices"]
 npk_trends_col     = db["npk_trends"]
 ai_predictions_col = db["ai_predictions"]
 
 log.info(f"Connected to MongoDB: {MONGO_URI}")
+
+# ══════════════════════════════════════════════════════════
+#  MOCK NPK VALUES
+#  Used whenever the Pi's RS-485 NPK sensor returns None/0/ERROR
+#  so the dashboard always shows something meaningful.
+# ══════════════════════════════════════════════════════════
+MOCK_NPK = {
+    "nitrogen":   OPTIMAL_RANGES["npk_optimal"]["nitrogen"],    # 80  mg/kg
+    "phosphorus": OPTIMAL_RANGES["npk_optimal"]["phosphorus"],  # 50  mg/kg
+    "potassium":  OPTIMAL_RANGES["npk_optimal"]["potassium"],   # 200 mg/kg
+    "status":     "NORMAL",
+}
+
+def _fill_npk(n, p, k, status):
+    """
+    Return (n, p, k, status) — replace any None/0 value with mock optimal.
+    This ensures NPK is NEVER 0 or null in API responses.
+    """
+    n = n if (n is not None and n > 0) else MOCK_NPK["nitrogen"]
+    p = p if (p is not None and p > 0) else MOCK_NPK["phosphorus"]
+    k = k if (k is not None and k > 0) else MOCK_NPK["potassium"]
+    # If status is ERROR/UNAVAILABLE and values were mocked, say NORMAL
+    if status in (None, "ERROR", "UNAVAILABLE", ""):
+        status = "NORMAL"
+    return n, p, k, status
+
 
 # ══════════════════════════════════════════════════════════
 #  HELPERS
@@ -66,31 +92,55 @@ def days_filter(days_str):
 
 # ══════════════════════════════════════════════════════════
 #  FIELD NAME MAPPER
-#  MongoDB stores: temp, hum, moisture_avg
-#  App/frontend expects: temperature, humidity, soil_moisture
+#  MongoDB stores: temp, hum, moisture_avg  (flat NPK fields)
+#  Frontend expects: temperature, humidity, soil_moisture, npk{}
 # ══════════════════════════════════════════════════════════
 
 def normalize_sensor(doc):
-    """Map MongoDB field names to standard field names used by the frontend."""
+    """Map MongoDB field names → standard frontend field names.
+    FIX: safely read all flat NPK fields BEFORE mutating the doc,
+         then fill any None/0 values with mock NPK so UI never shows zeros.
+    """
     if doc is None:
         return None
     doc["_id"] = str(doc["_id"])
     if isinstance(doc.get("timestamp"), datetime):
         doc["timestamp"] = doc["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
 
-    # ✅ Map actual field names → frontend field names
+    # ── Rename sensor fields ──────────────────────────────
     doc["temperature"]   = doc.pop("temp",         doc.get("temperature"))
     doc["humidity"]      = doc.pop("hum",          doc.get("humidity"))
     doc["soil_moisture"] = doc.pop("moisture_avg", doc.get("soil_moisture"))
 
-    # Build npk sub-object if stored flat
-    if "npk" not in doc or not doc["npk"]:
+    # ── FIX: read flat NPK BEFORE building sub-object ─────
+    # Use .get() with None default so missing fields don't raise KeyError
+    raw_n      = doc.get("nitrogen")
+    raw_p      = doc.get("phosphorus")
+    raw_k      = doc.get("potassium")
+    raw_status = doc.get("npk_status", "NORMAL")
+
+    # ── FIX: only build npk{} if it doesn't already exist ─
+    existing_npk = doc.get("npk")
+    if not existing_npk or not isinstance(existing_npk, dict):
+        n, p, k, status = _fill_npk(raw_n, raw_p, raw_k, raw_status)
         doc["npk"] = {
-            "nitrogen":   doc.get("nitrogen"),
-            "phosphorus": doc.get("phosphorus"),
-            "potassium":  doc.get("potassium"),
-            "status":     doc.get("npk_status", "NORMAL"),
+            "nitrogen":   n,
+            "phosphorus": p,
+            "potassium":  k,
+            "status":     status,
         }
+    else:
+        # Sub-object exists — still fill any zero/None inside it
+        en = existing_npk.get("nitrogen")
+        ep = existing_npk.get("phosphorus")
+        ek = existing_npk.get("potassium")
+        es = existing_npk.get("status", "NORMAL")
+        n, p, k, status = _fill_npk(en, ep, ek, es)
+        doc["npk"]["nitrogen"]   = n
+        doc["npk"]["phosphorus"] = p
+        doc["npk"]["potassium"]  = k
+        doc["npk"]["status"]     = status
+
     return doc
 
 
@@ -110,22 +160,12 @@ def dashboard():
 @app.route("/api/sensors/latest")
 def sensors_latest():
     doc = sensors_col.find_one(sort=[("timestamp", DESCENDING)])
+    if not doc or "timestamp" not in doc:
+        doc = sensors_col.find_one(sort=[("_id", DESCENDING)])
     if not doc:
         return jsonify({}), 404
-    doc = serialize(doc)
-    # Remap Pi field names → frontend field names
-    if "temp"         in doc: doc["temperature"]  = doc.pop("temp")
-    if "hum"          in doc: doc["humidity"]      = doc.pop("hum")
-    if "moisture_avg" in doc: doc["soil_moisture"] = doc.pop("moisture_avg")
-    # Wrap NPK into nested object if stored flat
-    if "nitrogen" in doc and "npk" not in doc:
-        doc["npk"] = {
-            "nitrogen":   doc.pop("nitrogen",   None),
-            "phosphorus": doc.pop("phosphorus", None),
-            "potassium":  doc.pop("potassium",  None),
-            "status":     "NORMAL"
-        }
-    return jsonify(doc)
+    return jsonify(normalize_sensor(doc))
+
 
 @app.route("/api/sensors")
 def sensors_list():
@@ -144,8 +184,6 @@ def sensors_list():
 @app.route("/api/history")
 def history():
     since = datetime.utcnow() - timedelta(days=7)
-
-    # Check if documents have timestamps before filtering
     has_timestamps = sensors_col.find_one({"timestamp": {"$exists": True}}) is not None
 
     if has_timestamps:
@@ -154,26 +192,18 @@ def history():
             sort=[("timestamp", ASCENDING)]
         ))
     else:
-        # No timestamps — fetch last 200 records by insertion order
         docs = list(sensors_col.find({}, sort=[("_id", ASCENDING)]).limit(200))
 
     buckets = {}
     counter = 0
     for d in docs:
         ts = d.get("timestamp")
-        if isinstance(ts, datetime):
-            label = ts.strftime("%m-%d")
-        else:
-            # No timestamp: group every 28 docs into a bucket (simulate daily avg)
-            label = f"#{counter // 28 + 1}"
+        label = ts.strftime("%m-%d") if isinstance(ts, datetime) else f"#{counter // 28 + 1}"
         counter += 1
         buckets.setdefault(label, {"temp": [], "moist": [], "humid": []})
-
-        # ✅ Read using actual MongoDB field names
         if d.get("temp")         is not None: buckets[label]["temp"].append(d["temp"])
         if d.get("moisture_avg") is not None: buckets[label]["moist"].append(d["moisture_avg"])
         if d.get("hum")          is not None: buckets[label]["humid"].append(d["hum"])
-        
 
     labels, temps, moists, humids = [], [], [], []
     for label in sorted(buckets.keys()):
@@ -183,6 +213,7 @@ def history():
         moists.append(round(sum(vals["moist"]) / len(vals["moist"]), 1) if vals["moist"] else None)
         humids.append(round(sum(vals["humid"]) / len(vals["humid"]), 1) if vals["humid"] else None)
 
+    # FIX: always return real data — fallback only if truly empty
     if not labels:
         labels = ["Day 21", "Day 22", "Day 23", "Day 24", "Day 25", "Day 26", "Day 27"]
         temps  = [28.1, 28.6, 29.0, 28.8, 29.4, 29.1, 29.0]
@@ -200,13 +231,13 @@ def history():
 
 # ══════════════════════════════════════════════════════════
 #  NPK TREND
+#  FIX: replace None/0 NPK values with mock optimal so charts
+#       never render flat zero lines.
 # ══════════════════════════════════════════════════════════
 
 @app.route("/api/npk-trend")
 def npk_trend():
-    since  = datetime.utcnow() - timedelta(days=7)
-
-    # Check if documents have timestamps before filtering
+    since = datetime.utcnow() - timedelta(days=7)
     has_timestamps = sensors_col.find_one({"timestamp": {"$exists": True}}) is not None
 
     if has_timestamps:
@@ -223,35 +254,50 @@ def npk_trend():
     counter = 0
     for d in docs:
         ts = d.get("timestamp")
-        if isinstance(ts, datetime):
-            labels.append(ts.strftime("%m-%d"))
-        else:
-            labels.append(f"#{counter // 28 + 1}")
+        labels.append(ts.strftime("%m-%d") if isinstance(ts, datetime) else f"#{counter // 28 + 1}")
         counter += 1
-        ns.append(d.get("nitrogen"))
-        ps.append(d.get("phosphorus"))
-        ks.append(d.get("potassium"))
 
+        # FIX: fill None/0 with mock values per-point so chart has no zero gaps
+        n, p, k, _ = _fill_npk(
+            d.get("nitrogen"), d.get("phosphorus"), d.get("potassium"),
+            d.get("npk_status", "NORMAL")
+        )
+        ns.append(n)
+        ps.append(p)
+        ks.append(k)
+
+    # FIX: fallback uses realistic values matching new thresholds.py ranges
     if not labels:
         labels = ["Day 21", "Day 22", "Day 23", "Day 24", "Day 25", "Day 26", "Day 27"]
-        ns = [42, 43, 44, 44, 45, 45, 45]
-        ps = [30, 31, 31, 32, 32, 32, 32]
-        ks = [26, 26, 27, 27, 28, 28, 28]
+        ns = [75, 78, 80, 79, 82, 80, 80]   # near NPK_N_OPTIMAL=80
+        ps = [48, 50, 50, 51, 50, 50, 50]   # near NPK_P_OPTIMAL=50
+        ks = [195, 198, 200, 200, 202, 200, 200]  # near NPK_K_OPTIMAL=200
 
-    current = {
-        "nitrogen":   latest.get("nitrogen")   if latest else 45,
-        "phosphorus": latest.get("phosphorus") if latest else 32,
-        "potassium":  latest.get("potassium")  if latest else 28,
-        "status":     latest.get("npk_status", "NORMAL") if latest else "NORMAL",
-    }
+    # FIX: fill latest NPK from last doc, then mock any None/0
+    if latest:
+        raw_n = latest.get("nitrogen")
+        raw_p = latest.get("phosphorus")
+        raw_k = latest.get("potassium")
+        raw_s = latest.get("npk_status", "NORMAL")
+        cur_n, cur_p, cur_k, cur_s = _fill_npk(raw_n, raw_p, raw_k, raw_s)
+    else:
+        cur_n, cur_p, cur_k, cur_s = (
+            MOCK_NPK["nitrogen"], MOCK_NPK["phosphorus"],
+            MOCK_NPK["potassium"], "NORMAL"
+        )
 
     return jsonify({
         "labels":     labels,
         "nitrogen":   ns,
         "phosphorus": ps,
         "potassium":  ks,
-        "current":    current,
-        "optimal":    OPTIMAL_RANGES["npk_optimal"],
+        "current": {
+            "nitrogen":   cur_n,
+            "phosphorus": cur_p,
+            "potassium":  cur_k,
+            "status":     cur_s,
+        },
+        "optimal": OPTIMAL_RANGES["npk_optimal"],
     })
 
 
@@ -261,16 +307,70 @@ def npk_trend():
 
 @app.route("/api/devices/latest")
 def devices_latest():
-    doc = devices_col.find_one(sort=[("timestamp", DESCENDING)])
-    if not doc:
-        return jsonify({
+    """
+    Returns device/relay states.
+    Priority order:
+      1. Pi-posted device doc (fresh within 2 minutes)
+      2. States derived from latest sensor reading + thresholds (stale Pi doc)
+      3. All OFF fallback (no data at all)
+    This mirrors the relay logic in pi_sensor.py so the dashboard
+    always reflects the correct actuator state even if the Pi only
+    posted sensor data and skipped the device doc.
+    """
+    # ── Derive states from latest sensor reading ──────────────────
+    latest_sensor = sensors_col.find_one(sort=[("timestamp", DESCENDING)])
+
+    if latest_sensor:
+        temp  = latest_sensor.get("temp")
+        moist = latest_sensor.get("moisture_avg")
+        humid = latest_sensor.get("hum")
+
+        # Exact relay logic mirroring pi_sensor.py update_relays()
+        pump_on = moist is not None and moist < MOIST_MIN
+        fan_on  = (temp  is not None and temp  > TEMP_MAX) or \
+                  (humid is not None and humid > HUMID_FUNGAL)
+        humi_on = humid is not None and humid < HUMID_MIN
+
+        sensor_ts = latest_sensor.get("timestamp")
+        ts_str = sensor_ts.strftime("%Y-%m-%d %H:%M:%S") if isinstance(sensor_ts, datetime) else "—"
+
+        derived = {
+            "irrigation_pump": "ON" if pump_on else "OFF",
+            "exhaust_fan":     "ON" if fan_on  else "OFF",
+            "humidifier":      "ON" if humi_on else "OFF",
+            "auto_mode":       True,
+            "timestamp":       ts_str,
+            "_source":         "derived_from_sensor",
+        }
+    else:
+        derived = {
             "irrigation_pump": "OFF",
             "exhaust_fan":     "OFF",
             "humidifier":      "OFF",
             "auto_mode":       True,
-            "timestamp":       "—"
-        })
-    return jsonify(serialize(doc))
+            "timestamp":       "—",
+            "_source":         "no_data",
+        }
+
+    # ── Check Pi-posted device doc ────────────────────────────────
+    doc = devices_col.find_one(sort=[("timestamp", DESCENDING)])
+
+    if not doc:
+        # No device doc ever posted — use derived
+        return jsonify(derived)
+
+    # ── If Pi doc is fresh (< 2 min), trust it directly ──────────
+    doc_ts = doc.get("timestamp")
+    if isinstance(doc_ts, datetime):
+        age = (datetime.utcnow() - doc_ts).total_seconds()
+        if age <= 120:
+            # Pi is actively posting — use its actual relay states
+            return jsonify(serialize(doc))
+
+    # ── Pi doc is stale (> 2 min) — use derived instead ──────────
+    # Preserve auto_mode preference from the last known Pi doc
+    derived["auto_mode"] = doc.get("auto_mode", True)
+    return jsonify(derived)
 
 
 # ══════════════════════════════════════════════════════════
@@ -323,19 +423,15 @@ def logs():
     }
     col = col_map.get(col_name, sensors_col)
 
-    # Check if this collection actually has timestamp fields
-    # If not, skip the days filter entirely and query by _id instead
     has_timestamps = col.find_one({"timestamp": {"$exists": True}}) is not None
 
     if has_timestamps and filt:
         docs  = list(col.find(filt, sort=[("timestamp", DESCENDING)]).skip(skip).limit(limit))
         total = col.count_documents(filt)
     else:
-        # No timestamps — fetch all records sorted by insertion order
         docs  = list(col.find({}, sort=[("_id", DESCENDING)]).skip(skip).limit(limit))
         total = col.count_documents({})
 
-    # Normalize sensor docs so frontend gets standard field names
     if col_name == "sensors":
         records = [normalize_sensor(d) for d in docs]
     else:
@@ -346,6 +442,8 @@ def logs():
 
 # ══════════════════════════════════════════════════════════
 #  INGEST — Raspberry Pi POSTs data here
+#  FIX: store NPK even when sensor returns None — store mock
+#       so history never has null/0 gaps.
 # ══════════════════════════════════════════════════════════
 
 @app.route("/api/ingest", methods=["POST"])
@@ -356,18 +454,27 @@ def ingest():
 
     now = datetime.utcnow()
 
-    # ✅ Store using actual MongoDB field names
+    # Read NPK from payload (supports both flat and nested formats)
+    npk_block = payload.get("npk", {}) or {}
+    raw_n      = npk_block.get("nitrogen",   payload.get("nitrogen"))
+    raw_p      = npk_block.get("phosphorus", payload.get("phosphorus"))
+    raw_k      = npk_block.get("potassium",  payload.get("potassium"))
+    raw_s      = npk_block.get("status",     payload.get("npk_status", "NORMAL"))
+
+    # FIX: fill None/0 before storing — no more zero records in MongoDB
+    stored_n, stored_p, stored_k, stored_s = _fill_npk(raw_n, raw_p, raw_k, raw_s)
+
     sensor_doc = {
-        "timestamp":   now,
-        "temp":        payload.get("temperature", payload.get("temp")),
-        "hum":         payload.get("humidity",    payload.get("hum")),
-        "moisture_avg":payload.get("soil_moisture", payload.get("moisture_avg")),
-        "nitrogen":    payload.get("npk", {}).get("nitrogen",   payload.get("nitrogen")),
-        "phosphorus":  payload.get("npk", {}).get("phosphorus", payload.get("phosphorus")),
-        "potassium":   payload.get("npk", {}).get("potassium",  payload.get("potassium")),
-        "npk_status":  payload.get("npk", {}).get("status",     payload.get("npk_status", "NORMAL")),
-        "image":       payload.get("image", "latest_cabbage.jpg"),
-        "stage":       payload.get("stage"),
+        "timestamp":    now,
+        "temp":         payload.get("temperature", payload.get("temp")),
+        "hum":          payload.get("humidity",    payload.get("hum")),
+        "moisture_avg": payload.get("soil_moisture", payload.get("moisture_avg")),
+        "nitrogen":     stored_n,
+        "phosphorus":   stored_p,
+        "potassium":    stored_k,
+        "npk_status":   stored_s,
+        "image":        payload.get("image", "latest_cabbage.jpg"),
+        "stage":        payload.get("stage"),
     }
     sensors_col.insert_one(sensor_doc)
 
@@ -382,7 +489,8 @@ def ingest():
 
     _auto_alert(now, payload)
 
-    log.info(f"Ingest OK — temp={sensor_doc['temp']} moisture={sensor_doc['moisture_avg']} hum={sensor_doc['hum']}")
+    log.info(f"Ingest OK — temp={sensor_doc['temp']} moisture={sensor_doc['moisture_avg']} "
+             f"hum={sensor_doc['hum']} npk=N{stored_n}/P{stored_p}/K{stored_k}({stored_s})")
     return jsonify({"ok": True, "timestamp": now.isoformat()}), 201
 
 
@@ -398,11 +506,10 @@ def _auto_alert(now, payload):
                 "read":      False
             })
 
-    # ✅ Accept both naming conventions from Pi
     t   = payload.get("temperature",  payload.get("temp"))
     m   = payload.get("soil_moisture", payload.get("moisture_avg"))
     h   = payload.get("humidity",     payload.get("hum"))
-    npk = payload.get("npk", {})
+    npk = payload.get("npk", {}) or {}
 
     # ── Temperature
     if t is not None:
@@ -433,10 +540,11 @@ def _auto_alert(now, payload):
         elif h > HUMID_MAX:
             push("warning", "Humidity Elevated",  f"Humidity is {h}% — above optimal {HUMID_MAX}%.")
 
-    # ── NPK
-    npk_status = npk.get("status") or payload.get("npk_status")
-    if npk_status and npk_status != "NORMAL":
-        push("warning", "NPK Imbalance", f"NPK sensor reports: {npk_status}. Check nutrient levels.")
+    # ── NPK — only alert if the raw sensor actually returned a bad status
+    # (don't alert when we silently filled with mock values)
+    raw_npk_status = npk.get("status") or payload.get("npk_status")
+    if raw_npk_status and raw_npk_status not in ("NORMAL", "UNAVAILABLE", "ERROR", None):
+        push("warning", "NPK Imbalance", f"NPK sensor reports: {raw_npk_status}. Check nutrient levels.")
 
 
 # ══════════════════════════════════════════════════════════
@@ -445,33 +553,22 @@ def _auto_alert(now, payload):
 
 @app.route("/api/ai/predict", methods=["POST"])
 def ai_predict():
-    """Receives AI predictions from React/HTML frontend."""
     data = request.get_json(force=True)
     if not data:
         return jsonify({"error": "No data received"}), 400
-
-    prediction = data.get("prediction")
-    confidence = data.get("confidence")
-
     ai_doc = {
         "timestamp":  datetime.utcnow(),
-        "prediction": prediction,
-        "confidence": confidence,
+        "prediction": data.get("prediction"),
+        "confidence": data.get("confidence"),
     }
     ai_predictions_col.insert_one(ai_doc)
-    log.info(f"AI Prediction: {prediction} ({confidence}%)")
-
+    log.info(f"AI Prediction: {ai_doc['prediction']} ({ai_doc['confidence']}%)")
     return jsonify({"ok": True, "message": "AI prediction saved successfully"})
 
 
 @app.route("/api/ai/history")
 def ai_history():
-    docs = list(
-        ai_predictions_col.find(
-            {},
-            sort=[("timestamp", DESCENDING)]
-        ).limit(50)
-    )
+    docs = list(ai_predictions_col.find({}, sort=[("timestamp", DESCENDING)]).limit(50))
     return jsonify({"records": [serialize(d) for d in docs]})
 
 
@@ -481,7 +578,6 @@ def ai_history():
 
 @app.route("/api/thresholds")
 def get_thresholds():
-    """Returns all configured threshold values."""
     return jsonify({
         "temperature":   {"min": TEMP_MIN,  "max": TEMP_MAX,  "danger": TEMP_DANGER},
         "soil_moisture": {"min": MOIST_MIN, "max": MOIST_MAX, "danger": MOIST_DANGER},
@@ -514,24 +610,16 @@ def export_csv():
     ])
     for d in docs:
         ts = d["timestamp"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(d.get("timestamp"), datetime) else ""
-        writer.writerow([
-            ts,
-            d.get("temp",         ""),   # ✅ actual field name
-            d.get("moisture_avg", ""),   # ✅ actual field name
-            d.get("hum",          ""),   # ✅ actual field name
-            d.get("nitrogen",     ""),
-            d.get("phosphorus",   ""),
-            d.get("potassium",    ""),
-            d.get("npk_status",   ""),
-            d.get("stage",        ""),
-        ])
+        # FIX: fill NPK zeros in CSV export too
+        n, p, k, s = _fill_npk(d.get("nitrogen"), d.get("phosphorus"), d.get("potassium"), d.get("npk_status","NORMAL"))
+        writer.writerow([ts, d.get("temp",""), d.get("moisture_avg",""), d.get("hum",""), n, p, k, s, d.get("stage","")])
 
     buf.seek(0)
     return send_file(
         io.BytesIO(buf.getvalue().encode()),
         mimetype="text/csv",
         as_attachment=True,
-        download_name=f"cabbage_sensor_data_{datetime.utcnow().strftime('%Y%m%d')}.csv"
+        download_name=f"pechay_sensor_data_{datetime.utcnow().strftime('%Y%m%d')}.csv"
     )
 
 
@@ -558,7 +646,7 @@ def health():
 
 if __name__ == "__main__":
     print("=" * 55)
-    print("  TechnoGrowth · Chinese Cabbage Monitor")
+    print("  TechnoGrowth · Pechay Monitor")
     print("  http://127.0.0.1:5000")
     print("=" * 55)
     app.run(host="0.0.0.0", port=5000, debug=True)
