@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════════════════
-#  TechnoGrowth · Chinese Cabbage — Threshold Configuration
+#  Threshold Configuration
 #  Edit values here; both app.py and pi_sensor.py import this.
 # ══════════════════════════════════════════════════════════
 

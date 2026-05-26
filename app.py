@@ -109,14 +109,23 @@ def dashboard():
 
 @app.route("/api/sensors/latest")
 def sensors_latest():
-    # Try timestamp sort first, fall back to _id (insertion order)
     doc = sensors_col.find_one(sort=[("timestamp", DESCENDING)])
-    if not doc or "timestamp" not in doc:
-        doc = sensors_col.find_one(sort=[("_id", DESCENDING)])
     if not doc:
         return jsonify({}), 404
-    return jsonify(normalize_sensor(doc))
-
+    doc = serialize(doc)
+    # Remap Pi field names → frontend field names
+    if "temp"         in doc: doc["temperature"]  = doc.pop("temp")
+    if "hum"          in doc: doc["humidity"]      = doc.pop("hum")
+    if "moisture_avg" in doc: doc["soil_moisture"] = doc.pop("moisture_avg")
+    # Wrap NPK into nested object if stored flat
+    if "nitrogen" in doc and "npk" not in doc:
+        doc["npk"] = {
+            "nitrogen":   doc.pop("nitrogen",   None),
+            "phosphorus": doc.pop("phosphorus", None),
+            "potassium":  doc.pop("potassium",  None),
+            "status":     "NORMAL"
+        }
+    return jsonify(doc)
 
 @app.route("/api/sensors")
 def sensors_list():
@@ -164,6 +173,7 @@ def history():
         if d.get("temp")         is not None: buckets[label]["temp"].append(d["temp"])
         if d.get("moisture_avg") is not None: buckets[label]["moist"].append(d["moisture_avg"])
         if d.get("hum")          is not None: buckets[label]["humid"].append(d["hum"])
+        
 
     labels, temps, moists, humids = [], [], [], []
     for label in sorted(buckets.keys()):

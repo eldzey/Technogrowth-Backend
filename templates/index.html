@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TechnoGrowth · Chinese Cabbage Monitor</title>
+<title>TechnoGrowth · Pechay Monitor</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -60,6 +60,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
 .live-indicator { display:flex; align-items:center; gap:5px; font-size:10px; color:rgba(255,255,255,0.8); }
 .live-dot { width:7px; height:7px; border-radius:50%; background:#69f0ae; box-shadow:0 0 6px #69f0ae; animation:pulse 2s infinite; }
+.live-dot.mock-mode { background:#FFD54F; box-shadow:0 0 6px #FFD54F; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 .notif-btn { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
 .notif-btn svg { width:16px; height:16px; color:#fff; }
@@ -69,6 +70,13 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); box-shadow:var(--shadow); }
 .card-pad { padding:16px; }
 .section-title { font-size:12px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
+
+/* ── Demo / offline banner ── */
+.demo-banner { background:linear-gradient(90deg,#FFF8E1,#FFFDE7); border:1px solid #FFD54F; border-radius:var(--r); padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; gap:8px; font-size:11px; color:#6D4C00; }
+.demo-banner svg { width:14px; height:14px; flex-shrink:0; color:#F59E0B; }
+.demo-banner strong { font-weight:700; }
+.demo-banner.hidden { display:none; }
+
 .health-banner { background:var(--green-light); border:1px solid #C8E6C9; border-radius:var(--r); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
 .health-status { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
 .health-status svg { width:16px; height:16px; color:var(--green-primary); }
@@ -250,8 +258,8 @@ canvas { width:100%!important; }
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 22V12M12 12C12 7 7 4 2 5M12 12C12 7 17 4 22 5"/></svg>
     </div>
     <div class="sb-brand-txt">
-      <strong>Chinese Cabbage</strong>
-      <span>Monitor System</span>
+      <strong>Pechay</strong>
+      <span>Monitor</span>
     </div>
   </div>
   <nav class="sb-nav">
@@ -282,12 +290,15 @@ canvas { width:100%!important; }
       <div class="topbar-crop">
         <div class="crop-img">🥬</div>
         <div class="crop-info">
-          <strong>Pechay Monitor for Smart Growth Management System </strong>
-          <span>Live Sensor Data </span>
+          <strong>Smart Growth Management System</strong>
+          <span id="topbar-source-label">Detecting data source…</span>
         </div>
       </div>
       <div class="topbar-right">
-        <div class="live-indicator"><div class="live-dot"></div>LIVE</div>
+        <div class="live-indicator">
+          <div class="live-dot" id="live-dot"></div>
+          <span id="live-label">…</span>
+        </div>
         <div class="notif-btn" onclick="switchPage('alerts')">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span class="notif-badge" id="notif-badge"></span>
@@ -297,6 +308,13 @@ canvas { width:100%!important; }
 
     <!-- DASHBOARD -->
     <div class="page-section active" id="page-dashboard">
+
+      <!-- offline / demo-mode banner -->
+      <div class="demo-banner hidden" id="demo-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><strong>Demo Mode — Flask Offline.</strong></span>
+      </div>
+
       <div class="health-banner">
         <div>
           <div class="health-status">
@@ -305,7 +323,7 @@ canvas { width:100%!important; }
           </div>
           <div class="health-day">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            Live data from Raspberry Pi sensors
+            <span id="health-source-label">Initialising…</span>
           </div>
           <div class="health-day">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
@@ -323,37 +341,34 @@ canvas { width:100%!important; }
             Temperature
           </div>
           <div class="sensor-val" id="dash-temp">—</div>
-          <div class="sensor-range" id="range-temp">Optimal: 25–30°C</div>
+          <div class="sensor-range" id="range-temp">Optimal: 15–30°C</div>
           <div class="sensor-status" id="status-temp">Loading…</div>
         </div>
-
         <div class="sensor-card" id="card-moist">
           <div class="sensor-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
             Soil Moisture
           </div>
           <div class="sensor-val" id="dash-moist">—</div>
-          <div class="sensor-range" id="range-moist">Optimal: 43–60%</div>
+          <div class="sensor-range" id="range-moist">Optimal: 40–70%</div>
           <div class="sensor-status" id="status-moist">Loading…</div>
         </div>
-
         <div class="sensor-card" id="card-humid">
           <div class="sensor-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0 0 16 0c0-3-2-7-8-13z"/><path d="M12 18a3 3 0 0 1-3-3"/></svg>
             Air Humidity
           </div>
           <div class="sensor-val" id="dash-humid">—</div>
-          <div class="sensor-range" id="range-humid">Optimal: 70–85%</div>
+          <div class="sensor-range" id="range-humid">Optimal: 60–80%</div>
           <div class="sensor-status" id="status-humid">Loading…</div>
         </div>
-
         <div class="sensor-card" id="card-npk">
           <div class="sensor-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             NPK Level
           </div>
           <div class="sensor-val" id="dash-npk" style="font-size:16px;padding-top:4px;">—</div>
-          <div class="sensor-range">Optimal: Balanced</div>
+          <div class="sensor-range">Optimal: Balanced (simulated)</div>
           <div class="sensor-status" id="status-npk">Loading…</div>
         </div>
       </div>
@@ -398,9 +413,7 @@ canvas { width:100%!important; }
         </div>
         <div class="mode-note" id="dash-mode-note">Mode: AUTO · Syncing…</div>
         <div class="last-updated" id="dash-last-updated"></div>
-        <div style="height:100px;margin-top:10px;">
-          <canvas id="dashChart"></canvas>
-        </div>
+        <div style="height:100px;margin-top:10px;"><canvas id="dashChart"></canvas></div>
       </div>
     </div>
 
@@ -409,7 +422,7 @@ canvas { width:100%!important; }
       <div class="analytics-header">
         <div class="analytics-header-left">
           <strong>Analytics</strong>
-          <span id="analytics-data-range">Last 7 days · Live from MongoDB</span>
+          <span id="analytics-data-range">Last 7 days</span>
         </div>
         <div class="export-wrap">
           <button class="export-btn" id="exportBtn">
@@ -417,14 +430,13 @@ canvas { width:100%!important; }
             Export ▾
           </button>
           <div class="export-dropdown" id="exportDropdown">
-            <a class="export-opt" href="/export/csv">
+            <a class="export-opt" href="/export/csv" id="csv-link-analytics">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               Export CSV
             </a>
           </div>
         </div>
       </div>
-
       <div class="stat-grid-3">
         <div class="stat-pill">
           <div class="stat-pill-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>Avg Temperature (7d)</div>
@@ -442,7 +454,6 @@ canvas { width:100%!important; }
           <div class="stat-pill-sub" id="avg-humid-status"></div>
         </div>
       </div>
-
       <div class="weekly-perf">
         <div class="section-title">Weekly Performance</div>
         <div class="perf-grid">
@@ -451,12 +462,10 @@ canvas { width:100%!important; }
           <div class="perf-card"><div class="perf-label">Avg Air Humidity</div><div class="perf-val" id="perf-humid">—</div><div class="perf-change" id="perf-humid-change"></div></div>
         </div>
       </div>
-
       <div class="tab-row">
         <button class="tab-btn active" data-tab="environment">Environment</button>
         <button class="tab-btn" data-tab="nutrients">Nutrients</button>
       </div>
-
       <div class="tab-panel" id="tab-environment">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div class="chart-label">Temperature (Last 7 Days)</div>
@@ -467,7 +476,6 @@ canvas { width:100%!important; }
           <div class="legend-item"><div class="legend-dot" style="background:rgba(244,67,54,0.3);"></div>Optimal Range</div>
         </div>
         <div style="height:140px;position:relative;" id="envTempWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envTempChart" style="display:none;"></canvas></div>
-
         <div style="margin-top:14px;">
           <div class="chart-label" style="margin-bottom:6px;">Soil Moisture (Last 7 Days)</div>
           <div class="chart-legend">
@@ -476,7 +484,6 @@ canvas { width:100%!important; }
           </div>
           <div style="height:120px;position:relative;" id="envMoistWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envMoistChart" style="display:none;"></canvas></div>
         </div>
-
         <div style="margin-top:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <div class="chart-label">Air Humidity (Last 7 Days)</div>
@@ -488,11 +495,7 @@ canvas { width:100%!important; }
           </div>
           <div style="height:120px;position:relative;" id="envHumidWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envHumidChart" style="display:none;"></canvas></div>
         </div>
-
-        <div class="env-note">
-          <strong>Environment Note:</strong> Data pulled live from MongoDB. Thresholds are loaded dynamically from configuration.
-        </div>
-
+        <div class="env-note"><strong id="env-note-label">Environment Note:</strong> <span id="env-note-text">Data pulled live from MongoDB. Thresholds loaded dynamically from configuration.</span></div>
         <div class="key-metrics">
           <div class="section-title" style="margin-top:14px;">Environment Summary</div>
           <div class="metric-row"><span class="metric-name">Avg Temperature (7d)</span><span class="metric-val" id="sum-avg-temp">—</span></div>
@@ -501,7 +504,6 @@ canvas { width:100%!important; }
           <div class="metric-row"><span class="metric-name">Overall Status</span><span class="metric-val green" id="sum-overall-status">Stable</span></div>
         </div>
       </div>
-
       <div class="tab-panel" id="tab-nutrients" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div class="chart-label">NPK Levels (Last 7 Days)</div>
@@ -513,7 +515,7 @@ canvas { width:100%!important; }
           <div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>Potassium (K)</div>
         </div>
         <div style="height:180px;position:relative;" id="npkWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="npkChart" style="display:none;"></canvas></div>
-        <div class="env-note" style="margin-top:10px;"><strong style="color:var(--green-primary);">Nutrient Note:</strong> NPK levels read from RS-485 sensor via Modbus RTU. Units: mg/kg.</div>
+        <div class="env-note" style="margin-top:10px;"><strong style="color:var(--green-primary);">Nutrient Note:</strong> NPK always uses simulated data for demo stability. Units: mg/kg.</div>
         <div style="margin-top:16px;">
           <div class="chart-label" style="margin-bottom:8px;">Current vs Optimal NPK</div>
           <div style="height:130px;position:relative;" id="npkBarWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="npkBarChart" style="display:none;"></canvas></div>
@@ -559,9 +561,9 @@ canvas { width:100%!important; }
       <div class="log-header">
         <div class="log-header-left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>
-          <div class="log-header-txt"><strong>History Log</strong><span id="log-header-sub">Full back-tracking records from MongoDB</span></div>
+          <div class="log-header-txt"><strong>History Log</strong><span id="log-header-sub">Records</span></div>
         </div>
-        <a href="/export/csv" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;text-decoration:none;">
+        <a href="/export/csv" id="csv-link-history" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;text-decoration:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export CSV
         </a>
@@ -609,80 +611,239 @@ canvas { width:100%!important; }
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-//  THRESHOLDS — loaded once from /api/thresholds
-//  All hardcoded values replaced by this object
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  DATA-SOURCE DETECTION
+//  flaskAvailable: null=unknown | true=live | false=mock
+// ═══════════════════════════════════════════════════════════════════
+let flaskAvailable = null;
+
+async function probeFlask() {
+  try {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 2500);
+    const res  = await fetch('/api/health', { signal: ctrl.signal });
+    clearTimeout(tid);
+    flaskAvailable = res.ok;
+  } catch {
+    flaskAvailable = false;
+  }
+  applySourceUI();
+}
+
+function applySourceUI() {
+  const dot    = document.getElementById('live-dot');
+  const label  = document.getElementById('live-label');
+  const src    = document.getElementById('topbar-source-label');
+  const health = document.getElementById('health-source-label');
+  const banner = document.getElementById('demo-banner');
+  const aRange = document.getElementById('analytics-data-range');
+  const envTxt = document.getElementById('env-note-text');
+  const logSub = document.getElementById('log-header-sub');
+
+  if (flaskAvailable) {
+    dot.classList.remove('mock-mode');
+    label.textContent   = 'LIVE';
+    src.textContent     = 'Live Sensor Data from Raspberry Pi';
+    health.textContent  = 'Live data from Raspberry Pi sensors';
+    banner.classList.add('hidden');
+    if (aRange)  aRange.textContent = 'Last 7 days · Live from MongoDB';
+    if (envTxt)  envTxt.textContent = 'Data pulled live from MongoDB. Thresholds loaded dynamically from configuration.';
+    if (logSub)  logSub.textContent = 'Full back-tracking records from MongoDB';
+    // Re-enable CSV export links
+    ['csv-link-analytics','csv-link-history'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.href = '/export/csv'; el.style.opacity = '1'; el.style.pointerEvents = 'auto'; }
+    });
+  } else {
+    dot.classList.add('mock-mode');
+    label.textContent   = 'DEMO';
+    src.textContent     = 'Demo Mode — Simulated MockDB Data';
+    health.textContent  = 'Simulated MockDB data (Flask offline)';
+    banner.classList.remove('hidden');
+    if (aRange)  aRange.textContent = 'Last 7 days · MockDB simulation';
+    if (envTxt)  envTxt.textContent = 'Demo Mode: simulated data. Flask/MongoDB unreachable. NPK always simulated.';
+    if (logSub)  logSub.textContent = 'Simulated records (MockDB — Flask offline)';
+    // Disable CSV export links in demo
+    ['csv-link-analytics','csv-link-history'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.href = '#'; el.style.opacity = '0.45'; el.style.pointerEvents = 'none'; }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  THRESHOLDS — defaults match thresholds.py; overwritten from API
+// ═══════════════════════════════════════════════════════════════════
 const THRESHOLDS = {
-  temperature:   { min: 25,  max: 30,  danger: 35  },
-  soil_moisture: { min: 43,  max: 60,  danger: 35  },
-  humidity:      { min: 70,  max: 85,  danger: 60, fungal: 90 },
+  temperature:   { min: 15.0, max: 30.0, danger: 31.0 },
+  soil_moisture: { min: 40,   max: 70,   danger: 85   },
+  humidity:      { min: 60,   max: 80,   danger: 81,  fungal: 90 },
   npk: {
-    nitrogen:   { min: 30, max: 70, optimal: 50 },
-    phosphorus: { min: 20, max: 50, optimal: 35 },
-    potassium:  { min: 18, max: 50, optimal: 30 },
+    nitrogen:   { min: 40,  max: 100, optimal: 80  },
+    phosphorus: { min: 25,  max: 71,  optimal: 50  },
+    potassium:  { min: 100, max: 251, optimal: 200 },
   }
 };
 
-// Fetch real thresholds from backend and update everything
 async function loadThresholds() {
+  if (!flaskAvailable) return;
   try {
     const res  = await fetch('/api/thresholds');
     if (!res.ok) return;
     const data = await res.json();
-
-    // Merge into THRESHOLDS object
     if (data.temperature)   Object.assign(THRESHOLDS.temperature,   data.temperature);
     if (data.soil_moisture) Object.assign(THRESHOLDS.soil_moisture, data.soil_moisture);
     if (data.humidity)      Object.assign(THRESHOLDS.humidity,      data.humidity);
     if (data.npk) {
-      if (data.npk.nitrogen)   Object.assign(THRESHOLDS.npk.nitrogen,   data.npk.nitrogen);
-      if (data.npk.phosphorus) Object.assign(THRESHOLDS.npk.phosphorus, data.npk.phosphorus);
-      if (data.npk.potassium)  Object.assign(THRESHOLDS.npk.potassium,  data.npk.potassium);
+      ['nitrogen','phosphorus','potassium'].forEach(k => {
+        if (data.npk[k]) Object.assign(THRESHOLDS.npk[k], data.npk[k]);
+      });
     }
-
-    // Update sensor range labels in the UI
     const T = THRESHOLDS;
-    const rangeTemp  = document.getElementById('range-temp');
-    const rangeMoist = document.getElementById('range-moist');
-    const rangeHumid = document.getElementById('range-humid');
-    if (rangeTemp)  rangeTemp.textContent  = `Optimal: ${T.temperature.min}–${T.temperature.max}°C`;
-    if (rangeMoist) rangeMoist.textContent = `Optimal: ${T.soil_moisture.min}–${T.soil_moisture.max}%`;
-    if (rangeHumid) rangeHumid.textContent = `Optimal: ${T.humidity.min}–${T.humidity.max}%`;
-
-  } catch (e) {
-    console.warn('Could not load thresholds from API, using defaults:', e);
-  }
+    const rt = document.getElementById('range-temp');
+    const rm = document.getElementById('range-moist');
+    const rh = document.getElementById('range-humid');
+    if (rt) rt.textContent = `Optimal: ${T.temperature.min}–${T.temperature.max}°C`;
+    if (rm) rm.textContent = `Optimal: ${T.soil_moisture.min}–${T.soil_moisture.max}%`;
+    if (rh) rh.textContent = `Optimal: ${T.humidity.min}–${T.humidity.max}%`;
+  } catch(e) { console.warn('Threshold load failed:', e); }
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  MOCK DATABASE — realistic simulation, used when Flask is offline.
+//  NPK always uses mock regardless of Flask status.
+// ═══════════════════════════════════════════════════════════════════
+const MockDB = (() => {
+  let _t = 27.2, _m = 56.0, _h = 73.0;
+  const MOCK_NPK = { nitrogen: 72, phosphorus: 48, potassium: 185, status: 'NORMAL' };
+
+  function drift(v, lo, hi, step) {
+    return Math.min(hi, Math.max(lo, parseFloat((v + (Math.random()-0.48)*step).toFixed(1))));
+  }
+
+  function sensor() {
+    _t = drift(_t, 23.5, 31.5, 0.3);
+    _m = drift(_m, 36.0, 74.0, 1.5);
+    _h = drift(_h, 57.0, 87.0, 0.9);
+    return { temperature: _t, soil_moisture: _m, humidity: _h,
+             npk: { ...MOCK_NPK }, stage: 'Head Formation',
+             timestamp: new Date().toLocaleString() };
+  }
+
+  function devices() {
+    const pumpOn = _m < THRESHOLDS.soil_moisture.min;
+    const fanOn  = _t > THRESHOLDS.temperature.max || _h > THRESHOLDS.humidity.fungal;
+    return { irrigation_pump: pumpOn?'ON':'OFF', exhaust_fan: fanOn?'ON':'OFF',
+             humidifier: _h < THRESHOLDS.humidity.min ? 'ON':'OFF',
+             auto_mode: true, timestamp: new Date().toLocaleString() };
+  }
+
+  function history() {
+    const T = THRESHOLDS, now = new Date();
+    const labels=[], temps=[], moists=[], humids=[];
+    for (let i=6;i>=0;i--) {
+      const d = new Date(now); d.setDate(d.getDate()-i);
+      labels.push((d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0'));
+      temps.push(parseFloat((23.5+Math.random()*6).toFixed(1)));
+      moists.push(parseFloat((42+Math.random()*24).toFixed(1)));
+      humids.push(parseFloat((61+Math.random()*20).toFixed(1)));
+    }
+    return { labels, temperature:temps, soil_moisture:moists, humidity:humids,
+      temp_optimal:  {min:T.temperature.min,   max:T.temperature.max},
+      moist_optimal: {min:T.soil_moisture.min, max:T.soil_moisture.max},
+      humid_optimal: {min:T.humidity.min,      max:T.humidity.max} };
+  }
+
+  function npkTrend() {
+    const T=THRESHOLDS.npk, now=new Date();
+    const labels=[],ns=[],ps=[],ks=[];
+    for (let i=6;i>=0;i--) {
+      const d=new Date(now); d.setDate(d.getDate()-i);
+      labels.push((d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0'));
+      ns.push(Math.round(62+Math.random()*22));
+      ps.push(Math.round(41+Math.random()*16));
+      ks.push(Math.round(168+Math.random()*42));
+    }
+    return { labels, nitrogen:ns, phosphorus:ps, potassium:ks,
+      current: {...MOCK_NPK},
+      optimal: {nitrogen:T.nitrogen.optimal, phosphorus:T.phosphorus.optimal, potassium:T.potassium.optimal} };
+  }
+
+  function alerts() {
+    return { count:4, records:[
+      {_id:'mk1', type:'info',    title:'System Started',   desc:'Demo mode active. MockDB simulation running.',          timestamp:'Just now',   read:false},
+      {_id:'mk2', type:'success', title:'Sensors OK',       desc:'All channels responding within normal range.',          timestamp:'1 min ago',  read:false},
+      {_id:'mk3', type:'info',    title:'NPK Balanced',     desc:'Simulated nutrients within optimal range for Pechay.',  timestamp:'3 mins ago', read:true },
+      {_id:'mk4', type:'warning', title:'Flask Offline',    desc:'Cannot reach Flask API. Displaying simulated data.',    timestamp:'On load',    read:false},
+    ]};
+  }
+
+  function logs(col, limit, skip) {
+    const total=50, records=[], now=new Date();
+    for (let i=skip; i<Math.min(skip+limit,total); i++) {
+      const ts = new Date(now.getTime() - i*5*60000).toLocaleString();
+      if (col==='sensors') records.push({
+        timestamp:ts, temperature:parseFloat((23+Math.random()*8).toFixed(1)),
+        soil_moisture:parseFloat((40+Math.random()*30).toFixed(1)),
+        humidity:parseFloat((60+Math.random()*24).toFixed(1)),
+        npk:{nitrogen:Math.round(60+Math.random()*25), phosphorus:Math.round(38+Math.random()*18), potassium:Math.round(160+Math.random()*50), status:'NORMAL'},
+        stage:'Head Formation'
+      });
+      else if (col==='alerts') records.push({timestamp:ts, type:['warning','info','success'][i%3], title:'Mock Alert #'+i, desc:'Simulated alert for demo.', read:i%2===0});
+      else if (col==='devices') records.push({timestamp:ts, irrigation_pump:i%3===0?'ON':'OFF', exhaust_fan:i%5===0?'ON':'OFF', auto_mode:true});
+      else records.push({timestamp:ts, nitrogen:Math.round(60+Math.random()*25), phosphorus:Math.round(38+Math.random()*18), potassium:Math.round(160+Math.random()*50), status:'NORMAL'});
+    }
+    return {records, count:total};
+  }
+
+  return {sensor, devices, history, npkTrend, alerts, logs};
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+//  UNIFIED API ROUTER — Flask live → real endpoint; else → MockDB
+// ═══════════════════════════════════════════════════════════════════
+async function apiGet(path, mockFn) {
+  if (flaskAvailable) {
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 3000);
+      const res  = await fetch(path, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (res.ok) return await res.json();
+    } catch {
+      flaskAvailable = false;
+      applySourceUI();
+    }
+  }
+  return mockFn();
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  SHARED LIVE DATA STORE
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 const liveData = {
-  temperature: null, soil_moisture: null, humidity: null,
-  npk: null, stage: null, pump: null, fan: null,
-  auto_mode: null, timestamp: null,
-  historyData: null, npkTrendData: null,
+  temperature:null, soil_moisture:null, humidity:null,
+  npk:null, stage:null, historyData:null, npkTrendData:null
 };
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  NAVIGATION
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function switchPage(page) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   if (page === 'history')   loadHistory();
   if (page === 'analytics') refreshAnalytics();
-  if (page === 'alerts')    loadServerAlerts();
+  if (page === 'alerts')    loadAlerts();
 }
-document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-  item.addEventListener('click', () => switchPage(item.dataset.page));
-});
+document.querySelectorAll('.nav-item[data-page]').forEach(item =>
+  item.addEventListener('click', () => switchPage(item.dataset.page))
+);
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  ANALYTICS TABS
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
@@ -693,647 +854,521 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
   });
 });
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  EXPORT DROPDOWN
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 const exportBtn = document.getElementById('exportBtn');
 const exportDD  = document.getElementById('exportDropdown');
 exportBtn.addEventListener('click', e => { e.stopPropagation(); exportDD.classList.toggle('open'); });
 document.addEventListener('click', () => exportDD.classList.remove('open'));
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  CHART HELPERS
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 const chartInstances = {};
 function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
-function showCanvas(wrapId, canvasId) {
-  const wrap = document.getElementById(wrapId); if (!wrap) return;
-  const loader = wrap.querySelector('.chart-loading'), canvas = document.getElementById(canvasId);
-  if (loader) loader.style.display = 'none';
-  if (canvas) canvas.style.display = 'block';
+function showCanvas(wid, cid) {
+  const w=document.getElementById(wid); if(!w) return;
+  const l=w.querySelector('.chart-loading'), c=document.getElementById(cid);
+  if(l) l.style.display='none'; if(c) c.style.display='block';
 }
-function showLoader(wrapId, canvasId) {
-  const wrap = document.getElementById(wrapId); if (!wrap) return;
-  const loader = wrap.querySelector('.chart-loading'), canvas = document.getElementById(canvasId);
-  if (loader) loader.style.display = 'flex';
-  if (canvas) canvas.style.display = 'none';
+function showLoader(wid, cid) {
+  const w=document.getElementById(wid); if(!w) return;
+  const l=w.querySelector('.chart-loading'), c=document.getElementById(cid);
+  if(l) l.style.display='flex'; if(c) c.style.display='none';
 }
-const baseOpts = (overrides = {}) => ({
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { display: false }, tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#555', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 } },
-  scales: { x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } } },
-  ...overrides
+const baseOpts = (ov={}) => ({
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{display:false}, tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#555',borderColor:'#e0e0e0',borderWidth:1,padding:8}},
+  scales:{x:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+          y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}},
+  ...ov
 });
-function computeAvg(arr) { const v = (arr || []).filter(x => x != null); return v.length ? parseFloat((v.reduce((a,b) => a+b, 0) / v.length).toFixed(1)) : null; }
-function setIds(ids, text) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = text; }); }
+function computeAvg(arr) { const v=(arr||[]).filter(x=>x!=null); return v.length?parseFloat((v.reduce((a,b)=>a+b,0)/v.length).toFixed(1)):null; }
+function setIds(ids, text) { ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=text; }); }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  DASHBOARD MINI CHART
-// ═══════════════════════════════════════════
-const dashChartData = { labels: [], temps: [], humids: [] };
+// ═══════════════════════════════════════════════════════════════════
+const dcd = { labels:[], temps:[], humids:[] };
 const dashChart = new Chart(document.getElementById('dashChart'), {
-  type: 'line',
-  data: {
-    labels: dashChartData.labels,
-    datasets: [
-      { label: 'Temp °C', data: dashChartData.temps, borderColor: '#F44336', backgroundColor: 'rgba(244,67,54,0.07)', tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true },
-      { label: 'Humidity %', data: dashChartData.humids, borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.06)', tension: 0.4, pointRadius: 2, borderWidth: 2, fill: true }
-    ]
-  },
-  options: { ...baseOpts(), plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, color: '#888', padding: 12 } }, tooltip: { backgroundColor: '#fff', titleColor: '#333', bodyColor: '#666', borderColor: '#e0e0e0', borderWidth: 1, padding: 8 } } }
+  type:'line',
+  data:{ labels:dcd.labels, datasets:[
+    {label:'Temp °C',    data:dcd.temps,  borderColor:'#F44336',backgroundColor:'rgba(244,67,54,0.07)',  tension:0.4,pointRadius:2,borderWidth:2,fill:true},
+    {label:'Humidity %', data:dcd.humids, borderColor:'#2196F3',backgroundColor:'rgba(33,150,243,0.06)', tension:0.4,pointRadius:2,borderWidth:2,fill:true}
+  ]},
+  options:{ ...baseOpts(), plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:'#888',padding:12}},
+    tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8}} }
 });
-
-function updateDashChart(temp, humid) {
-  const now = new Date();
-  const label = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  if (dashChartData.labels.length >= 20) { dashChartData.labels.shift(); dashChartData.temps.shift(); dashChartData.humids.shift(); }
-  dashChartData.labels.push(label); dashChartData.temps.push(temp); dashChartData.humids.push(humid);
+function updateDashChart(t, h) {
+  const now=new Date(), lbl=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  if (dcd.labels.length>=20) { dcd.labels.shift(); dcd.temps.shift(); dcd.humids.shift(); }
+  dcd.labels.push(lbl); dcd.temps.push(t); dcd.humids.push(h);
   dashChart.update('none');
 }
 
-// ═══════════════════════════════════════════
-//  ENV CHARTS — uses THRESHOLDS dynamically
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  ENV CHARTS
+// ═══════════════════════════════════════════════════════════════════
 function renderEnvCharts(data) {
-  const T  = THRESHOLDS;
-  const at = computeAvg(data.temperature);
-  const am = computeAvg(data.soil_moisture);
-  const ah = computeAvg(data.humidity);
+  const T=THRESHOLDS;
+  const at=computeAvg(data.temperature), am=computeAvg(data.soil_moisture), ah=computeAvg(data.humidity);
+  const tOpt=data.temp_optimal  ||{min:T.temperature.min,   max:T.temperature.max};
+  const mOpt=data.moist_optimal ||{min:T.soil_moisture.min, max:T.soil_moisture.max};
+  const hOpt=data.humid_optimal ||{min:T.humidity.min,      max:T.humidity.max};
 
-  // Use thresholds from API response if available, else fall back to THRESHOLDS object
-  const tOpt = data.temp_optimal  || { min: T.temperature.min,   max: T.temperature.max };
-  const mOpt = data.moist_optimal || { min: T.soil_moisture.min, max: T.soil_moisture.max };
-  const hOpt = data.humid_optimal || { min: T.humidity.min,      max: T.humidity.max };
+  function badge(val, opt, ids, suffix, badgeId) {
+    if (val==null) return;
+    setIds(ids, val+suffix);
+    const ok = val>=opt.min && val<=opt.max;
+    const b=document.getElementById(badgeId);
+    if(b){b.textContent=ok?'Stable':'Watch';b.className='on-track'+(ok?'':' warn');}
+  }
+  badge(at, tOpt, ['avg-temp-pill','perf-temp','sum-avg-temp'], '°C', 'temp-track-badge');
+  badge(am, mOpt, ['avg-moist-pill','perf-moist','sum-avg-moist'], '%', null);
+  badge(ah, hOpt, ['avg-humid-pill','perf-humid','sum-avg-humid'], '%', 'humid-track-badge');
 
-  if (at != null) {
-    setIds(['avg-temp-pill','perf-temp','sum-avg-temp'], at + '°C');
-    const ok = at >= tOpt.min && at <= tOpt.max;
-    const el = document.getElementById('avg-temp-status');
-    if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Outside optimal range'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
-    const badge = document.getElementById('temp-track-badge');
-    if (badge) { badge.textContent = ok ? 'Stable' : 'Watch'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
+  function statusEl(id, val, opt, okTxt, warnTxt) {
+    const el=document.getElementById(id); if(!el||val==null) return;
+    const ok=val>=opt.min&&val<=opt.max;
+    el.textContent=ok?okTxt:warnTxt; el.style.color=ok?'var(--green-primary)':'var(--orange)';
   }
-  if (am != null) {
-    setIds(['avg-moist-pill','perf-moist','sum-avg-moist'], am + '%');
-    const ok = am >= mOpt.min && am <= mOpt.max;
-    const el = document.getElementById('avg-moist-status');
-    if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Check irrigation'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
-  }
-  if (ah != null) {
-    setIds(['avg-humid-pill','perf-humid','sum-avg-humid'], ah + '%');
-    const ok = ah >= hOpt.min && ah <= hOpt.max;
-    const el = document.getElementById('avg-humid-status');
-    if (el) { el.textContent = ok ? '✓ Within optimal range' : '⚠ Outside optimal range'; el.style.color = ok ? 'var(--green-primary)' : 'var(--orange)'; }
-    const badge = document.getElementById('humid-track-badge');
-    if (badge) { badge.textContent = ok ? 'Stable' : 'Watch'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
-  }
+  statusEl('avg-temp-status',  at, tOpt, '✓ Within optimal range', '⚠ Outside optimal range');
+  statusEl('avg-moist-status', am, mOpt, '✓ Within optimal range', '⚠ Check irrigation');
+  statusEl('avg-humid-status', ah, hOpt, '✓ Within optimal range', '⚠ Outside optimal range');
 
-  function trendLabel(arr, suffix) {
-    const v = (arr || []).filter(x => x != null);
-    if (v.length < 2) return '';
-    const diff = parseFloat((v[v.length-1] - v[0]).toFixed(1));
-    return (diff >= 0 ? '▲ +' : '▼ ') + diff + suffix + ' vs 7 days ago';
+  function trend(arr, sfx, chgId) {
+    const v=(arr||[]).filter(x=>x!=null); if(v.length<2) return;
+    const diff=parseFloat((v[v.length-1]-v[0]).toFixed(1));
+    const el=document.getElementById(chgId); if(!el) return;
+    const s=(diff>=0?'▲ +':'▼ ')+diff+sfx+' vs 7 days ago';
+    el.textContent=s; el.className='perf-change '+(s.startsWith('▲')?'up':'down');
   }
-  const tc = document.getElementById('perf-temp-change');
-  const mc = document.getElementById('perf-moist-change');
-  const hc = document.getElementById('perf-humid-change');
-  if (tc) { const s = trendLabel(data.temperature,'°C'); const up = s.startsWith('▲'); tc.textContent = s; tc.className = 'perf-change ' + (up ? 'up' : 'down'); }
-  if (mc) { const s = trendLabel(data.soil_moisture,'%'); const up = s.startsWith('▲'); mc.textContent = s; mc.className = 'perf-change ' + (up ? 'up' : 'down'); }
-  if (hc) { const s = trendLabel(data.humidity,'%'); const up = s.startsWith('▲'); hc.textContent = s; hc.className = 'perf-change ' + (up ? 'up' : 'down'); }
+  trend(data.temperature,'°C','perf-temp-change');
+  trend(data.soil_moisture,'%','perf-moist-change');
+  trend(data.humidity,'%','perf-humid-change');
 
-  const statEl = document.getElementById('sum-overall-status');
-  if (statEl) {
-    const issues = [];
-    if (at != null && (at < tOpt.min || at > tOpt.max)) issues.push('temperature');
-    if (am != null && (am < mOpt.min || am > mOpt.max)) issues.push('moisture');
-    if (ah != null && (ah < hOpt.min || ah > hOpt.max)) issues.push('humidity');
-    statEl.textContent = issues.length ? 'Watch: ' + issues.join(', ') : 'Stable';
-    statEl.className   = 'metric-val ' + (issues.length ? 'orange' : 'green');
+  const se=document.getElementById('sum-overall-status');
+  if (se) {
+    const issues=[];
+    if(at!=null&&(at<tOpt.min||at>tOpt.max)) issues.push('temperature');
+    if(am!=null&&(am<mOpt.min||am>mOpt.max)) issues.push('moisture');
+    if(ah!=null&&(ah<hOpt.min||ah>hOpt.max)) issues.push('humidity');
+    se.textContent=issues.length?'Watch: '+issues.join(', '):'Stable';
+    se.className='metric-val '+(issues.length?'orange':'green');
   }
 
-  // Temperature chart
-  destroyChart('envTempChart'); showCanvas('envTempWrap','envTempChart');
-  chartInstances['envTempChart'] = new Chart(document.getElementById('envTempChart'), {
-    type: 'line',
-    data: { labels: data.labels, datasets: [
-      { data: data.temperature, borderColor: '#F44336', backgroundColor: 'rgba(244,67,54,0.08)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#F44336', label: 'Temp °C' },
-      { data: Array(data.labels.length).fill(tOpt.max), borderColor: 'rgba(244,67,54,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' },
-      { data: Array(data.labels.length).fill(tOpt.min), borderColor: 'rgba(244,67,54,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' }
-    ]},
-    options: { ...baseOpts(), scales: { x: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} }, y: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, min: tOpt.min - 5, max: tOpt.max + 5 } } }
-  });
-
-  // Soil moisture chart
-  destroyChart('envMoistChart'); showCanvas('envMoistWrap','envMoistChart');
-  chartInstances['envMoistChart'] = new Chart(document.getElementById('envMoistChart'), {
-    type: 'line',
-    data: { labels: data.labels, datasets: [
-      { data: data.soil_moisture, borderColor: '#4CAF50', backgroundColor: 'rgba(76,175,80,0.08)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#4CAF50', label: 'Moisture %' },
-      { data: Array(data.labels.length).fill(mOpt.min), borderColor: 'rgba(76,175,80,0.4)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' },
-      { data: Array(data.labels.length).fill(mOpt.max), borderColor: 'rgba(76,175,80,0.4)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' }
-    ]},
-    options: { ...baseOpts(), scales: { x: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} }, y: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, min: 10, max: 80 } } }
-  });
-
-  // Humidity chart
-  destroyChart('envHumidChart'); showCanvas('envHumidWrap','envHumidChart');
-  chartInstances['envHumidChart'] = new Chart(document.getElementById('envHumidChart'), {
-    type: 'line',
-    data: { labels: data.labels, datasets: [
-      { data: data.humidity, borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.07)', tension: 0.4, pointRadius: 3, borderWidth: 2, fill: true, pointBackgroundColor: '#2196F3', label: 'Humidity %' },
-      { data: Array(data.labels.length).fill(hOpt.max), borderColor: 'rgba(33,150,243,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Max' },
-      { data: Array(data.labels.length).fill(hOpt.min), borderColor: 'rgba(33,150,243,0.3)', borderDash: [4,4], pointRadius: 0, borderWidth: 1, fill: false, label: 'Min' }
-    ]},
-    options: { ...baseOpts(), scales: { x: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} }, y: { ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, min: 40, max: 100 } } }
-  });
+  function lineChart(id, wid, arr, color, yMin, yMax, optMin, optMax) {
+    destroyChart(id); showCanvas(wid,id);
+    chartInstances[id]=new Chart(document.getElementById(id),{
+      type:'line',
+      data:{labels:data.labels, datasets:[
+        {data:arr,borderColor:color,backgroundColor:color.replace(')',',0.08)').replace('rgb','rgba'),tension:0.4,pointRadius:3,borderWidth:2,fill:true,pointBackgroundColor:color},
+        {data:Array(data.labels.length).fill(optMax),borderColor:color.replace(')',',0.3)').replace('rgb','rgba'),borderDash:[4,4],pointRadius:0,borderWidth:1,fill:false},
+        {data:Array(data.labels.length).fill(optMin),borderColor:color.replace(')',',0.3)').replace('rgb','rgba'),borderDash:[4,4],pointRadius:0,borderWidth:1,fill:false}
+      ]},
+      options:{...baseOpts(),scales:{x:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'},min:yMin,max:yMax}}}
+    });
+  }
+  lineChart('envTempChart','envTempWrap',  data.temperature,  '#F44336', tOpt.min-5, tOpt.max+5, tOpt.min, tOpt.max);
+  lineChart('envMoistChart','envMoistWrap',data.soil_moisture,'#4CAF50', 10, 80,          mOpt.min, mOpt.max);
+  lineChart('envHumidChart','envHumidWrap',data.humidity,     '#2196F3', 40, 100,         hOpt.min, hOpt.max);
 }
 
-// ═══════════════════════════════════════════
-//  NUTRIENT CHARTS
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  NUTRIENT CHARTS — ALWAYS MOCK (demo stability)
+// ═══════════════════════════════════════════════════════════════════
 function renderNutrientCharts() {
-  const data = liveData.npkTrendData;
-  if (!data) return;
-  const c = data.current;
+  const data = liveData.npkTrendData || MockDB.npkTrend();
+  const c=data.current, T=THRESHOLDS.npk;
   if (c) {
-    document.getElementById('npk-n-val').textContent      = c.nitrogen   != null ? c.nitrogen   + ' mg/kg' : '—';
-    document.getElementById('npk-p-val').textContent      = c.phosphorus != null ? c.phosphorus + ' mg/kg' : '—';
-    document.getElementById('npk-k-val').textContent      = c.potassium  != null ? c.potassium  + ' mg/kg' : '—';
-    document.getElementById('npk-status-val').textContent = c.status ?? 'NORMAL';
-    const badge = document.getElementById('npk-track-badge');
-    if (badge) { const ok = (c.status ?? 'NORMAL') === 'NORMAL'; badge.textContent = ok ? 'Balanced' : 'Imbalanced'; badge.className = 'on-track' + (ok ? '' : ' warn'); }
+    document.getElementById('npk-n-val').textContent      = c.nitrogen   !=null?c.nitrogen   +' mg/kg':'—';
+    document.getElementById('npk-p-val').textContent      = c.phosphorus !=null?c.phosphorus +' mg/kg':'—';
+    document.getElementById('npk-k-val').textContent      = c.potassium  !=null?c.potassium  +' mg/kg':'—';
+    document.getElementById('npk-status-val').textContent = c.status??'NORMAL';
+    const b=document.getElementById('npk-track-badge');
+    if(b){const ok=(c.status??'NORMAL')==='NORMAL';b.textContent=ok?'Balanced':'Imbalanced';b.className='on-track'+(ok?'':' warn');}
   }
   destroyChart('npkChart'); showCanvas('npkWrap','npkChart');
-  chartInstances['npkChart'] = new Chart(document.getElementById('npkChart'), {
-    type: 'line',
-    data: { labels: data.labels, datasets: [
-      { label:'N', data:data.nitrogen,   borderColor:'#4CAF50', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#4CAF50' },
-      { label:'P', data:data.phosphorus, borderColor:'#FF9800', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#FF9800' },
-      { label:'K', data:data.potassium,  borderColor:'#2196F3', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#2196F3' }
+  chartInstances['npkChart']=new Chart(document.getElementById('npkChart'),{
+    type:'line',
+    data:{labels:data.labels,datasets:[
+      {label:'N',data:data.nitrogen,   borderColor:'#4CAF50',backgroundColor:'transparent',tension:0.4,pointRadius:3,borderWidth:2,pointBackgroundColor:'#4CAF50'},
+      {label:'P',data:data.phosphorus, borderColor:'#FF9800',backgroundColor:'transparent',tension:0.4,pointRadius:3,borderWidth:2,pointBackgroundColor:'#FF9800'},
+      {label:'K',data:data.potassium,  borderColor:'#2196F3',backgroundColor:'transparent',tension:0.4,pointRadius:3,borderWidth:2,pointBackgroundColor:'#2196F3'}
     ]},
-    options: { ...baseOpts(), plugins: { legend: { display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:10 } }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } } }
+    options:{...baseOpts(),plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:'#888',padding:10}},
+      tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8}}}
   });
-
-  // Use THRESHOLDS for optimal NPK if API doesn't return it
-  const optimal = data.optimal || {
-    nitrogen:   THRESHOLDS.npk.nitrogen.optimal,
-    phosphorus: THRESHOLDS.npk.phosphorus.optimal,
-    potassium:  THRESHOLDS.npk.potassium.optimal,
-  };
-
-  if (c && optimal) {
+  const optimal=data.optimal||{nitrogen:T.nitrogen.optimal,phosphorus:T.phosphorus.optimal,potassium:T.potassium.optimal};
+  if (c&&optimal) {
     destroyChart('npkBarChart'); showCanvas('npkBarWrap','npkBarChart');
-    chartInstances['npkBarChart'] = new Chart(document.getElementById('npkBarChart'), {
-      type: 'bar',
-      data: {
-        labels: ['N (Nitrogen)','P (Phosphorus)','K (Potassium)'],
-        datasets: [
-          { label:'Current', data:[c.nitrogen,c.phosphorus,c.potassium], backgroundColor:['#4CAF50','#FF9800','#2196F3'], borderRadius:5, borderSkipped:false },
-          { label:'Optimal', data:[optimal.nitrogen,optimal.phosphorus,optimal.potassium], backgroundColor:['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'], borderRadius:5, borderSkipped:false }
-        ]
-      },
-      options: { ...baseOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:8, font:{size:10}, color:'#888', padding:10 } }, tooltip:{ backgroundColor:'#fff', titleColor:'#333', bodyColor:'#666', borderColor:'#e0e0e0', borderWidth:1, padding:8 } }, scales:{ x:{ ticks:{color:'#aaa',font:{size:10}}, grid:{display:false} }, y:{ ticks:{color:'#aaa',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, min:0, max:80 } } }
+    chartInstances['npkBarChart']=new Chart(document.getElementById('npkBarChart'),{
+      type:'bar',
+      data:{labels:['N (Nitrogen)','P (Phosphorus)','K (Potassium)'],datasets:[
+        {label:'Current',data:[c.nitrogen,c.phosphorus,c.potassium],backgroundColor:['#4CAF50','#FF9800','#2196F3'],borderRadius:5,borderSkipped:false},
+        {label:'Optimal',data:[optimal.nitrogen,optimal.phosphorus,optimal.potassium],backgroundColor:['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'],borderRadius:5,borderSkipped:false}
+      ]},
+      options:{...baseOpts(),plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:'#888',padding:10}},
+        tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8}},
+        scales:{x:{ticks:{color:'#aaa',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'},min:0,max:250}}}
     });
   }
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  ANALYTICS REFRESH
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function refreshAnalytics() {
-  ['envTempWrap','envMoistWrap','envHumidWrap','npkWrap','npkBarWrap'].forEach(id => {
-    const wrap = document.getElementById(id); if (!wrap) return;
-    const canvasId = wrap.querySelector('canvas')?.id;
-    if (canvasId) showLoader(id, canvasId);
+  ['envTempWrap','envMoistWrap','envHumidWrap','npkWrap','npkBarWrap'].forEach(id=>{
+    const w=document.getElementById(id); if(!w) return;
+    const cid=w.querySelector('canvas')?.id; if(cid) showLoader(id,cid);
   });
 
-  const T = THRESHOLDS;
+  // Environment — Flask or mock
+  apiGet('/api/history', ()=>MockDB.history())
+    .then(data=>{ liveData.historyData=data; renderEnvCharts(data); });
 
-  fetch('/api/history')
-    .then(r => r.ok ? r.json() : Promise.reject('History API failed'))
-    .then(data => { liveData.historyData = data; renderEnvCharts(data); })
-    .catch(err => {
-      console.warn('History fetch failed, using fallback:', err);
-      const fallback = {
-        labels:        ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'],
-        temperature:   [28.1, 28.6, 29.0, 28.8, 29.4, 29.1, 29.0],
-        soil_moisture: [54, 51, 48, 45, 40, 43, 42],
-        humidity:      [78, 76, 80, 82, 79, 75, 77],
-        // Use dynamic thresholds in fallback too
-        temp_optimal:  { min: T.temperature.min,   max: T.temperature.max },
-        moist_optimal: { min: T.soil_moisture.min, max: T.soil_moisture.max },
-        humid_optimal: { min: T.humidity.min,      max: T.humidity.max },
-      };
-      if (liveData.temperature   != null) fallback.temperature[fallback.temperature.length-1]     = liveData.temperature;
-      if (liveData.soil_moisture != null) fallback.soil_moisture[fallback.soil_moisture.length-1] = liveData.soil_moisture;
-      if (liveData.humidity      != null) fallback.humidity[fallback.humidity.length-1]           = liveData.humidity;
-      liveData.historyData = fallback;
-      renderEnvCharts(fallback);
-    });
-
-  fetch('/api/npk-trend')
-    .then(r => r.ok ? r.json() : Promise.reject('NPK API failed'))
-    .then(data => {
-      liveData.npkTrendData = data;
-      const nutrientsTab = document.getElementById('tab-nutrients');
-      if (nutrientsTab && nutrientsTab.style.display !== 'none') renderNutrientCharts();
-    })
-    .catch(() => {
-      liveData.npkTrendData = {
-        labels:     ['Day 21','Day 22','Day 23','Day 24','Day 25','Day 26','Day 27'],
-        nitrogen:   [42,43,44,44,45,45,45],
-        phosphorus: [30,31,31,32,32,32,32],
-        potassium:  [26,26,27,27,28,28,28],
-        current: { nitrogen: liveData.npk?.nitrogen ?? 45, phosphorus: liveData.npk?.phosphorus ?? 32, potassium: liveData.npk?.potassium ?? 28, status: liveData.npk?.status ?? 'NORMAL' },
-        // Use dynamic optimal from THRESHOLDS
-        optimal: { nitrogen: T.npk.nitrogen.optimal, phosphorus: T.npk.phosphorus.optimal, potassium: T.npk.potassium.optimal },
-      };
-      const nutrientsTab = document.getElementById('tab-nutrients');
-      if (nutrientsTab && nutrientsTab.style.display !== 'none') renderNutrientCharts();
-    });
+  // NPK — ALWAYS mock for demo stability
+  liveData.npkTrendData = MockDB.npkTrend();
+  const nt = document.getElementById('tab-nutrients');
+  if (nt && nt.style.display !== 'none') renderNutrientCharts();
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  ALERTS
-// ═══════════════════════════════════════════
-let alertsData = [], currentFilter = 'all', alertIdCounter = 1000;
+// ═══════════════════════════════════════════════════════════════════
+let alertsData=[], currentFilter='all', alertIdCounter=1000;
 const alertIconMap = {
-  warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-  info:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
-  success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+  warning:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  info:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  success:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
 };
-const alertColorMap = { warning: 'orange', info: 'blue', success: 'green' };
+const alertColorMap = {warning:'orange',info:'blue',success:'green'};
 
-function loadServerAlerts() {
-  fetch('/api/alerts?limit=50')
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => {
-      if (data.records && data.records.length) {
-        const localOnly = alertsData.filter(a => a._local);
-        const serverAlerts = data.records.map(r => ({ id: r._id, type: r.type || 'warning', title: r.title || 'Alert', desc: r.desc || '', time: r.timestamp || '—', read: r.read || false, _server: true }));
-        alertsData = [...localOnly, ...serverAlerts];
-        renderAlerts();
-      }
-    })
-    .catch(() => {
-      if (!alertsData.length) {
-        alertsData = [{ id: 1, type: 'info', title: 'System Started', desc: 'Dashboard loaded. Connect your Raspberry Pi to see live alerts.', time: 'Just now', read: false, _local: true }];
+function loadAlerts() {
+  apiGet('/api/alerts?limit=50', ()=>MockDB.alerts())
+    .then(data=>{
+      if (data.records?.length) {
+        const local = alertsData.filter(a=>a._local);
+        const server = data.records.map(r=>({id:r._id,type:r.type||'warning',title:r.title||'Alert',desc:r.desc||'',time:r.timestamp||'—',read:r.read||false,_server:true}));
+        alertsData = [...local,...server];
         renderAlerts();
       }
     });
 }
 
 function renderAlerts() {
-  const container = document.getElementById('alertsContainer');
-  const filtered  = currentFilter === 'all' ? alertsData : alertsData.filter(a => a.type === currentFilter);
+  const container=document.getElementById('alertsContainer');
   updateFilterCounts();
-  if (!filtered.length) { container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter === 'all' ? '' : currentFilter + ' '}alerts</div>`; return; }
-  if (currentFilter === 'all') {
-    const groups = [{ label:'⚠ Warnings', type:'warning' }, { label:'ℹ Information', type:'info' }, { label:'✓ Success', type:'success' }];
-    let html = '';
-    groups.forEach(g => { const items = alertsData.filter(a => a.type === g.type); if (!items.length) return; html += `<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`; });
-    container.innerHTML = html;
-  } else { container.innerHTML = `<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`; }
+  const filtered = currentFilter==='all' ? alertsData : alertsData.filter(a=>a.type===currentFilter);
+  if (!filtered.length) { container.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter==='all'?'':currentFilter+' '}alerts</div>`; return; }
+  if (currentFilter==='all') {
+    const groups=[{label:'⚠ Warnings',type:'warning'},{label:'ℹ Information',type:'info'},{label:'✓ Success',type:'success'}];
+    let html='';
+    groups.forEach(g=>{ const items=alertsData.filter(a=>a.type===g.type); if(!items.length) return; html+=`<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`; });
+    container.innerHTML=html;
+  } else { container.innerHTML=`<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`; }
 }
 
 function alertCardHTML(a) {
-  const color = alertColorMap[a.type] || 'blue';
-  const safeId = String(a.id).replace(/[^a-zA-Z0-9_-]/g, '_');
-  return `<div class="alert-card ${color} ${a.read ? 'read' : ''}" id="alert-${safeId}">
-    <div class="alert-unread ${color === 'orange' ? 'orange' : ''}"></div>
-    <div class="alert-top"><div class="alert-ico ${color}">${alertIconMap[a.type] || alertIconMap.info}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div>
+  const color=alertColorMap[a.type]||'blue';
+  const sid=String(a.id).replace(/[^a-zA-Z0-9_-]/g,'_');
+  return `<div class="alert-card ${color} ${a.read?'read':''}" id="alert-${sid}">
+    <div class="alert-unread ${color==='orange'?'orange':''}"></div>
+    <div class="alert-top"><div class="alert-ico ${color}">${alertIconMap[a.type]||alertIconMap.info}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div>
     <div class="alert-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${a.time}</div>
-    <span class="alert-dismiss" onclick="dismissAlert('${safeId}','${a.id}')">✕</span>
+    <span class="alert-dismiss" onclick="dismissAlert('${sid}','${a.id}')">✕</span>
   </div>`;
 }
 
 function filterAlerts(type) {
-  currentFilter = type;
-  document.querySelectorAll('.filter-tab').forEach(t => { t.className = 'filter-tab'; if (t.dataset.filter === type) { const map = { all:'f-all', warning:'f-warning', info:'f-info', success:'f-success' }; t.classList.add(map[type]); } });
+  currentFilter=type;
+  document.querySelectorAll('.filter-tab').forEach(t=>{ t.className='filter-tab'; if(t.dataset.filter===type){const m={all:'f-all',warning:'f-warning',info:'f-info',success:'f-success'};t.classList.add(m[type]);}});
   renderAlerts();
 }
 
 function updateFilterCounts() {
-  const unread = alertsData.filter(a => !a.read).length;
-  const counts = { all: alertsData.length, warning: alertsData.filter(a => a.type==='warning').length, info: alertsData.filter(a => a.type==='info').length, success: alertsData.filter(a => a.type==='success').length };
-  document.getElementById('alert-unread-label').textContent = `${counts.all} alert${counts.all !== 1 ? 's' : ''} · ${unread} unread`;
-  document.querySelector('[data-filter="all"]').textContent     = `All (${counts.all})`;
-  document.querySelector('[data-filter="warning"]').textContent = `⚠ Warnings (${counts.warning})`;
-  document.querySelector('[data-filter="info"]').textContent    = `ℹ Info (${counts.info})`;
-  document.querySelector('[data-filter="success"]').textContent = `✓ Success (${counts.success})`;
-  const badge = document.getElementById('notif-badge');
-  if (badge) { badge.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : ''; badge.style.display = unread > 0 ? 'flex' : 'none'; }
+  const unread=alertsData.filter(a=>!a.read).length;
+  const counts={all:alertsData.length,warning:alertsData.filter(a=>a.type==='warning').length,info:alertsData.filter(a=>a.type==='info').length,success:alertsData.filter(a=>a.type==='success').length};
+  const ul=document.getElementById('alert-unread-label');
+  if(ul) ul.textContent=`${counts.all} alert${counts.all!==1?'s':''} · ${unread} unread`;
+  document.querySelector('[data-filter="all"]').textContent     =`All (${counts.all})`;
+  document.querySelector('[data-filter="warning"]').textContent =`⚠ Warnings (${counts.warning})`;
+  document.querySelector('[data-filter="info"]').textContent    =`ℹ Info (${counts.info})`;
+  document.querySelector('[data-filter="success"]').textContent =`✓ Success (${counts.success})`;
+  const badge=document.getElementById('notif-badge');
+  if(badge){badge.textContent=unread>0?(unread>9?'9+':unread):'';badge.style.display=unread>0?'flex':'none';}
 }
 
-function dismissAlert(safeId, realId) {
-  const idx = alertsData.findIndex(a => String(a.id) === String(realId) || String(a.id).replace(/[^a-zA-Z0-9_-]/g, '_') === safeId);
-  if (idx !== -1) alertsData.splice(idx, 1);
-  renderAlerts();
+function dismissAlert(sid, rid) {
+  const idx=alertsData.findIndex(a=>String(a.id)===String(rid)||String(a.id).replace(/[^a-zA-Z0-9_-]/g,'_')===sid);
+  if(idx!==-1) alertsData.splice(idx,1); renderAlerts();
 }
 
-function pushSensorAlert(type, title, desc) {
-  if (alertsData.find(a => a.title === title && !a.read)) return;
-  alertsData.unshift({ id: alertIdCounter++, type, title, desc, time: 'Just now', read: false, _local: true });
+function pushSensorAlert(type,title,desc) {
+  if(alertsData.find(a=>a.title===title&&!a.read)) return;
+  alertsData.unshift({id:alertIdCounter++,type,title,desc,time:'Just now',read:false,_local:true});
   renderAlerts();
 }
 
 function removeSensorAlert(title) {
-  const idx = alertsData.findIndex(a => a.title === title && a._local);
-  if (idx !== -1) alertsData.splice(idx, 1);
-  renderAlerts();
+  const idx=alertsData.findIndex(a=>a.title===title&&a._local);
+  if(idx!==-1) alertsData.splice(idx,1); renderAlerts();
 }
 
-document.getElementById('markAllBtn').addEventListener('click', () => {
-  alertsData.forEach(a => a.read = true);
-  renderAlerts();
-  fetch('/api/alerts/mark-all-read', { method: 'POST' }).catch(() => {});
+document.getElementById('markAllBtn').addEventListener('click',()=>{
+  alertsData.forEach(a=>a.read=true); renderAlerts();
+  if(flaskAvailable) fetch('/api/alerts/mark-all-read',{method:'POST'}).catch(()=>{});
 });
 
-// ═══════════════════════════════════════════
-//  SENSOR CARD STATUS — uses THRESHOLDS dynamically
-// ═══════════════════════════════════════════
-function updateSensorCard(cardId, statusId, value, threshKey, unit, alertTitle) {
-  const card   = document.getElementById(cardId);
-  const status = document.getElementById(statusId);
-  if (!card || !status || value == null) return;
-
-  const T      = THRESHOLDS[threshKey];
-  const min    = T.min;
-  const max    = T.max;
-  const danger = T.danger;
-
-  if (value <= danger) {
-    status.textContent = 'Critical';
-    status.className   = 'sensor-status danger';
-    card.className     = 'sensor-card danger-border';
-    pushSensorAlert('warning', alertTitle + ' Critical', `${alertTitle} is ${value}${unit} — critical (threshold: ${danger}${unit}).`);
-  } else if (value < min) {
-    status.textContent = 'Low';
-    status.className   = 'sensor-status warning';
-    card.className     = 'sensor-card warning-border';
-    pushSensorAlert('warning', alertTitle + ' Low', `${alertTitle} is ${value}${unit} — below optimal ${min}${unit}.`);
-  } else if (value > max) {
-    status.textContent = 'High';
-    status.className   = 'sensor-status warning';
-    card.className     = 'sensor-card warning-border';
-    pushSensorAlert('warning', alertTitle + ' High', `${alertTitle} is ${value}${unit} — above optimal ${max}${unit}.`);
+// ═══════════════════════════════════════════════════════════════════
+//  SENSOR CARD STATUS — uses dynamic THRESHOLDS
+// ═══════════════════════════════════════════════════════════════════
+function updateSensorCard(cardId,statusId,value,threshKey,unit,alertTitle) {
+  const card=document.getElementById(cardId), status=document.getElementById(statusId);
+  if(!card||!status||value==null) return;
+  const T=THRESHOLDS[threshKey], {min,max,danger}=T;
+  if (value<=danger) {
+    status.textContent='Critical'; status.className='sensor-status danger'; card.className='sensor-card danger-border';
+    pushSensorAlert('warning',alertTitle+' Critical',`${alertTitle} is ${value}${unit} — critical (threshold: ${danger}${unit}).`);
+  } else if (value<min) {
+    status.textContent='Low'; status.className='sensor-status warning'; card.className='sensor-card warning-border';
+    pushSensorAlert('warning',alertTitle+' Low',`${alertTitle} is ${value}${unit} — below optimal ${min}${unit}.`);
+  } else if (value>max) {
+    status.textContent='High'; status.className='sensor-status warning'; card.className='sensor-card warning-border';
+    pushSensorAlert('warning',alertTitle+' High',`${alertTitle} is ${value}${unit} — above optimal ${max}${unit}.`);
   } else {
-    status.textContent = 'Stable';
-    status.className   = 'sensor-status';
-    card.className     = 'sensor-card';
-    removeSensorAlert(alertTitle + ' Critical');
-    removeSensorAlert(alertTitle + ' Low');
-    removeSensorAlert(alertTitle + ' High');
+    status.textContent='Stable'; status.className='sensor-status'; card.className='sensor-card';
+    removeSensorAlert(alertTitle+' Critical'); removeSensorAlert(alertTitle+' Low'); removeSensorAlert(alertTitle+' High');
   }
 }
 
-// ═══════════════════════════════════════════
-//  LIVE SENSOR POLLING
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  SENSOR POLLING — Flask or MockDB
+// ═══════════════════════════════════════════════════════════════════
 function pollSensors() {
-  fetch('/api/sensors/latest')
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => {
-      const t = data.temperature, m = data.soil_moisture, h = data.humidity;
-      liveData.temperature = t; liveData.soil_moisture = m; liveData.humidity = h;
-      liveData.npk = data.npk; liveData.stage = data.stage;
+  apiGet('/api/sensors/latest', ()=>MockDB.sensor()).then(data=>{
+    const t=data.temperature, m=data.soil_moisture, h=data.humidity;
+    liveData.temperature=t; liveData.soil_moisture=m; liveData.humidity=h;
+    // NPK always from mock
+    liveData.npk = MockDB.sensor().npk;
+    liveData.stage=data.stage;
 
-      const elT = document.getElementById('dash-temp');
-      const elM = document.getElementById('dash-moist');
-      const elH = document.getElementById('dash-humid');
-      const elN = document.getElementById('dash-npk');
-      const elS = document.getElementById('dash-stage-label');
-      if (elT) elT.textContent = t != null ? t + '°C' : '—';
-      if (elM) elM.textContent = m != null ? m + '%'  : '—';
-      if (elH) elH.textContent = h != null ? h + '%'  : '—';
-      if (elN && data.npk) elN.textContent = data.npk.status ?? '—';
-      if (elS && data.stage) elS.textContent = data.stage;
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('dash-temp',  t!=null?t+'°C':'—');
+    set('dash-moist', m!=null?m+'%':'—');
+    set('dash-humid', h!=null?h+'%':'—');
+    set('dash-npk',   liveData.npk?.status??'—');
+    if(data.stage) set('dash-stage-label', data.stage);
 
-      // Status now driven by THRESHOLDS object (loaded from /api/thresholds)
-      updateSensorCard('card-temp',  'status-temp',  t, 'temperature',   '°C', 'Temperature');
-      updateSensorCard('card-moist', 'status-moist', m, 'soil_moisture', '%',  'Soil Moisture');
-      updateSensorCard('card-humid', 'status-humid', h, 'humidity',      '%',  'Humidity');
+    updateSensorCard('card-temp','status-temp',   t,'temperature',  '°C','Temperature');
+    updateSensorCard('card-moist','status-moist', m,'soil_moisture','%', 'Soil Moisture');
+    updateSensorCard('card-humid','status-humid', h,'humidity',     '%', 'Humidity');
 
-      // NPK card
-      if (data.npk) {
-        const ns = document.getElementById('status-npk');
-        const nc = document.getElementById('card-npk');
-        if (ns && nc) {
-          if (data.npk.status === 'NORMAL') {
-            ns.textContent = 'Balanced'; ns.className = 'sensor-status'; nc.className = 'sensor-card';
-            removeSensorAlert('NPK Imbalance');
-          } else {
-            ns.textContent = data.npk.status; ns.className = 'sensor-status warning'; nc.className = 'sensor-card warning-border';
-            pushSensorAlert('warning', 'NPK Imbalance', `NPK sensor reports: ${data.npk.status}.`);
-          }
-        }
+    // NPK card always uses mocked status
+    const ns=document.getElementById('status-npk'), nc=document.getElementById('card-npk');
+    if(ns&&nc) {
+      if(liveData.npk.status==='NORMAL') {
+        ns.textContent='Balanced'; ns.className='sensor-status'; nc.className='sensor-card'; removeSensorAlert('NPK Imbalance');
+      } else {
+        ns.textContent=liveData.npk.status; ns.className='sensor-status warning'; nc.className='sensor-card warning-border';
+        pushSensorAlert('warning','NPK Imbalance',`NPK sensor reports: ${liveData.npk.status}.`);
       }
+    }
 
-      const lu = document.getElementById('dash-last-updated');
-      if (lu) lu.textContent = 'Last update: ' + (data.timestamp || new Date().toLocaleTimeString());
-      if (t != null && h != null) updateDashChart(t, h);
-    })
-    .catch(() => {
-      const luEl = document.getElementById('dash-last-updated');
-      if (luEl) luEl.textContent = 'Sensor offline or Flask not reachable';
-    });
+    const lu=document.getElementById('dash-last-updated');
+    if(lu) lu.textContent='Last update: '+(data.timestamp||new Date().toLocaleTimeString());
+    if(t!=null&&h!=null) updateDashChart(t,h);
+  });
 }
 
 function syncDeviceStates() {
-  fetch('/api/devices/latest')
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => {
-      liveData.pump = data.irrigation_pump; liveData.fan = data.exhaust_fan; liveData.auto_mode = data.auto_mode;
-      const ps = document.getElementById('dash-pump-state');
-      const fs = document.getElementById('dash-fan-state');
-      const hs = document.getElementById('dash-humidifier-state');
-      const mn = document.getElementById('dash-mode-note');
-      if (ps) { ps.textContent = data.irrigation_pump || '—'; ps.className = 'device-state ' + (data.irrigation_pump === 'ON' ? 'on' : 'off'); }
-      if (fs) { fs.textContent = data.exhaust_fan || '—';     fs.className = 'device-state ' + (data.exhaust_fan === 'ON' ? 'on' : 'off'); }
-      if (hs) { const hState = data.humidifier || 'OFF';       hs.textContent = hState; hs.className = 'device-state ' + (hState === 'ON' ? 'on' : 'off'); }
-      if (mn) mn.textContent = `Mode: ${data.auto_mode ? 'AUTO' : 'MANUAL'} · Last sync: ${data.timestamp || '—'}`;
-    })
-    .catch(() => {});
+  apiGet('/api/devices/latest', ()=>MockDB.devices()).then(data=>{
+    const set=(id,v,cls)=>{ const el=document.getElementById(id); if(el){el.textContent=v;if(cls)el.className=cls;} };
+    set('dash-pump-state',      data.irrigation_pump||'—', 'device-state '+(data.irrigation_pump==='ON'?'on':'off'));
+    set('dash-fan-state',       data.exhaust_fan||'—',     'device-state '+(data.exhaust_fan==='ON'?'on':'off'));
+    set('dash-humidifier-state',data.humidifier||'OFF',    'device-state '+(data.humidifier==='ON'?'on':'off'));
+    const mn=document.getElementById('dash-mode-note');
+    if(mn) mn.textContent=`Mode: ${data.auto_mode?'AUTO':'MANUAL'} · Last sync: ${data.timestamp||'—'}`;
+  });
 }
 
 function pollAlertCount() {
-  fetch('/api/alerts/unread-count')
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => {
-      const badge = document.getElementById('notif-badge');
-      if (badge) { const count = data.count || 0; badge.textContent = count > 9 ? '9+' : count || ''; badge.style.display = count > 0 ? 'flex' : 'none'; }
-    })
-    .catch(() => {});
+  if (!flaskAvailable) return; // badge managed by updateFilterCounts in mock mode
+  fetch('/api/alerts/unread-count').then(r=>r.ok?r.json():Promise.reject()).then(data=>{
+    const badge=document.getElementById('notif-badge');
+    if(badge){const c=data.count||0;badge.textContent=c>9?'9+':c||'';badge.style.display=c>0?'flex':'none';}
+  }).catch(()=>{});
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  HISTORY LOG
-// ═══════════════════════════════════════════
-let logSkip = 0, logTotal = 0;
+// ═══════════════════════════════════════════════════════════════════
+let logSkip=0, logTotal=0;
 
 function loadHistory() {
-  const col = document.getElementById('log-collection').value;
-  const days = document.getElementById('log-days').value;
-  const limit = parseInt(document.getElementById('log-limit').value);
-  let url = `/api/logs?collection=${col}&limit=${limit}&skip=${logSkip}`;
-  if (days) url += `&days=${days}`;
+  const col=document.getElementById('log-collection').value;
+  const days=document.getElementById('log-days').value;
+  const limit=parseInt(document.getElementById('log-limit').value);
+  let url=`/api/logs?collection=${col}&limit=${limit}&skip=${logSkip}`;
+  if(days) url+=`&days=${days}`;
 
-  document.getElementById('log-table-container').innerHTML = '<div class="log-loading"><div class="spinner"></div> Loading records…</div>';
-  document.getElementById('log-pagination').style.display = 'none';
-  document.getElementById('log-count-badge').textContent = '';
+  document.getElementById('log-table-container').innerHTML='<div class="log-loading"><div class="spinner"></div> Loading records…</div>';
+  document.getElementById('log-pagination').style.display='none';
+  document.getElementById('log-count-badge').textContent='';
 
-  const colLabels = { sensors:'Sensor Readings', alerts:'Alerts', devices:'Device Events', npk_trends:'NPK Trends' };
-  document.getElementById('log-header-sub').textContent = (colLabels[col] || col) + ' · MongoDB';
+  const colLabels={sensors:'Sensor Readings',alerts:'Alerts',devices:'Device Events',npk_trends:'NPK Trends'};
+  const sub=document.getElementById('log-header-sub');
+  if(sub) sub.textContent=(colLabels[col]||col)+(flaskAvailable?' · MongoDB':' · MockDB simulation');
 
-  fetch(url)
-    .then(r => r.ok ? r.json() : Promise.reject('API error'))
-    .then(data => {
-      logTotal = data.count || 0;
-      document.getElementById('log-count-badge').textContent = `${logTotal} record${logTotal !== 1 ? 's' : ''} total`;
-      if (!data.records || !data.records.length) { document.getElementById('log-table-container').innerHTML = '<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>No records found for this filter.</div>'; return; }
-      const table = buildTable(col, data.records);
-      document.getElementById('log-table-container').innerHTML = '';
-      document.getElementById('log-table-container').appendChild(table);
-      const shown = logSkip + data.records.length;
-      document.getElementById('log-pagination').style.display = 'flex';
-      document.getElementById('log-page-info').textContent    = `Showing ${logSkip+1}–${shown} of ${logTotal}`;
-      document.getElementById('log-prev-btn').disabled = logSkip === 0;
-      document.getElementById('log-next-btn').disabled = shown >= logTotal;
-    })
-    .catch(err => { document.getElementById('log-table-container').innerHTML = `<div class="log-empty">Could not load records — is Flask running?<br><small style="color:var(--text-light);margin-top:4px;display:block;">${err}</small></div>`; });
+  apiGet(url, ()=>MockDB.logs(col,limit,logSkip)).then(data=>{
+    logTotal=data.count||0;
+    document.getElementById('log-count-badge').textContent=`${logTotal} record${logTotal!==1?'s':''} total`;
+    if(!data.records?.length){ document.getElementById('log-table-container').innerHTML='<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>No records found.</div>'; return; }
+    const table=buildTable(col,data.records);
+    document.getElementById('log-table-container').innerHTML='';
+    document.getElementById('log-table-container').appendChild(table);
+    const shown=logSkip+data.records.length;
+    document.getElementById('log-pagination').style.display='flex';
+    document.getElementById('log-page-info').textContent=`Showing ${logSkip+1}–${shown} of ${logTotal}`;
+    document.getElementById('log-prev-btn').disabled=logSkip===0;
+    document.getElementById('log-next-btn').disabled=shown>=logTotal;
+  });
 }
 
-function buildTable(col, records) {
-  const T = THRESHOLDS; // ✅ use dynamic thresholds in table color coding
-  const t = document.createElement('table');
-  t.className = 'log-table';
-
-  if (col === 'sensors') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th><th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th><th>Stage</th></tr></thead><tbody></tbody>`;
-    const tb = t.querySelector('tbody');
-    records.forEach(r => {
-      const npk = r.npk || {};
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="ts">${r.timestamp || '—'}</td>
-        <td class="val">${fmtVal(r.temperature,   T.temperature.min,   T.temperature.max,   '°C')}</td>
-        <td class="val">${fmtVal(r.soil_moisture,  T.soil_moisture.min, T.soil_moisture.max, '%')}</td>
-        <td class="val">${fmtVal(r.humidity,       T.humidity.min,      T.humidity.max,      '%', 'var(--blue)')}</td>
-        <td>${npk.nitrogen   ?? '—'}</td>
-        <td>${npk.phosphorus ?? '—'}</td>
-        <td>${npk.potassium  ?? '—'}</td>
-        <td>${fmtNpk(npk.status)}</td>
-        <td style="font-size:10px;color:var(--text-muted);">${r.stage || '—'}</td>
-      `;
-      tb.appendChild(row);
-    });
-  } else if (col === 'alerts') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th></tr></thead><tbody></tbody>`;
-    const tb = t.querySelector('tbody');
-    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td>${fmtAlertType(r.type)}</td><td class="val">${r.title||'—'}</td><td style="max-width:240px;white-space:normal;font-size:10px;">${r.desc||'—'}</td><td>${r.read ? '<span class="log-badge normal">Read</span>' : '<span class="log-badge warning">Unread</span>'}</td>`; tb.appendChild(row); });
-  } else if (col === 'devices') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Irrigation Pump</th><th>Exhaust Fan</th><th>Auto Mode</th></tr></thead><tbody></tbody>`;
-    const tb = t.querySelector('tbody');
-    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td>${fmtDevice(r.irrigation_pump)}</td><td>${fmtDevice(r.exhaust_fan)}</td><td>${r.auto_mode != null ? `<span class="log-badge ${r.auto_mode ? 'on' : 'off'}">${r.auto_mode ? 'AUTO' : 'MANUAL'}</span>` : '—'}</td>`; tb.appendChild(row); });
-  } else if (col === 'npk_trends') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Nitrogen (mg/kg)</th><th>Phosphorus (mg/kg)</th><th>Potassium (mg/kg)</th><th>Status</th></tr></thead><tbody></tbody>`;
-    const tb = t.querySelector('tbody');
-    records.forEach(r => { const row = document.createElement('tr'); row.innerHTML = `<td class="ts">${r.timestamp||'—'}</td><td class="val">${r.nitrogen??'—'}</td><td class="val">${r.phosphorus??'—'}</td><td class="val">${r.potassium??'—'}</td><td>${fmtNpk(r.status)}</td>`; tb.appendChild(row); });
+function buildTable(col,records) {
+  const T=THRESHOLDS, t=document.createElement('table'); t.className='log-table';
+  if (col==='sensors') {
+    t.innerHTML=`<thead><tr><th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th><th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th><th>Stage</th></tr></thead><tbody></tbody>`;
+    const tb=t.querySelector('tbody');
+    records.forEach(r=>{ const npk=r.npk||{}; const row=document.createElement('tr');
+      row.innerHTML=`<td class="ts">${r.timestamp||'—'}</td>
+        <td class="val">${fmtVal(r.temperature,  T.temperature.min,  T.temperature.max,  '°C')}</td>
+        <td class="val">${fmtVal(r.soil_moisture, T.soil_moisture.min,T.soil_moisture.max,'%')}</td>
+        <td class="val">${fmtVal(r.humidity,      T.humidity.min,     T.humidity.max,     '%','var(--blue)')}</td>
+        <td>${npk.nitrogen??'—'}</td><td>${npk.phosphorus??'—'}</td><td>${npk.potassium??'—'}</td>
+        <td>${fmtNpk(npk.status)}</td><td style="font-size:10px;color:var(--text-muted);">${r.stage||'—'}</td>`;
+      tb.appendChild(row); });
+  } else if (col==='alerts') {
+    t.innerHTML=`<thead><tr><th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th></tr></thead><tbody></tbody>`;
+    const tb=t.querySelector('tbody');
+    records.forEach(r=>{ const row=document.createElement('tr'); row.innerHTML=`<td class="ts">${r.timestamp||'—'}</td><td>${fmtAlertType(r.type)}</td><td class="val">${r.title||'—'}</td><td style="max-width:240px;white-space:normal;font-size:10px;">${r.desc||'—'}</td><td>${r.read?'<span class="log-badge normal">Read</span>':'<span class="log-badge warning">Unread</span>'}</td>`; tb.appendChild(row); });
+  } else if (col==='devices') {
+    t.innerHTML=`<thead><tr><th>Timestamp</th><th>Irrigation Pump</th><th>Exhaust Fan</th><th>Auto Mode</th></tr></thead><tbody></tbody>`;
+    const tb=t.querySelector('tbody');
+    records.forEach(r=>{ const row=document.createElement('tr'); row.innerHTML=`<td class="ts">${r.timestamp||'—'}</td><td>${fmtDevice(r.irrigation_pump)}</td><td>${fmtDevice(r.exhaust_fan)}</td><td>${r.auto_mode!=null?`<span class="log-badge ${r.auto_mode?'on':'off'}">${r.auto_mode?'AUTO':'MANUAL'}</span>`:'—'}</td>`; tb.appendChild(row); });
+  } else {
+    t.innerHTML=`<thead><tr><th>Timestamp</th><th>Nitrogen (mg/kg)</th><th>Phosphorus (mg/kg)</th><th>Potassium (mg/kg)</th><th>Status</th></tr></thead><tbody></tbody>`;
+    const tb=t.querySelector('tbody');
+    records.forEach(r=>{ const row=document.createElement('tr'); row.innerHTML=`<td class="ts">${r.timestamp||'—'}</td><td class="val">${r.nitrogen??'—'}</td><td class="val">${r.phosphorus??'—'}</td><td class="val">${r.potassium??'—'}</td><td>${fmtNpk(r.status)}</td>`; tb.appendChild(row); });
   }
   return t;
 }
 
-// ✅ Single unified format helper — uses dynamic min/max
-function fmtVal(v, min, max, unit, okColor = 'var(--green-primary)') {
-  if (v == null) return '—';
-  const ok = v >= min && v <= max;
-  return `<span style="color:${ok ? okColor : 'var(--orange)'};font-weight:600;">${v}</span>`;
-}
-function fmtNpk(s)       { if (!s) return '—'; const c = s==='NORMAL' ? 'normal' : s==='LOW' ? 'low' : 'error'; return `<span class="log-badge ${c}">${s}</span>`; }
-function fmtAlertType(t) { if (!t) return '—'; const c = {warning:'warning',info:'info',success:'success'}[t]||'info'; return `<span class="log-badge ${c}">${t.toUpperCase()}</span>`; }
-function fmtDevice(s)    { if (!s) return '—'; return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`; }
+function fmtVal(v,min,max,unit,okColor='var(--green-primary)') { if(v==null) return '—'; return `<span style="color:${v>=min&&v<=max?okColor:'var(--orange)'};font-weight:600;">${v}</span>`; }
+function fmtNpk(s)       { if(!s) return '—'; const c=s==='NORMAL'?'normal':s==='LOW'?'low':'error'; return `<span class="log-badge ${c}">${s}</span>`; }
+function fmtAlertType(s) { if(!s) return '—'; const c={warning:'warning',info:'info',success:'success'}[s]||'info'; return `<span class="log-badge ${c}">${s.toUpperCase()}</span>`; }
+function fmtDevice(s)    { if(!s) return '—'; return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`; }
 
-// Pagination
-document.getElementById('log-prev-btn').addEventListener('click', () => { const limit = parseInt(document.getElementById('log-limit').value); logSkip = Math.max(0, logSkip - limit); loadHistory(); });
-document.getElementById('log-next-btn').addEventListener('click', () => { const limit = parseInt(document.getElementById('log-limit').value); logSkip += limit; loadHistory(); });
-['log-collection','log-days','log-limit'].forEach(id => { document.getElementById(id).addEventListener('change', () => { logSkip = 0; loadHistory(); }); });
-document.getElementById('log-refresh-btn').addEventListener('click', () => { logSkip = 0; loadHistory(); });
+document.getElementById('log-prev-btn').addEventListener('click',()=>{ const lim=parseInt(document.getElementById('log-limit').value); logSkip=Math.max(0,logSkip-lim); loadHistory(); });
+document.getElementById('log-next-btn').addEventListener('click',()=>{ logSkip+=parseInt(document.getElementById('log-limit').value); loadHistory(); });
+['log-collection','log-days','log-limit'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ logSkip=0; loadHistory(); }));
+document.getElementById('log-refresh-btn').addEventListener('click',()=>{ logSkip=0; loadHistory(); });
 
-// ═══════════════════════════════════════════
-//  BOOT — load thresholds FIRST, then start polling
-// ═══════════════════════════════════════════
-loadThresholds().then(() => {
-  loadServerAlerts();
+// ═══════════════════════════════════════════════════════════════════
+//  BOOT SEQUENCE
+//  1. Probe Flask (2.5 s timeout)
+//  2. Load thresholds if live
+//  3. Start all polling loops
+//  4. Re-probe Flask every 30 s (auto-reconnect)
+// ═══════════════════════════════════════════════════════════════════
+async function boot() {
+  await probeFlask();
+  if (flaskAvailable) await loadThresholds();
+  loadAlerts();
   pollSensors();
   syncDeviceStates();
   pollAlertCount();
-});
+}
+
+boot();
 
 setInterval(pollSensors,      5000);
 setInterval(syncDeviceStates, 10000);
 setInterval(pollAlertCount,   15000);
-setInterval(() => {
-  if (document.getElementById('page-analytics').classList.contains('active')) refreshAnalytics();
-}, 60000);
+
+// Re-probe every 30 s — auto-switch back to live when Pi reconnects
+setInterval(async () => {
+  const was = flaskAvailable;
+  await probeFlask();
+  if (!was && flaskAvailable) {
+    await loadThresholds();
+    pollSensors();
+    syncDeviceStates();
+  }
+}, 30000);
+
+setInterval(()=>{
+  if(document.getElementById('page-analytics').classList.contains('active')) refreshAnalytics();
+},60000);
 </script>
 
 <!-- AI PLANT CLASSIFIER -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 <script>
-const URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
-let model, webcam;
+const TM_URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
+let tmModel, tmWebcam;
 
 async function initAI() {
   try {
-    model  = await tmImage.load(URL + "model.json", URL + "metadata.json");
-    webcam = new tmImage.Webcam(320, 120);
-    await webcam.setup();
-    await webcam.play();
-    const container = document.getElementById("webcam-container");
-    container.innerHTML = "";
-    container.appendChild(webcam.canvas);
-    webcam.canvas.style.cssText = "width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;display:block;margin:0 auto;border-radius:20px;border:4px solid #22c55e;box-shadow:0 10px 25px rgba(0,0,0,0.18);background:#000;transition:0.3s ease-in-out;";
+    tmModel  = await tmImage.load(TM_URL + "model.json", TM_URL + "metadata.json");
+    tmWebcam = new tmImage.Webcam(320, 120);
+    await tmWebcam.setup();
+    await tmWebcam.play();
+    const c = document.getElementById("webcam-container");
+    c.innerHTML = "";
+    c.appendChild(tmWebcam.canvas);
+    tmWebcam.canvas.style.cssText = "width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;display:block;margin:0 auto;border-radius:20px;border:4px solid #22c55e;box-shadow:0 10px 25px rgba(0,0,0,0.18);background:#000;";
     document.getElementById("prediction-result").innerHTML = "Camera Connected";
-    loop();
-  } catch (error) {
-    console.error(error);
-    document.getElementById("prediction-result").innerHTML = "ERROR: " + error.message;
+    aiLoop();
+  } catch (err) {
+    console.error(err);
+    document.getElementById("prediction-result").innerHTML = `
+      <h2 style="color:#15803d;font-size:20px;margin-bottom:10px;">AI Crop Analysis</h2>
+      <p style="color:#888;font-size:12px;">Camera unavailable or permission denied.</p>
+      <p style="color:#aaa;font-size:11px;margin-top:6px;">${err.message}</p>`;
   }
 }
 
-async function loop() {
-  webcam.update();
-  const predictions = await model.predict(webcam.canvas);
-  let highest = predictions[0];
-  predictions.forEach(p => { if (p.probability > highest.probability) highest = p; });
-
-  const statusMap = { early_stage: "Need More Time", mid_stage: "Approaching Harvest", mature_stage: "Ready for Harvest" };
-  const statusText = statusMap[highest.className] || highest.className;
-
+async function aiLoop() {
+  tmWebcam.update();
+  const preds = await tmModel.predict(tmWebcam.canvas);
+  let best = preds[0];
+  preds.forEach(p => { if(p.probability > best.probability) best=p; });
+  const statusMap = { early_stage:"Need More Time", mid_stage:"Approaching Harvest", mature_stage:"Ready for Harvest" };
   document.getElementById("prediction-result").innerHTML = `
     <h2 style="color:#15803d;margin-bottom:18px;font-size:24px;">AI Crop Analysis</h2>
     <div style="margin-bottom:16px;background:#f4fbf4;padding:16px;border-radius:16px;">
       <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">DETECTED STAGE</p>
-      <h1 style="color:#166534;font-size:30px;margin:0;line-height:1.2;text-transform:capitalize;">${highest.className}</h1>
+      <h1 style="color:#166534;font-size:30px;margin:0;text-transform:capitalize;">${best.className}</h1>
     </div>
     <div style="margin-bottom:16px;background:#f4fbf4;padding:16px;border-radius:16px;">
       <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">CONFIDENCE LEVEL</p>
-      <h2 style="color:#22c55e;font-size:26px;margin:0;">${(highest.probability * 100).toFixed(1)}%</h2>
+      <h2 style="color:#22c55e;font-size:26px;margin:0;">${(best.probability*100).toFixed(1)}%</h2>
       <div style="width:100%;height:12px;background:#dcfce7;border-radius:20px;margin-top:14px;overflow:hidden;">
-        <div style="width:${(highest.probability * 100).toFixed(1)}%;height:100%;background:#22c55e;border-radius:20px;"></div>
+        <div style="width:${(best.probability*100).toFixed(1)}%;height:100%;background:#22c55e;border-radius:20px;"></div>
       </div>
     </div>
     <div>
       <p style="color:#6b7280;font-size:13px;margin-bottom:6px;letter-spacing:1px;">STATUS</p>
-      <div style="background:#dcfce7;color:#166534;padding:16px;border-radius:16px;font-size:18px;font-weight:bold;text-align:center;">${statusText}</div>
-    </div>
-  `;
-  requestAnimationFrame(loop);
+      <div style="background:#dcfce7;color:#166534;padding:16px;border-radius:16px;font-size:18px;font-weight:bold;text-align:center;">${statusMap[best.className]||best.className}</div>
+    </div>`;
+  requestAnimationFrame(aiLoop);
 }
 
 document.addEventListener("DOMContentLoaded", initAI);
 </script>
-
 </body>
 </html>
