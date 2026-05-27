@@ -41,6 +41,16 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .layout { display:flex; min-height:100vh; }
 .main   { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; }
 .sidebar { width:var(--sidebar-w); background:var(--white); position:fixed; top:0; left:0; bottom:0; display:flex; flex-direction:column; z-index:100; box-shadow:2px 0 8px rgba(0,0,0,0.08); }
+.sidebar {
+  transition: width 0.25s ease;
+  overflow: hidden;
+}
+.sb-nav .nav-item span { white-space: nowrap; }
+.sidebar.collapsed { width: 52px; }
+.sidebar.collapsed .sb-brand-txt,
+.sidebar.collapsed .nav-item span { display: none; }
+.sidebar.collapsed .sb-brand { justify-content: center; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 9px 0; }
 .sb-brand { padding:16px 12px 14px; border-bottom:1px solid var(--border-light); display:flex; align-items:center; gap:8px; }
 .sb-logo  { width:32px; height:32px; border-radius:8px; background:var(--green-primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .sb-logo svg { width:16px; height:16px; }
@@ -321,6 +331,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .log-page-btn:disabled { opacity:.4; cursor:not-allowed; }
 canvas { width:100%!important; }
 .chart-loading { display:flex; align-items:center; justify-content:center; height:100%; min-height:80px; font-size:11px; color:var(--text-muted); gap:6px; }
+
 </style>
 </head>
 ca<body>
@@ -340,19 +351,19 @@ ca<body>
   <nav class="sb-nav">
     <div class="nav-item active" data-page="dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Dashboard
+      <span>Dashboard</span>
     </div>
     <div class="nav-item" data-page="analytics">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Analytics
+      <span>Analytics</span>
     </div>
     <div class="nav-item" data-page="alerts">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      Alerts
+      <span>Alerts</span>
     </div>
     <div class="nav-item" data-page="history">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>
-      History
+      <span>History</span>
     </div>
   </nav>
 </aside>
@@ -361,10 +372,13 @@ ca<body>
 <main class="main">
   <div class="content">
     <div class="topbar">
+      <button onclick="toggleSidebar()" style="background:rgba(255,255,255,0.2);border:none;border-radius:6px;padding:6px 8px;cursor:pointer;display:flex;align-items:center;" aria-label="Toggle sidebar">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
       <div class="topbar-crop">
         <div class="crop-img">🥬</div>
         <div class="crop-info">
-          <strong>Pechay Monitor for Smart Growth Management System</strong>
+          <strong>Smart Growth Management System</strong>
           <span id="topbar-source-label">Detecting data source…</span>
         </div>
       </div>
@@ -594,6 +608,9 @@ ca<body>
 </main>
 </div>
 
+
+
+
 <script>
 // ═══════════════════════════════════════════════════════════════════
 //  GROWTH STAGES — mirrors pi_sensor.py STAGES list exactly
@@ -629,6 +646,13 @@ const aiPrediction = {
   timestamp:   null,   // ISO string of when prediction was made
   source:      'none', // 'claude' | 'tm_fallback' | 'none'
 };
+
+function toggleSidebar() {
+  const sb = document.querySelector('.sidebar');
+  const main = document.querySelector('.main');
+  const collapsed = sb.classList.toggle('collapsed');
+  main.style.marginLeft = collapsed ? '52px' : 'var(--sidebar-w)';
+}
 
 // ═══════════════════════════════════════════════════════════════════
 //  DATA-SOURCE DETECTION
@@ -1288,8 +1312,12 @@ async function initAI() {
   try {
     tmModel = await tmImage.load(TM_URL + "model.json", TM_URL + "metadata.json");
 
-    tmWebcam = new tmImage.Webcam(320, 240);
-    await tmWebcam.setup({ video: { facingMode: { exact: currentFacing } } });
+    tmWebcam = new tmImage.Webcam(320, 240, false);
+    try {
+      await tmWebcam.setup({ facingMode: { exact: currentFacing } });
+    } catch {
+      await tmWebcam.setup({ facingMode: currentFacing });
+    }
     await tmWebcam.play();
 
     const c = document.getElementById("webcam-container");
@@ -1305,7 +1333,7 @@ async function initAI() {
     document.getElementById("prediction-result").innerHTML =
       '<p style="color:#aaa;font-size:12px;text-align:center;">Camera connected — analysing…</p>';
 
-    aiLoop(); // ← now correctly called after initAI closes
+    aiLoop();
   } catch (err) {
     console.error(err);
     document.getElementById("prediction-result").innerHTML =
@@ -1313,7 +1341,7 @@ async function initAI() {
        <p style="color:#888;font-size:12px;">Camera unavailable or permission denied.</p>
        <p style="color:#aaa;font-size:11px;margin-top:4px;">${err.message}</p>`;
   }
-} // ← initAI properly closed here
+}
 
 async function aiLoop() {
   tmWebcam.update();
