@@ -378,7 +378,7 @@ ca<body>
       <div class="topbar-crop">
         <div class="crop-img">🥬</div>
         <div class="crop-info">
-          <strong>Smart Growth Management System</strong>
+          <strong>Pechay Monitor for Smart Growth Management System</strong>
           <span id="topbar-source-label">Detecting data source…</span>
         </div>
       </div>
@@ -689,7 +689,7 @@ function applySourceUI() {
     src.textContent='Demo Mode — Simulated MockDB Data'; health.textContent='Simulated MockDB data (Flask offline)';
     banner.classList.remove('hidden');
     if(aRange) aRange.textContent='Last 7 days · MockDB simulation';
-    if(envTxt) envTxt.textContent='Demo Mode: simulated data. Flask/MongoDB unreachable. NPK always simulated.';
+    if(envTxt) envTxt.textContent='Demo Mode: simulated data. Flask/MongoDB unreachable.';
     if(logSub) logSub.textContent='Simulated records (MockDB — Flask offline)';
     ['csv-link-analytics','csv-link-history'].forEach(id=>{const el=document.getElementById(id);if(el){el.href='#';el.style.opacity='0.45';el.style.pointerEvents='none';}});
   }
