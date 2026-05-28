@@ -443,7 +443,7 @@ ca<body>
         <div class="sensor-card" id="card-npk">
           <div class="sensor-label"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>NPK Level</div>
           <div class="sensor-val" id="dash-npk" style="font-size:16px;padding-top:4px;">—</div>
-          <div class="sensor-range">Optimal: Based treshold values</div>
+          <div class="sensor-range">Optimal:</div>
           <div class="sensor-status" id="status-npk">Loading…</div>
         </div>
       </div>
@@ -467,16 +467,14 @@ ca<body>
 
       <!-- Device status -->
        <!-- AI webcam + prediction panel -->
-      <div style="display:flex;gap:12px;margin-bottom:14px;">
-        <div style="flex:1;min-width:0;background:#f4fbf4;border:1px solid #C8E6C9;border-radius:var(--r);overflow:hidden;">
-          <div id="webcam-container" style="width:100%;aspect-ratio:4/3;background:#e8f5e9;display:flex;align-items:center;justify-content:center;">
-            <p style="color:#aaa;font-size:12px;">Starting camera…</p>
-          </div>
-        </div>
-        <div id="prediction-result" style="width:200px;flex-shrink:0;padding:14px;background:#fff;border:1px solid var(--border-light);border-radius:var(--r);box-shadow:var(--shadow);">
-          <p style="color:#aaa;font-size:12px;text-align:center;">Waiting for camera…</p>
-        </div>
-      </div>
+      <div style="margin-bottom:10px;background:#f4fbf4;border:1px solid #C8E6C9;border-radius:var(--r);overflow:hidden;">
+  <div id="webcam-container" style="width:100%;aspect-ratio:4/3;background:#e8f5e9;display:flex;align-items:center;justify-content:center;">
+    <p style="color:#aaa;font-size:12px;">Starting camera…</p>
+  </div>
+</div>
+<div id="prediction-result" style="padding:14px;background:#fff;border:1px solid var(--border-light);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:14px;">
+  <p style="color:#aaa;font-size:12px;text-align:center;">Waiting for camera…</p>
+</div>
 
       <!-- Device status -->
       <div class="card card-pad">
