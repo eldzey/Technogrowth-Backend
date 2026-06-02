@@ -465,7 +465,6 @@ ca<body>
   </label>
 </div>
 
-      <!-- Device status -->
        <!-- AI webcam + prediction panel -->
       <div style="margin-bottom:10px;background:#f4fbf4;border:1px solid #C8E6C9;border-radius:var(--r);overflow:hidden;">
   <div id="webcam-container" style="width:100%;aspect-ratio:4/3;background:#e8f5e9;display:flex;align-items:center;justify-content:center;">
@@ -669,27 +668,32 @@ async function probeFlask() {
 }
 
 function applySourceUI() {
-  const dot=document.getElementById('live-dot'), label=document.getElementById('live-label');
-  const src=document.getElementById('topbar-source-label'), health=document.getElementById('health-source-label');
-  const banner=document.getElementById('demo-banner');
-  const aRange=document.getElementById('analytics-data-range'), envTxt=document.getElementById('env-note-text');
-  const logSub=document.getElementById('log-header-sub');
+  const dot   = document.getElementById('live-dot');
+  const label = document.getElementById('live-label');
+  const src   = document.getElementById('topbar-source-label');
+  const health= document.getElementById('health-source-label');
   if (flaskAvailable) {
-    dot.classList.remove('mock-mode'); label.textContent='LIVE';
-    src.textContent='Live Sensor Data from Raspberry Pi'; health.textContent='Live data from Raspberry Pi sensors';
-    banner.classList.add('hidden');
-    if(aRange) aRange.textContent='Last 7 days · Live from MongoDB';
-    if(envTxt) envTxt.textContent='Data pulled live from MongoDB. Thresholds loaded dynamically from configuration.';
-    if(logSub) logSub.textContent='Full back-tracking records from MongoDB';
-    ['csv-link-analytics','csv-link-history'].forEach(id=>{const el=document.getElementById(id);if(el){el.href='/export/csv';el.style.opacity='1';el.style.pointerEvents='auto';}});
+    dot.classList.remove('offline'); label.textContent = 'LIVE';
+    src.textContent = 'Live Sensor Data from Raspberry Pi';
+    health.textContent = 'Live data from Raspberry Pi sensors';
+    document.getElementById('env-note-text').textContent = 'Data pulled live from MongoDB.';
+    document.getElementById('log-header-sub').textContent = 'Records from MongoDB';
+    document.getElementById('analytics-data-range').textContent = 'Last 7 days · Live';
+    ['csv-link-analytics','csv-link-history'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.href='/export/csv'; el.style.opacity='1'; el.style.pointerEvents='auto'; }
+    });
   } else {
-    dot.classList.add('mock-mode'); label.textContent='DEMO';
-    src.textContent='Demo Mode — Simulated MockDB Data'; health.textContent='Simulated MockDB data (Flask offline)';
-    banner.classList.remove('hidden');
-    if(aRange) aRange.textContent='Last 7 days · MockDB simulation';
-    if(envTxt) envTxt.textContent='Demo Mode: simulated data. Flask/MongoDB unreachable.';
-    if(logSub) logSub.textContent='Simulated records (MockDB — Flask offline)';
-    ['csv-link-analytics','csv-link-history'].forEach(id=>{const el=document.getElementById(id);if(el){el.href='#';el.style.opacity='0.45';el.style.pointerEvents='none';}});
+    dot.classList.add('offline'); label.textContent = 'OFFLINE';
+    src.textContent = 'Flask offline — sensor data unavailable';
+    health.textContent = 'Flask/MongoDB unreachable';
+    document.getElementById('env-note-text').textContent = 'Flask offline. Live sensor data unavailable. NPK is always simulated.';
+    document.getElementById('log-header-sub').textContent = 'Flask offline — no records';
+    document.getElementById('analytics-data-range').textContent = 'Flask offline';
+    ['csv-link-analytics','csv-link-history'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.href='#'; el.style.opacity='0.4'; el.style.pointerEvents='none'; }
+    });
   }
 }
 
@@ -706,101 +710,34 @@ const THRESHOLDS = {
 async function loadThresholds() {
   if (!flaskAvailable) return;
   try {
-    const res=await fetch('/api/thresholds'); if(!res.ok) return;
-    const data=await res.json();
-    if(data.temperature)   Object.assign(THRESHOLDS.temperature,   data.temperature);
-    if(data.soil_moisture) Object.assign(THRESHOLDS.soil_moisture, data.soil_moisture);
-    if(data.humidity)      Object.assign(THRESHOLDS.humidity,      data.humidity);
-    if(data.npk){['nitrogen','phosphorus','potassium'].forEach(k=>{if(data.npk[k]) Object.assign(THRESHOLDS.npk[k],data.npk[k]);});}
-    const T=THRESHOLDS;
+    const res = await fetch('/api/thresholds'); if (!res.ok) return;
+    const data = await res.json();
+    if (data.temperature)   Object.assign(THRESHOLDS.temperature,   data.temperature);
+    if (data.soil_moisture) Object.assign(THRESHOLDS.soil_moisture, data.soil_moisture);
+    if (data.humidity)      Object.assign(THRESHOLDS.humidity,      data.humidity);
+    if (data.npk) ['nitrogen','phosphorus','potassium'].forEach(k => { if (data.npk[k]) Object.assign(THRESHOLDS.npk[k], data.npk[k]); });
+    const T = THRESHOLDS;
     const rt=document.getElementById('range-temp'),rm=document.getElementById('range-moist'),rh=document.getElementById('range-humid');
-    if(rt) rt.textContent=`Optimal: ${T.temperature.min}–${T.temperature.max}°C`;
-    if(rm) rm.textContent=`Optimal: ${T.soil_moisture.min}–${T.soil_moisture.max}%`;
-    if(rh) rh.textContent=`Optimal: ${T.humidity.min}–${T.humidity.max}%`;
-  } catch(e){ console.warn('Threshold load failed:',e); }
+    if (rt) rt.textContent=`Optimal: ${T.temperature.min}–${T.temperature.max}°C`;
+    if (rm) rm.textContent=`Optimal: ${T.soil_moisture.min}–${T.soil_moisture.max}%`;
+    if (rh) rh.textContent=`Optimal: ${T.humidity.min}–${T.humidity.max}%`;
+  } catch(e) { console.warn('Threshold load failed:', e); }
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  MOCK DB
+//  API HELPER — live only, no sensor/device/history mock fallback
 // ═══════════════════════════════════════════════════════════════════
-const MockDB = (() => {
-  let _t=27.2,_m=56.0,_h=73.0;
-  const MOCK_NPK={nitrogen:72,phosphorus:48,potassium:185,status:'NORMAL'};
-  function drift(v,lo,hi,step){return Math.min(hi,Math.max(lo,parseFloat((v+(Math.random()-0.48)*step).toFixed(1))));}
-  function sensor(){
-    _t=drift(_t,23.5,31.5,0.3);_m=drift(_m,36.0,74.0,1.5);_h=drift(_h,57.0,87.0,0.9);
-    return{temperature:_t,soil_moisture:_m,humidity:_h,npk:{...MOCK_NPK},
-           stage:aiPrediction.stageLabel||'Head Formation', timestamp:new Date().toLocaleString()};
+async function apiGet(path, fallback=null) {
+  if (flaskAvailable) {
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 3000);
+      const res  = await fetch(path, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (res.ok) return await res.json();
+    } catch { flaskAvailable = false; applySourceUI(); }
   }
-  function devices(){
-    const t=(typeof liveData!=='undefined'&&liveData.temperature!=null)?liveData.temperature:_t;
-    const m=(typeof liveData!=='undefined'&&liveData.soil_moisture!=null)?liveData.soil_moisture:_m;
-    const h=(typeof liveData!=='undefined'&&liveData.humidity!=null)?liveData.humidity:_h;
-    return{irrigation_pump:m<THRESHOLDS.soil_moisture.min?'ON':'OFF',
-           exhaust_fan:t>THRESHOLDS.temperature.max||h>THRESHOLDS.humidity.fungal?'ON':'OFF',
-           humidifier:h<THRESHOLDS.humidity.min?'ON':'OFF',auto_mode:true,
-           timestamp:new Date().toLocaleString(),_source:'mock_derived'};
-  }
-  function history(){
-    const T=THRESHOLDS,now=new Date(),labels=[],temps=[],moists=[],humids=[];
-    for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);
-      labels.push((d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0'));
-      temps.push(parseFloat((23.5+Math.random()*6).toFixed(1)));
-      moists.push(parseFloat((42+Math.random()*24).toFixed(1)));
-      humids.push(parseFloat((61+Math.random()*20).toFixed(1)));}
-    return{labels,temperature:temps,soil_moisture:moists,humidity:humids,
-      temp_optimal:{min:T.temperature.min,max:T.temperature.max},
-      moist_optimal:{min:T.soil_moisture.min,max:T.soil_moisture.max},
-      humid_optimal:{min:T.humidity.min,max:T.humidity.max}};
-  }
-  function npkTrend(){
-    const T=THRESHOLDS.npk,now=new Date(),labels=[],ns=[],ps=[],ks=[];
-    for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);
-      labels.push((d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0'));
-      ns.push(Math.round(62+Math.random()*22));ps.push(Math.round(41+Math.random()*16));ks.push(Math.round(168+Math.random()*42));}
-    return{labels,nitrogen:ns,phosphorus:ps,potassium:ks,current:{...MOCK_NPK},
-      optimal:{nitrogen:T.nitrogen.optimal,phosphorus:T.phosphorus.optimal,potassium:T.potassium.optimal}};
-  }
-  function alerts(){return{count:4,records:[
-    {_id:'mk1',type:'info',title:'System Started',desc:'Demo mode active. MockDB simulation running.',timestamp:'Just now',read:false},
-    {_id:'mk2',type:'success',title:'Sensors OK',desc:'All channels responding within normal range.',timestamp:'1 min ago',read:false},
-    {_id:'mk3',type:'info',title:'NPK Balanced',desc:'Simulated nutrients within optimal range for Pechay.',timestamp:'3 mins ago',read:true},
-    {_id:'mk4',type:'warning',title:'Flask Offline',desc:'Cannot reach Flask API. Displaying simulated data.',timestamp:'On load',read:false},
-  ]};}
-  function logs(col,limit,skip){
-    const total=50,records=[],now=new Date();
-    for(let i=skip;i<Math.min(skip+limit,total);i++){
-      const ts=new Date(now.getTime()-i*5*60000).toLocaleString();
-      // ── KEY: inject AI-predicted stage into mock sensor rows ──
-      const rowStage = aiPrediction.stageLabel || 'Head Formation';
-      const rowAiStage = aiPrediction.stageLabel || null;
-      if(col==='sensors') records.push({timestamp:ts,
-        temperature:parseFloat((23+Math.random()*8).toFixed(1)),
-        soil_moisture:parseFloat((40+Math.random()*30).toFixed(1)),
-        humidity:parseFloat((60+Math.random()*24).toFixed(1)),
-        npk:{nitrogen:Math.round(60+Math.random()*25),phosphorus:Math.round(38+Math.random()*18),potassium:Math.round(160+Math.random()*50),status:'NORMAL'},
-        stage: rowStage, ai_stage: rowAiStage, ai_source: aiPrediction.source
-      });
-      else if(col==='alerts') records.push({timestamp:ts,type:['warning','info','success'][i%3],title:'Mock Alert #'+i,desc:'Simulated alert for demo.',read:i%2===0});
-      else if(col==='devices') records.push({timestamp:ts,irrigation_pump:i%3===0?'ON':'OFF',exhaust_fan:i%5===0?'ON':'OFF',auto_mode:true});
-      else records.push({timestamp:ts,nitrogen:Math.round(60+Math.random()*25),phosphorus:Math.round(38+Math.random()*18),potassium:Math.round(160+Math.random()*50),status:'NORMAL'});
-    }
-    return{records,count:total};
-  }
-  return{sensor,devices,history,npkTrend,alerts,logs};
-})();
-
-// ═══════════════════════════════════════════════════════════════════
-//  API ROUTER
-// ═══════════════════════════════════════════════════════════════════
-async function apiGet(path,mockFn){
-  if(flaskAvailable){
-    try{const ctrl=new AbortController();const tid=setTimeout(()=>ctrl.abort(),3000);
-      const res=await fetch(path,{signal:ctrl.signal});clearTimeout(tid);
-      if(res.ok) return await res.json();
-    }catch{flaskAvailable=false;applySourceUI();}
-  }
-  return mockFn();
+  return fallback;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -874,20 +811,30 @@ function renderEnvCharts(data){
   lineChart('envHumidChart','envHumidWrap',data.humidity,'#2196F3',40,100,hOpt.min,hOpt.max);
 }
 
-function renderNutrientCharts(){
-  const data=liveData.npkTrendData||MockDB.npkTrend(),c=data.current,T=THRESHOLDS.npk;
-  if(c){document.getElementById('npk-n-val').textContent=c.nitrogen!=null?c.nitrogen+' mg/kg':'—';document.getElementById('npk-p-val').textContent=c.phosphorus!=null?c.phosphorus+' mg/kg':'—';document.getElementById('npk-k-val').textContent=c.potassium!=null?c.potassium+' mg/kg':'—';document.getElementById('npk-status-val').textContent=c.status??'NORMAL';const b=document.getElementById('npk-track-badge');if(b){const ok=(c.status??'NORMAL')==='NORMAL';b.textContent=ok?'Balanced':'Imbalanced';b.className='on-track'+(ok?'':' warn');}}
-  destroyChart('npkChart');showCanvas('npkWrap','npkChart');
-  chartInstances['npkChart']=new Chart(document.getElementById('npkChart'),{type:'line',data:{labels:data.labels,datasets:[{label:'N',data:data.nitrogen,borderColor:'#4CAF50',backgroundColor:'transparent',tension:0.4,pointRadius:3,borderWidth:2,pointBackgroundColor:'#4CAF50'},{label:'P',data:data.phosphorus,borderColor:'#FF9800',backgroundColor:'transparent',tension:0.4,pointRadius:3,borderWidth:2,pointBackgroundColor:'#FF9800'},{label:'K',data:data.potassium,borderColor:'#2196F3',backgroundColor:'transparent',tension:0.4,pointRadius:3,borderWidth:2,pointBackgroundColor:'#2196F3'}]},options:{...baseOpts(),plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:'#888',padding:10}},tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8}}}});
-  const optimal=data.optimal||{nitrogen:T.nitrogen.optimal,phosphorus:T.phosphorus.optimal,potassium:T.potassium.optimal};
-  if(c&&optimal){destroyChart('npkBarChart');showCanvas('npkBarWrap','npkBarChart');chartInstances['npkBarChart']=new Chart(document.getElementById('npkBarChart'),{type:'bar',data:{labels:['N (Nitrogen)','P (Phosphorus)','K (Potassium)'],datasets:[{label:'Current',data:[c.nitrogen,c.phosphorus,c.potassium],backgroundColor:['#4CAF50','#FF9800','#2196F3'],borderRadius:5,borderSkipped:false},{label:'Optimal',data:[optimal.nitrogen,optimal.phosphorus,optimal.potassium],backgroundColor:['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'],borderRadius:5,borderSkipped:false}]},options:{...baseOpts(),plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:'#888',padding:10}},tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8}},scales:{x:{ticks:{color:'#aaa',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'},min:0,max:250}}}});}
+function renderNutrientCharts() {
+  const data = getMockNpkTrend(), c = data.current, T = THRESHOLDS.npk;
+  if (c) {
+    document.getElementById('npk-n-val').textContent   = c.nitrogen   != null ? c.nitrogen   + ' mg/kg' : '—';
+    document.getElementById('npk-p-val').textContent   = c.phosphorus != null ? c.phosphorus + ' mg/kg' : '—';
+    document.getElementById('npk-k-val').textContent   = c.potassium  != null ? c.potassium  + ' mg/kg' : '—';
+    document.getElementById('npk-status-val').textContent = c.status ?? 'NORMAL';
+    const b = document.getElementById('npk-track-badge');
+    if (b) { const ok=(c.status??'NORMAL')==='NORMAL'; b.textContent=ok?'Balanced':'Imbalanced'; b.className='on-track'+(ok?'':' warn'); }
+  }
+  destroyChart('npkChart'); showCanvas('npkWrap','npkChart');
+  chartInstances['npkChart'] = new Chart(document.getElementById('npkChart'), { type:'line', data:{ labels:data.labels, datasets:[{ label:'N', data:data.nitrogen, borderColor:'#4CAF50', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#4CAF50' },{ label:'P', data:data.phosphorus, borderColor:'#FF9800', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#FF9800' },{ label:'K', data:data.potassium, borderColor:'#2196F3', backgroundColor:'transparent', tension:0.4, pointRadius:3, borderWidth:2, pointBackgroundColor:'#2196F3' }] }, options:{ ...baseOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{boxWidth:8,font:{size:10},color:'#888',padding:10} }, tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8} } } });
+  const optimal = data.optimal || { nitrogen:T.nitrogen.optimal, phosphorus:T.phosphorus.optimal, potassium:T.potassium.optimal };
+  if (c && optimal) {
+    destroyChart('npkBarChart'); showCanvas('npkBarWrap','npkBarChart');
+    chartInstances['npkBarChart'] = new Chart(document.getElementById('npkBarChart'), { type:'bar', data:{ labels:['N (Nitrogen)','P (Phosphorus)','K (Potassium)'], datasets:[{ label:'Current', data:[c.nitrogen,c.phosphorus,c.potassium], backgroundColor:['#4CAF50','#FF9800','#2196F3'], borderRadius:5, borderSkipped:false },{ label:'Optimal', data:[optimal.nitrogen,optimal.phosphorus,optimal.potassium], backgroundColor:['rgba(76,175,80,0.2)','rgba(255,152,0,0.2)','rgba(33,150,243,0.2)'], borderRadius:5, borderSkipped:false }] }, options:{ ...baseOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{boxWidth:8,font:{size:10},color:'#888',padding:10} }, tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8} }, scales:{ x:{ticks:{color:'#aaa',font:{size:10}},grid:{display:false}}, y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'},min:0,max:250} } } });
+  }
 }
 
-function refreshAnalytics(){
-  ['envTempWrap','envMoistWrap','envHumidWrap','npkWrap','npkBarWrap'].forEach(id=>{const w=document.getElementById(id);if(!w)return;const cid=w.querySelector('canvas')?.id;if(cid)showLoader(id,cid);});
-  apiGet('/api/history',()=>MockDB.history()).then(data=>{liveData.historyData=data;renderEnvCharts(data);});
-  liveData.npkTrendData=MockDB.npkTrend();
-  const nt=document.getElementById('tab-nutrients');if(nt&&nt.style.display!=='none')renderNutrientCharts();
+function refreshAnalytics() {
+  ['envTempWrap','envMoistWrap','envHumidWrap','npkWrap','npkBarWrap'].forEach(id => { const w=document.getElementById(id); if(!w)return; const cid=w.querySelector('canvas')?.id; if(cid)showLoader(id,cid); });
+  apiGet('/api/history').then(data => { if (data) renderEnvCharts(data); });
+  const nt = document.getElementById('tab-nutrients');
+  if (nt && nt.style.display !== 'none') renderNutrientCharts();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -896,7 +843,7 @@ function refreshAnalytics(){
 let alertsData=[],currentFilter='all',alertIdCounter=1000;
 const alertIconMap={warning:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,info:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,success:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`};
 const alertColorMap={warning:'orange',info:'blue',success:'green'};
-function loadAlerts(){apiGet('/api/alerts?limit=50',()=>MockDB.alerts()).then(data=>{if(data.records?.length){const local=alertsData.filter(a=>a._local);const server=data.records.map(r=>({id:r._id,type:r.type||'warning',title:r.title||'Alert',desc:r.desc||'',time:r.timestamp||'—',read:r.read||false,_server:true}));alertsData=[...local,...server];renderAlerts();}});}
+function loadAlerts() {apiGet('/api/alerts?limit=50').then(data => {if (data?.records?.length) {const local  = alertsData.filter(a => a._local);const server = data.records.map(r => ({ id:r._id, type:r.type||'warning', title:r.title||'Alert', desc:r.desc||'', time:r.timestamp||'—', read:r.read||false, _server:true })); alertsData = [...local, ...server]; renderAlerts();}});}
 function renderAlerts(){const container=document.getElementById('alertsContainer');updateFilterCounts();const filtered=currentFilter==='all'?alertsData:alertsData.filter(a=>a.type===currentFilter);if(!filtered.length){container.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter==='all'?'':currentFilter+' '}alerts</div>`;return;}if(currentFilter==='all'){const groups=[{label:'⚠ Warnings',type:'warning'},{label:'ℹ Information',type:'info'},{label:'✓ Success',type:'success'}];let html='';groups.forEach(g=>{const items=alertsData.filter(a=>a.type===g.type);if(!items.length)return;html+=`<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`;});container.innerHTML=html;}else{container.innerHTML=`<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`;}}
 function alertCardHTML(a){const color=alertColorMap[a.type]||'blue';const sid=String(a.id).replace(/[^a-zA-Z0-9_-]/g,'_');return `<div class="alert-card ${color} ${a.read?'read':''}" id="alert-${sid}"><div class="alert-unread ${color==='orange'?'orange':''}"></div><div class="alert-top"><div class="alert-ico ${color}">${alertIconMap[a.type]||alertIconMap.info}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div><div class="alert-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${a.time}</div><span class="alert-dismiss" onclick="dismissAlert('${sid}','${a.id}')">✕</span></div>`;}
 function filterAlerts(type){currentFilter=type;document.querySelectorAll('.filter-tab').forEach(t=>{t.className='filter-tab';if(t.dataset.filter===type){const m={all:'f-all',warning:'f-warning',info:'f-info',success:'f-success'};t.classList.add(m[type]);}});renderAlerts();}
@@ -920,168 +867,118 @@ function updateSensorCard(cardId,statusId,value,threshKey,unit,alertTitle){
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  SENSOR POLLING
+//  SENSOR POLLING — live only
 // ═══════════════════════════════════════════════════════════════════
-function pollSensors(){
-  apiGet('/api/sensors/latest',()=>MockDB.sensor()).then(data=>{
-    const t=data.temperature,m=data.soil_moisture,h=data.humidity;
-    liveData.temperature=t;liveData.soil_moisture=m;liveData.humidity=h;
-    liveData.npk=MockDB.sensor().npk;liveData.stage=data.stage;
-    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-    set('dash-temp',t!=null?t+'°C':'—');set('dash-moist',m!=null?m+'%':'—');set('dash-humid',h!=null?h+'%':'—');
-    set('dash-npk',liveData.npk?.status??'—');
-    // Only update stage label from sensor if AI has NOT predicted yet
-    if(aiPrediction.stageLabel){
-      set('dash-stage-label', aiPrediction.stageLabel + (aiPrediction.source==='claude'?' ✦':''));
-    } else if(data.stage&&data.stage!=='null'&&data.stage!=='undefined'){
-      set('dash-stage-label',data.stage);
-    }
-    // Update sensor summary chip in AI panel
-    const ssd=document.getElementById('sensor-summary-display');
-    if(ssd)ssd.textContent=`${t??'—'}°C · ${m??'—'}% moist · ${h??'—'}% humid`;
+function pollSensors() {
+  apiGet('/api/sensors/latest').then(data => {
+    if (!data) return;
+    const t=data.temperature, m=data.soil_moisture, h=data.humidity;
+    liveData.temperature=t; liveData.soil_moisture=m; liveData.humidity=h;
+    liveData.npk = { ...MOCK_NPK }; // NPK always simulated
+    liveData.stage = data.stage;
+    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('dash-temp',  t!=null ? t+'°C' : '—');
+    set('dash-moist', m!=null ? m+'%'  : '—');
+    set('dash-humid', h!=null ? h+'%'  : '—');
+    set('dash-npk',   liveData.npk.status);
+    if (data.stage && data.stage!=='null') set('dash-stage-label', data.stage);
     updateSensorCard('card-temp','status-temp',t,'temperature','°C','Temperature');
     updateSensorCard('card-moist','status-moist',m,'soil_moisture','%','Soil Moisture');
     updateSensorCard('card-humid','status-humid',h,'humidity','%','Humidity');
-    const ns=document.getElementById('status-npk'),nc=document.getElementById('card-npk');
-    if(ns&&nc){if(liveData.npk.status==='NORMAL'){ns.textContent='Balanced';ns.className='sensor-status';nc.className='sensor-card';removeSensorAlert('NPK Imbalance');}else{ns.textContent=liveData.npk.status;ns.className='sensor-status warning';nc.className='sensor-card warning-border';pushSensorAlert('warning','NPK Imbalance',`NPK sensor reports: ${liveData.npk.status}.`);}}
-    const lu=document.getElementById('dash-last-updated');if(lu)lu.textContent='Last update: '+(data.timestamp||new Date().toLocaleTimeString());
-    if(t!=null&&h!=null)updateDashChart(t,h);
+    // NPK card always shows NORMAL (simulated)
+    const ns=document.getElementById('status-npk'), nc=document.getElementById('card-npk');
+    if (ns&&nc) { ns.textContent='Balanced (sim)'; ns.className='sensor-status'; nc.className='sensor-card'; }
+    const lu=document.getElementById('dash-last-updated'); if(lu) lu.textContent='Last update: '+(data.timestamp||new Date().toLocaleTimeString());
+    if (t!=null&&h!=null) updateDashChart(t,h);
   });
 }
-
-function syncDeviceStates(){
-  apiGet('/api/devices/latest',()=>MockDB.devices()).then(data=>{
-    const set=(id,v,cls)=>{const el=document.getElementById(id);if(el){el.textContent=v;if(cls)el.className=cls;}};
-    set('dash-pump-state',data.irrigation_pump||'—','device-state '+(data.irrigation_pump==='ON'?'on':'off'));
-    set('dash-fan-state',data.exhaust_fan||'—','device-state '+(data.exhaust_fan==='ON'?'on':'off'));
-    set('dash-humidifier-state',data.humidifier||'OFF','device-state '+(data.humidifier==='ON'?'on':'off'));
-    const mn=document.getElementById('dash-mode-note');if(mn){let modeStr;if(data._source==='mock_derived')modeStr='AUTO · Simulated (based on sensor thresholds)';else modeStr=(data.auto_mode?'AUTO':'MANUAL')+' · Last sync: '+(data.timestamp||'—');mn.textContent='Mode: '+modeStr;}
+ 
+function syncDeviceStates() {
+  apiGet('/api/devices/latest').then(data => {
+    if (!data) return;
+    const set = (id,v,cls) => { const el=document.getElementById(id); if(el){el.textContent=v;if(cls)el.className=cls;} };
+    set('dash-pump-state',      data.irrigation_pump||'—', 'device-state '+(data.irrigation_pump==='ON'?'on':'off'));
+    set('dash-fan-state',       data.exhaust_fan||'—',     'device-state '+(data.exhaust_fan==='ON'?'on':'off'));
+    set('dash-humidifier-state',data.humidifier||'—',      'device-state '+(data.humidifier==='ON'?'on':'off'));
+    const mn=document.getElementById('dash-mode-note'); if(mn) mn.textContent='Mode: '+(data.auto_mode?'AUTO':'MANUAL')+' · Last sync: '+(data.timestamp||'—');
   });
 }
-
-function pollAlertCount(){if(!flaskAvailable)return;fetch('/api/alerts/unread-count').then(r=>r.ok?r.json():Promise.reject()).then(data=>{const badge=document.getElementById('notif-badge');if(badge){const c=data.count||0;badge.textContent=c>9?'9+':c||'';badge.style.display=c>0?'flex':'none';}}).catch(()=>{});}
+ 
+function pollAlertCount() {
+  if (!flaskAvailable) return;
+  fetch('/api/alerts/unread-count').then(r=>r.ok?r.json():Promise.reject()).then(data => {
+    const badge=document.getElementById('notif-badge'); if(badge){const c=data.count||0;badge.textContent=c>9?'9+':c||'';badge.style.display=c>0?'flex':'none';}
+  }).catch(()=>{});
+}
 
 // ═══════════════════════════════════════════════════════════════════
 //  HISTORY LOG  ← KEY CHANGE: renders AI stage column
 // ═══════════════════════════════════════════════════════════════════
-let logSkip=0,logTotal=0;
-function loadHistory(){
-  const col=document.getElementById('log-collection').value;
-  const days=document.getElementById('log-days').value;
-  const limit=parseInt(document.getElementById('log-limit').value);
-  let url=`/api/logs?collection=${col}&limit=${limit}&skip=${logSkip}`;
-  if(days)url+=`&days=${days}`;
+let logSkip=0, logTotal=0;
+function loadHistory() {
+  const col   = document.getElementById('log-collection').value;
+  const days  = document.getElementById('log-days').value;
+  const limit = parseInt(document.getElementById('log-limit').value);
+  let url = `/api/logs?collection=${col}&limit=${limit}&skip=${logSkip}`;
+  if (days) url += `&days=${days}`;
   document.getElementById('log-table-container').innerHTML='<div class="log-loading"><div class="spinner"></div> Loading records…</div>';
   document.getElementById('log-pagination').style.display='none';
   document.getElementById('log-count-badge').textContent='';
   const colLabels={sensors:'Sensor Readings',alerts:'Alerts',devices:'Device Events',npk_trends:'NPK Trends'};
-  const sub=document.getElementById('log-header-sub');if(sub)sub.textContent=(colLabels[col]||col)+(flaskAvailable?' · MongoDB':' · MockDB simulation');
-  apiGet(url,()=>MockDB.logs(col,limit,logSkip)).then(data=>{
-    logTotal=data.count||0;
+  const sub=document.getElementById('log-header-sub'); if(sub) sub.textContent=(colLabels[col]||col)+(flaskAvailable?' · MongoDB':' · Offline');
+  apiGet(url).then(data => {
+    if (!data || !data.records?.length) {
+      document.getElementById('log-table-container').innerHTML='<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>No records found.</div>';
+      return;
+    }
+    logTotal = data.count || 0;
     document.getElementById('log-count-badge').textContent=`${logTotal} record${logTotal!==1?'s':''} total`;
-    if(!data.records?.length){document.getElementById('log-table-container').innerHTML='<div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>No records found.</div>';return;}
-    const table=buildTable(col,data.records);
+    const table = buildTable(col, data.records);
     document.getElementById('log-table-container').innerHTML='';
     document.getElementById('log-table-container').appendChild(table);
-    const shown=logSkip+data.records.length;
+    const shown = logSkip + data.records.length;
     document.getElementById('log-pagination').style.display='flex';
     document.getElementById('log-page-info').textContent=`Showing ${logSkip+1}–${shown} of ${logTotal}`;
-    document.getElementById('log-prev-btn').disabled=logSkip===0;
-    document.getElementById('log-next-btn').disabled=shown>=logTotal;
+    document.getElementById('log-prev-btn').disabled = logSkip===0;
+    document.getElementById('log-next-btn').disabled = shown>=logTotal;
   });
 }
-
+ 
 function buildTable(col, records) {
-  const T = THRESHOLDS;
-  const t = document.createElement('table');
-  t.className = 'log-table';
-
-  if (col === 'sensors') {
-    t.innerHTML = `<thead><tr>
-      <th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th>
-      <th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th>
-      <th>Stage</th>
-    </tr></thead><tbody></tbody>`;
-
-    const tb = t.querySelector('tbody');
+  const T=THRESHOLDS, t=document.createElement('table'); t.className='log-table';
+  if (col==='sensors') {
+    t.innerHTML=`<thead><tr><th>Timestamp</th><th>Temp (°C)</th><th>Soil Moisture (%)</th><th>Humidity (%)</th><th>Nitrogen</th><th>Phosphorus</th><th>Potassium</th><th>NPK Status</th><th>Stage</th></tr></thead><tbody></tbody>`;
+    const tb=t.querySelector('tbody');
     records.forEach(r => {
-      const npk = r.npk || {};
-      const row = document.createElement('tr');
-
-      // Use unified stage synced with dashboard (liveData.stage)
-      const unifiedStage = liveData.stage || r.stage || '—';
-
-      row.innerHTML = `
-        <td class="ts">${r.timestamp || '—'}</td>
-        <td class="val">${fmtVal(r.temperature, T.temperature.min, T.temperature.max, '°C')}</td>
-        <td class="val">${fmtVal(r.soil_moisture, T.soil_moisture.min, T.soil_moisture.max, '%')}</td>
-        <td class="val">${fmtVal(r.humidity, T.humidity.min, T.humidity.max, '%','var(--blue)')}</td>
-        <td>${npk.nitrogen ?? '—'}</td>
-        <td>${npk.phosphorus ?? '—'}</td>
-        <td>${npk.potassium ?? '—'}</td>
-        <td>${fmtNpk(npk.status)}</td>
-        <td style="font-size:10px;color:var(--text-muted);">${unifiedStage}</td>
-      `;
+      const npk=r.npk||MOCK_NPK; const row=document.createElement('tr');
+      row.innerHTML=`<td class="ts">${r.timestamp||'—'}</td><td class="val">${fmtVal(r.temperature,T.temperature.min,T.temperature.max,'°C')}</td><td class="val">${fmtVal(r.soil_moisture,T.soil_moisture.min,T.soil_moisture.max,'%')}</td><td class="val">${fmtVal(r.humidity,T.humidity.min,T.humidity.max,'%','var(--blue)')}</td><td>${npk.nitrogen??'—'}</td><td>${npk.phosphorus??'—'}</td><td>${npk.potassium??'—'}</td><td>${fmtNpk(npk.status)}</td><td style="font-size:10px;color:var(--text-muted);">${r.stage||liveData.stage||'—'}</td>`;
       tb.appendChild(row);
     });
-
-  } else if (col === 'alerts') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th></tr></thead><tbody></tbody>`;
-    const tb = t.querySelector('tbody');
-    records.forEach(r => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="ts">${r.timestamp || '—'}</td>
-        <td>${fmtAlertType(r.type)}</td>
-        <td class="val">${r.title || '—'}</td>
-        <td style="max-width:240px;white-space:normal;font-size:10px;">${r.desc || '—'}</td>
-        <td>${r.read ? '<span class="log-badge normal">Read</span>' : '<span class="log-badge warning">Unread</span>'}</td>
-      `;
-      tb.appendChild(row);
-    });
-
-  } else if (col === 'devices') {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Irrigation Pump</th><th>Exhaust Fan</th><th>Auto Mode</th></tr></thead><tbody></tbody>`;
-    const tb = t.querySelector('tbody');
-    records.forEach(r => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="ts">${r.timestamp || '—'}</td>
-        <td>${fmtDevice(r.irrigation_pump)}</td>
-        <td>${fmtDevice(r.exhaust_fan)}</td>
-        <td>${r.auto_mode != null ? `<span class="log-badge ${r.auto_mode ? 'on' : 'off'}">${r.auto_mode ? 'AUTO' : 'MANUAL'}</span>` : '—'}</td>
-      `;
-      tb.appendChild(row);
-    });
-
+  } else if (col==='alerts') {
+    t.innerHTML=`<thead><tr><th>Timestamp</th><th>Type</th><th>Title</th><th>Description</th><th>Read</th></tr></thead><tbody></tbody>`;
+    const tb=t.querySelector('tbody');
+    records.forEach(r => { const row=document.createElement('tr'); row.innerHTML=`<td class="ts">${r.timestamp||'—'}</td><td>${fmtAlertType(r.type)}</td><td class="val">${r.title||'—'}</td><td style="max-width:240px;white-space:normal;font-size:10px;">${r.desc||'—'}</td><td>${r.read?'<span class="log-badge normal">Read</span>':'<span class="log-badge warning">Unread</span>'}</td>`; tb.appendChild(row); });
+  } else if (col==='devices') {
+    t.innerHTML=`<thead><tr><th>Timestamp</th><th>Irrigation Pump</th><th>Exhaust Fan</th><th>Auto Mode</th></tr></thead><tbody></tbody>`;
+    const tb=t.querySelector('tbody');
+    records.forEach(r => { const row=document.createElement('tr'); row.innerHTML=`<td class="ts">${r.timestamp||'—'}</td><td>${fmtDevice(r.irrigation_pump)}</td><td>${fmtDevice(r.exhaust_fan)}</td><td>${r.auto_mode!=null?`<span class="log-badge ${r.auto_mode?'on':'off'}">${r.auto_mode?'AUTO':'MANUAL'}</span>`:'—'}</td>`; tb.appendChild(row); });
   } else {
-    t.innerHTML = `<thead><tr><th>Timestamp</th><th>Nitrogen (mg/kg)</th><th>Phosphorus (mg/kg)</th><th>Potassium (mg/kg)</th><th>Status</th></tr></thead><tbody></tbody>`;
-    const tb = t.querySelector('tbody');
-    records.forEach(r => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="ts">${r.timestamp || '—'}</td>
-        <td class="val">${r.nitrogen ?? '—'}</td>
-        <td class="val">${r.phosphorus ?? '—'}</td>
-        <td class="val">${r.potassium ?? '—'}</td>
-        <td>${fmtNpk(r.status)}</td>
-      `;
-      tb.appendChild(row);
-    });
+    t.innerHTML=`<thead><tr><th>Timestamp</th><th>Nitrogen (mg/kg)</th><th>Phosphorus (mg/kg)</th><th>Potassium (mg/kg)</th><th>Status</th></tr></thead><tbody></tbody>`;
+    const tb=t.querySelector('tbody');
+    records.forEach(r => { const row=document.createElement('tr'); row.innerHTML=`<td class="ts">${r.timestamp||'—'}</td><td class="val">${r.nitrogen??'—'}</td><td class="val">${r.phosphorus??'—'}</td><td class="val">${r.potassium??'—'}</td><td>${fmtNpk(r.status)}</td>`; tb.appendChild(row); });
   }
-
   return t;
 }
-
-function fmtVal(v,min,max,unit,okColor='var(--green-primary)'){if(v==null)return'—';return `<span style="color:${v>=min&&v<=max?okColor:'var(--orange)'};font-weight:600;">${v}</span>`;}
-function fmtNpk(s){if(!s)return'—';const c=s==='NORMAL'?'normal':s==='LOW'?'low':'error';return `<span class="log-badge ${c}">${s}</span>`;}
-function fmtAlertType(s){if(!s)return'—';const c={warning:'warning',info:'info',success:'success'}[s]||'info';return `<span class="log-badge ${c}">${s.toUpperCase()}</span>`;}
-function fmtDevice(s){if(!s)return'—';return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`;}
-
-document.getElementById('log-prev-btn').addEventListener('click',()=>{const lim=parseInt(document.getElementById('log-limit').value);logSkip=Math.max(0,logSkip-lim);loadHistory();});
-document.getElementById('log-next-btn').addEventListener('click',()=>{logSkip+=parseInt(document.getElementById('log-limit').value);loadHistory();});
-['log-collection','log-days','log-limit'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{logSkip=0;loadHistory();}));
-document.getElementById('log-refresh-btn').addEventListener('click',()=>{logSkip=0;loadHistory();});
+ 
+function fmtVal(v,min,max,unit,okColor='var(--green-primary)') { if(v==null)return'—'; return `<span style="color:${v>=min&&v<=max?okColor:'var(--orange)'};font-weight:600;">${v}</span>`; }
+function fmtNpk(s) { if(!s)return'—'; const c=s==='NORMAL'?'normal':s==='LOW'?'low':'error'; return `<span class="log-badge ${c}">${s}</span>`; }
+function fmtAlertType(s) { if(!s)return'—'; const c={warning:'warning',info:'info',success:'success'}[s]||'info'; return `<span class="log-badge ${c}">${s.toUpperCase()}</span>`; }
+function fmtDevice(s) { if(!s)return'—'; return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`; }
+ 
+document.getElementById('log-prev-btn').addEventListener('click', () => { const lim=parseInt(document.getElementById('log-limit').value); logSkip=Math.max(0,logSkip-lim); loadHistory(); });
+document.getElementById('log-next-btn').addEventListener('click', () => { logSkip+=parseInt(document.getElementById('log-limit').value); loadHistory(); });
+['log-collection','log-days','log-limit'].forEach(id => document.getElementById(id).addEventListener('change', () => { logSkip=0; loadHistory(); }));
+document.getElementById('log-refresh-btn').addEventListener('click', () => { logSkip=0; loadHistory(); });
 
 // ═══════════════════════════════════════════════════════════════════
 //  AI STAGE PANEL — TIMELINE + CLAUDE PREDICTION
