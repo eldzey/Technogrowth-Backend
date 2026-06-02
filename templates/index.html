@@ -60,7 +60,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
 .live-indicator { display:flex; align-items:center; gap:5px; font-size:10px; color:rgba(255,255,255,0.8); }
 .live-dot { width:7px; height:7px; border-radius:50%; background:#69f0ae; box-shadow:0 0 6px #69f0ae; animation:pulse 2s infinite; }
-.live-dot.offline { background:#FFD54F; box-shadow:0 0 6px #FFD54F; }
+.live-dot.mock-mode { background:#FFD54F; box-shadow:0 0 6px #FFD54F; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 .notif-btn { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
 .notif-btn svg { width:16px; height:16px; color:#fff; }
@@ -549,7 +549,8 @@ function applySourceUI() {
   const src   = document.getElementById('topbar-source-label');
   const health= document.getElementById('health-source-label');
   if (flaskAvailable) {
-    dot.classList.remove('offline'); label.textContent = 'LIVE';
+    dot.classList.remove('mock-mode'); label.textContent = 'LIVE';
+    const banner=document.getElementById('demo-banner'); if(banner) banner.classList.add('hidden');
     src.textContent = 'Live Sensor Data from Raspberry Pi';
     health.textContent = 'Live data from Raspberry Pi sensors';
     document.getElementById('env-note-text').textContent = 'Data pulled live from MongoDB.';
@@ -560,7 +561,8 @@ function applySourceUI() {
       if (el) { el.href='/export/csv'; el.style.opacity='1'; el.style.pointerEvents='auto'; }
     });
   } else {
-    dot.classList.add('offline'); label.textContent = 'OFFLINE';
+    dot.classList.add('mock-mode'); label.textContent = 'DEMO';
+    const banner=document.getElementById('demo-banner'); if(banner) banner.classList.remove('hidden');
     src.textContent = 'Flask offline — sensor data unavailable';
     health.textContent = 'Flask/MongoDB unreachable';
     document.getElementById('env-note-text').textContent = 'Flask offline. Live sensor data unavailable. NPK is always simulated.';
@@ -914,21 +916,26 @@ setInterval(() => { if (document.getElementById('page-analytics').classList.cont
 const TM_URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
 
 window.tmPrediction = null;
-let tmModel, tmWebcam, currentFacing = "environment";
+let tmModel      = null;
+let activeStream = null;
+let videoEl      = null;
+let offCanvas    = null;
+let loopRunning  = false;
+let currentFacing = "environment"; // back cam on load (matches checkbox checked=true)
 
+// Called by <input type="checkbox" onchange="onCamToggle(this)">
 function onCamToggle(checkbox) {
   const isBack = checkbox.checked;
   currentFacing = isBack ? "environment" : "user";
 
-  document.getElementById("cam-label-front").style.cssText =
-    isBack ? "color:#6b7280;font-weight:400;" : "font-weight:600;color:#166534;";
-  document.getElementById("cam-label-back").style.cssText =
-    isBack ? "font-weight:600;color:#166534;" : "color:#6b7280;font-weight:400;";
-  document.getElementById("cam-thumb").style.transform =
-    isBack ? "translateX(18px)" : "translateX(0px)";
+  const front = document.getElementById("cam-label-front");
+  const back  = document.getElementById("cam-label-back");
+  const thumb = document.getElementById("cam-thumb");
+  if (front) front.style.cssText = isBack ? "color:#6b7280;font-weight:400;" : "font-weight:600;color:#166534;";
+  if (back)  back.style.cssText  = isBack ? "font-weight:600;color:#166534;" : "color:#6b7280;font-weight:400;";
+  if (thumb) thumb.style.transform = isBack ? "translateX(18px)" : "translateX(0px)";
 
-  if (tmWebcam) tmWebcam.stop();
-  initAI();
+  startCamera();
 }
 
 function stopStream() {
