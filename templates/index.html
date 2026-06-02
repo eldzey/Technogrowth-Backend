@@ -41,16 +41,6 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .layout { display:flex; min-height:100vh; }
 .main   { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; }
 .sidebar { width:var(--sidebar-w); background:var(--white); position:fixed; top:0; left:0; bottom:0; display:flex; flex-direction:column; z-index:100; box-shadow:2px 0 8px rgba(0,0,0,0.08); }
-.sidebar {
-  transition: width 0.25s ease;
-  overflow: hidden;
-}
-.sb-nav .nav-item span { white-space: nowrap; }
-.sidebar.collapsed { width: 52px; }
-.sidebar.collapsed .sb-brand-txt,
-.sidebar.collapsed .nav-item span { display: none; }
-.sidebar.collapsed .sb-brand { justify-content: center; }
-.sidebar.collapsed .nav-item { justify-content: center; padding: 9px 0; }
 .sb-brand { padding:16px 12px 14px; border-bottom:1px solid var(--border-light); display:flex; align-items:center; gap:8px; }
 .sb-logo  { width:32px; height:32px; border-radius:8px; background:var(--green-primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .sb-logo svg { width:16px; height:16px; }
@@ -70,7 +60,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
 .live-indicator { display:flex; align-items:center; gap:5px; font-size:10px; color:rgba(255,255,255,0.8); }
 .live-dot { width:7px; height:7px; border-radius:50%; background:#69f0ae; box-shadow:0 0 6px #69f0ae; animation:pulse 2s infinite; }
-.live-dot.mock-mode { background:#FFD54F; box-shadow:0 0 6px #FFD54F; }
+.live-dot.offline { background:#FFD54F; box-shadow:0 0 6px #FFD54F; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 .notif-btn { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
 .notif-btn svg { width:16px; height:16px; color:#fff; }
@@ -80,10 +70,6 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .card { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); box-shadow:var(--shadow); }
 .card-pad { padding:16px; }
 .section-title { font-size:12px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
-.demo-banner { background:linear-gradient(90deg,#FFF8E1,#FFFDE7); border:1px solid #FFD54F; border-radius:var(--r); padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; gap:8px; font-size:11px; color:#6D4C00; }
-.demo-banner svg { width:14px; height:14px; flex-shrink:0; color:#F59E0B; }
-.demo-banner strong { font-weight:700; }
-.demo-banner.hidden { display:none; }
 .health-banner { background:var(--green-light); border:1px solid #C8E6C9; border-radius:var(--r); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
 .health-status { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
 .health-status svg { width:16px; height:16px; color:var(--green-primary); }
@@ -105,84 +91,6 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .sensor-status.danger::before  { background:var(--red); }
 .sensor-card.warning-border { border-color:var(--orange) !important; }
 .sensor-card.danger-border  { border-color:var(--red)    !important; }
-
-/* ── AI STAGE PANEL ── */
-.ai-stage-panel { background:var(--white); border:1px solid var(--border-light); border-radius:var(--r); box-shadow:var(--shadow); padding:16px; margin-bottom:14px; }
-.stage-panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-.stage-panel-left { display:flex; align-items:center; gap:10px; }
-.ai-badge { display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#1a6b2a,#2E8B3A); color:#fff; font-size:10px; font-weight:700; padding:4px 10px; border-radius:99px; letter-spacing:.05em; }
-.ai-badge svg { width:11px; height:11px; }
-.stage-panel-title { font-size:13px; font-weight:700; color:var(--text-dark); }
-.stage-panel-sub { font-size:10px; color:var(--text-muted); margin-top:1px; }
-.predict-btn { display:flex; align-items:center; gap:6px; background:var(--green-primary); color:#fff; border:none; border-radius:var(--r-sm); padding:8px 14px; font-size:11px; font-weight:700; cursor:pointer; font-family:var(--sans); transition:background .15s; }
-.predict-btn:hover { background:var(--green-dark); }
-.predict-btn:disabled { background:#ccc; cursor:not-allowed; }
-.predict-btn svg { width:12px; height:12px; }
-.sources-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-.source-chip { background:var(--green-light); border:1px solid #C8E6C9; border-radius:var(--r-sm); padding:9px 12px; display:flex; align-items:center; gap:8px; }
-.source-chip svg { width:13px; height:13px; flex-shrink:0; color:var(--green-primary); }
-.source-chip-label { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
-.source-chip-val { font-size:12px; font-weight:700; color:var(--text-dark); }
-/* timeline */
-.stage-timeline { position:relative; margin-bottom:16px; }
-.timeline-track { position:relative; height:6px; background:#e0e0e0; border-radius:99px; margin:30px 0 40px; }
-.timeline-fill { position:absolute; left:0; top:0; height:100%; border-radius:99px; background:linear-gradient(90deg,#66BB6A,#2E8B3A); transition:width .8s cubic-bezier(.4,0,.2,1); }
-.timeline-stages { position:absolute; top:0; left:0; right:0; }
-.t-stage { display:flex; flex-direction:column; align-items:center; position:absolute; }
-.t-dot { width:14px; height:14px; border-radius:50%; background:#e0e0e0; border:3px solid #fff; box-shadow:0 0 0 2px #e0e0e0; margin-top:-4px; transition:all .4s; position:relative; z-index:2; }
-.t-dot.done   { background:var(--green-primary); box-shadow:0 0 0 2px var(--green-primary); }
-.t-dot.active { background:var(--green-primary); box-shadow:0 0 0 3px rgba(46,139,58,.3); width:18px; height:18px; margin-top:-6px; }
-.t-label { position:absolute; top:16px; font-size:10px; font-weight:600; color:var(--text-muted); white-space:nowrap; transition:color .3s; }
-.t-label.done   { color:var(--green-primary); }
-.t-label.active { color:var(--green-dark); font-weight:700; font-size:11px; }
-.t-days  { position:absolute; top:30px; font-size:9px; color:var(--text-light); white-space:nowrap; }
-.day-pointer { position:absolute; top:-22px; display:flex; flex-direction:column; align-items:center; transform:translateX(-50%); transition:left .8s cubic-bezier(.4,0,.2,1); z-index:10; }
-.day-pointer-bubble { background:var(--green-primary); color:#fff; font-size:9px; font-weight:700; padding:2px 7px; border-radius:99px; white-space:nowrap; }
-.day-pointer-line { width:2px; height:10px; background:var(--green-primary); }
-/* current stage box */
-.current-stage-box { display:flex; align-items:center; gap:14px; background:linear-gradient(135deg,#f0faf1,#e8f5e9); border:1.5px solid #A5D6A7; border-radius:var(--r); padding:12px 16px; margin-bottom:12px; }
-.stage-emoji { font-size:28px; flex-shrink:0; }
-.stage-name  { font-size:18px; font-weight:700; color:var(--green-dark); }
-.stage-day   { font-size:10px; color:var(--text-muted); margin-top:2px; }
-.stage-confidence { margin-left:auto; text-align:center; background:var(--white); border:1px solid #C8E6C9; border-radius:var(--r-sm); padding:7px 12px; flex-shrink:0; }
-.conf-label { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
-.conf-val   { font-size:20px; font-weight:700; color:var(--green-primary); }
-.conf-bar   { width:70px; height:4px; background:#e0e0e0; border-radius:99px; margin-top:4px; overflow:hidden; }
-.conf-fill  { height:100%; background:var(--green-primary); border-radius:99px; transition:width .5s; }
-/* AI analysis */
-.ai-analysis { background:#f9fffe; border:1px solid #B2DFDB; border-radius:var(--r-sm); padding:12px 14px; margin-bottom:12px; min-height:70px; }
-.ai-analysis-hdr { display:flex; align-items:center; gap:6px; margin-bottom:6px; font-size:11px; font-weight:700; color:#00695C; }
-.ai-analysis-hdr svg { width:12px; height:12px; }
-.ai-analysis-txt { font-size:11px; color:var(--text-mid); line-height:1.6; }
-.ai-thinking { display:flex; align-items:center; gap:8px; color:var(--text-muted); font-size:11px; font-style:italic; }
-.typing-dots span { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--green-primary); animation:blink 1.2s infinite; margin-right:2px; }
-.typing-dots span:nth-child(2){animation-delay:.2s}
-.typing-dots span:nth-child(3){animation-delay:.4s}
-@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
-/* recs */
-.recs-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-.rec-chip { display:flex; align-items:flex-start; gap:7px; background:var(--white); border:1px solid var(--border-light); border-radius:var(--r-sm); padding:9px 11px; font-size:11px; color:var(--text-mid); line-height:1.4; }
-.rec-chip svg { width:13px; height:13px; flex-shrink:0; margin-top:1px; }
-.rec-chip.warn { background:var(--orange-light); border-color:#FFE0B2; color:#7B3F00; }
-.rec-chip.warn svg { color:var(--orange); }
-.rec-chip.ok   { background:var(--green-light); border-color:#C8E6C9; color:#1B5E20; }
-.rec-chip.ok   svg { color:var(--green-primary); }
-.rec-chip.info { background:var(--blue-light); border-color:#BBDEFB; color:#0D47A1; }
-.rec-chip.info svg { color:var(--blue); }
-.next-stage-row { display:flex; align-items:center; justify-content:space-between; background:var(--green-light); border:1px solid #C8E6C9; border-radius:var(--r-sm); padding:9px 13px; font-size:11px; margin-bottom:8px; }
-.next-stage-label { color:var(--text-muted); }
-.next-stage-val   { font-weight:700; color:var(--green-dark); }
-.next-stage-days  { font-size:10px; color:var(--text-muted); background:#fff; padding:2px 8px; border-radius:99px; border:1px solid #C8E6C9; }
-.mismatch-warn { display:flex; align-items:center; gap:6px; background:var(--orange-light); border:1px solid #FFE0B2; border-radius:var(--r-sm); padding:8px 12px; font-size:11px; color:#7B3F00; margin-bottom:10px; }
-.mismatch-warn.hidden { display:none; }
-.mismatch-warn svg { width:13px; height:13px; flex-shrink:0; color:var(--orange); }
-.sync-row { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-light); }
-.sync-dot { width:6px; height:6px; border-radius:50%; background:var(--green-primary); animation:pulse 2s infinite; }
-/* history stage badge */
-.stage-ai-badge { display:inline-flex; align-items:center; gap:3px; font-size:9px; font-weight:700; padding:2px 7px; border-radius:99px; background:linear-gradient(135deg,#e8f5e9,#c8e6c9); color:var(--green-dark); border:1px solid #A5D6A7; }
-.stage-sensor-badge { display:inline-flex; align-items:center; gap:3px; font-size:9px; font-weight:700; padding:2px 7px; border-radius:99px; background:var(--border-light); color:var(--text-muted); }
-
-/* existing styles */
 .activity-title { font-size:12px; font-weight:600; color:var(--text-dark); display:flex; align-items:center; gap:5px; margin-bottom:10px; }
 .activity-title svg { width:13px; height:13px; }
 .device-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-light); }
@@ -331,10 +239,9 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .log-page-btn:disabled { opacity:.4; cursor:not-allowed; }
 canvas { width:100%!important; }
 .chart-loading { display:flex; align-items:center; justify-content:center; height:100%; min-height:80px; font-size:11px; color:var(--text-muted); gap:6px; }
-
 </style>
 </head>
-ca<body>
+<body>
 <div class="layout">
 
 <!-- SIDEBAR -->
@@ -343,27 +250,20 @@ ca<body>
     <div class="sb-logo">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 22V12M12 12C12 7 7 4 2 5M12 12C12 7 17 4 22 5"/></svg>
     </div>
-    <div class="sb-brand-txt">
-      <strong>Pechay</strong>
-      <span>Monitor</span>
-    </div>
+    <div class="sb-brand-txt"><strong>Pechay</strong><span>Monitor</span></div>
   </div>
   <nav class="sb-nav">
     <div class="nav-item active" data-page="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      <span>Dashboard</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
     </div>
     <div class="nav-item" data-page="analytics">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      <span>Analytics</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics
     </div>
     <div class="nav-item" data-page="alerts">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <span>Alerts</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Alerts
     </div>
     <div class="nav-item" data-page="history">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>
-      <span>History</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h6v6H3z"/><path d="M15 3h6v6h-6z"/><path d="M3 15h6v6H3z"/><path d="M15 15h6v6h-6z"/></svg>History
     </div>
   </nav>
 </aside>
@@ -372,14 +272,11 @@ ca<body>
 <main class="main">
   <div class="content">
     <div class="topbar">
-      <button onclick="toggleSidebar()" style="background:rgba(255,255,255,0.2);border:none;border-radius:6px;padding:6px 8px;cursor:pointer;display:flex;align-items:center;" aria-label="Toggle sidebar">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-</button>
       <div class="topbar-crop">
         <div class="crop-img">🥬</div>
         <div class="crop-info">
-          <strong>Pechay Monitor for Smart Growth Management System</strong>
-          <span id="topbar-source-label">Detecting data source…</span>
+          <strong>Smart Growth Management System</strong>
+          <span id="topbar-source-label">Connecting…</span>
         </div>
       </div>
       <div class="topbar-right">
@@ -396,12 +293,6 @@ ca<body>
 
     <!-- ══ DASHBOARD ══ -->
     <div class="page-section active" id="page-dashboard">
-
-      <div class="demo-banner hidden" id="demo-banner">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span><strong>Demo Mode — Flask Offline.</strong></span>
-      </div>
-
       <div class="health-banner">
         <div>
           <div class="health-status">
@@ -410,7 +301,7 @@ ca<body>
           </div>
           <div class="health-day">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="health-source-label">Initializing…</span>
+            <span id="health-source-label">Initialising…</span>
           </div>
           <div class="health-day">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-12 7l-1-1"/></svg>
@@ -443,39 +334,39 @@ ca<body>
         <div class="sensor-card" id="card-npk">
           <div class="sensor-label"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>NPK Level</div>
           <div class="sensor-val" id="dash-npk" style="font-size:16px;padding-top:4px;">—</div>
-          <div class="sensor-range">Optimal:</div>
+          <div class="sensor-range">Optimal: Balanced (simulated)</div>
           <div class="sensor-status" id="status-npk">Loading…</div>
         </div>
       </div>
 
-      <!-- ══ AI PLANT DETECTION + STAGE PANEL ══ -->
+      <!-- AI Plant Detection -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-  <h3 style="margin:0;font-size:15px;font-weight:600;font-family:var(--sans);">AI Plant Detection</h3>
-  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#6b7280;font-family:var(--sans);">
-    <span id="cam-label-front">Front</span>
-    <label style="position:relative;display:inline-block;width:40px;height:22px;">
-      <input type="checkbox" id="cam-toggle" checked
-        style="opacity:0;width:0;height:0;position:absolute;"
-        onchange="onCamToggle(this)" />
-      <span style="position:absolute;inset:0;background:#22c55e;border-radius:22px;transition:background 0.2s;">
-        <span id="cam-thumb" style="position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform 0.2s;transform:translateX(18px);"></span>
-      </span>
-    </label>
-    <span id="cam-label-back" style="font-weight:600;color:#166534;">Back</span>
-  </label>
-</div>
+        <h3 style="margin:0;font-size:15px;font-weight:600;font-family:var(--sans);">AI Plant Detection</h3>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#6b7280;font-family:var(--sans);">
+          <span id="cam-label-front" style="color:#6b7280;font-weight:400;">Front</span>
+          <label style="position:relative;display:inline-block;width:40px;height:22px;">
+            <input type="checkbox" id="cam-toggle" checked
+              style="opacity:0;width:0;height:0;position:absolute;"
+              onchange="onCamToggle(this)" />
+            <span style="position:absolute;inset:0;background:#22c55e;border-radius:22px;transition:background 0.2s;">
+              <span id="cam-thumb" style="position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform 0.2s;transform:translateX(18px);"></span>
+            </span>
+          </label>
+          <span id="cam-label-back" style="font-weight:600;color:#166534;">Back</span>
+        </label>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:14px;">
+        <div style="flex:1;min-width:0;background:#f4fbf4;border:1px solid #C8E6C9;border-radius:var(--r);overflow:hidden;">
+          <div id="webcam-container" style="width:100%;aspect-ratio:4/3;background:#e8f5e9;display:flex;align-items:center;justify-content:center;">
+            <p style="color:#aaa;font-size:12px;">Starting camera…</p>
+          </div>
+        </div>
+        <div id="prediction-result" style="width:200px;flex-shrink:0;padding:14px;background:#fff;border:1px solid var(--border-light);border-radius:var(--r);box-shadow:var(--shadow);">
+          <p style="color:#aaa;font-size:12px;text-align:center;">Waiting for camera…</p>
+        </div>
+      </div>
 
-       <!-- AI webcam + prediction panel -->
-      <div style="margin-bottom:10px;background:#f4fbf4;border:1px solid #C8E6C9;border-radius:var(--r);overflow:hidden;">
-  <div id="webcam-container" style="width:100%;aspect-ratio:4/3;background:#e8f5e9;display:flex;align-items:center;justify-content:center;">
-    <p style="color:#aaa;font-size:12px;">Starting camera…</p>
-  </div>
-</div>
-<div id="prediction-result" style="padding:14px;background:#fff;border:1px solid var(--border-light);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:14px;">
-  <p style="color:#aaa;font-size:12px;text-align:center;">Waiting for camera…</p>
-</div>
-
-      <!-- Device status -->
+      <!-- Device Status -->
       <div class="card card-pad">
         <div class="activity-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -533,7 +424,7 @@ ca<body>
         <div style="height:140px;position:relative;" id="envTempWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envTempChart" style="display:none;"></canvas></div>
         <div style="margin-top:14px;"><div class="chart-label" style="margin-bottom:6px;">Soil Moisture (Last 7 Days)</div><div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>Soil Moisture %</div><div class="legend-item"><div class="legend-dot" style="background:rgba(76,175,80,0.3);"></div>Optimal Range</div></div><div style="height:120px;position:relative;" id="envMoistWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envMoistChart" style="display:none;"></canvas></div></div>
         <div style="margin-top:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><div class="chart-label">Air Humidity (Last 7 Days)</div><span class="on-track" id="humid-track-badge">Stable</span></div><div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:#2196F3;"></div>Air Humidity %</div><div class="legend-item"><div class="legend-dot" style="background:rgba(33,150,243,0.3);"></div>Optimal Range</div></div><div style="height:120px;position:relative;" id="envHumidWrap"><div class="chart-loading"><div class="spinner"></div>Loading…</div><canvas id="envHumidChart" style="display:none;"></canvas></div></div>
-        <div class="env-note"><strong id="env-note-label">Environment Note:</strong> <span id="env-note-text">Data pulled live from MongoDB. Thresholds loaded dynamically from configuration.</span></div>
+        <div class="env-note"><strong>Environment Note:</strong> <span id="env-note-text">Data pulled live from MongoDB.</span></div>
         <div class="key-metrics">
           <div class="section-title" style="margin-top:14px;">Environment Summary</div>
           <div class="metric-row"><span class="metric-name">Avg Temperature (7d)</span><span class="metric-val" id="sum-avg-temp">—</span></div>
@@ -605,54 +496,39 @@ ca<body>
 </main>
 </div>
 
-
-
-
 <script>
 // ═══════════════════════════════════════════════════════════════════
-//  GROWTH STAGES — mirrors pi_sensor.py STAGES list exactly
+//  THRESHOLDS
 // ═══════════════════════════════════════════════════════════════════
-const GROWTH_STAGES = [
-  { id:'seedling',       label:'Seedling',       dayStart:0,  dayEnd:7,  emoji:'🌱', color:'#81C784' },
-  { id:'vegetative',     label:'Vegetative',     dayStart:8,  dayEnd:20, emoji:'🌿', color:'#4CAF50' },
-  { id:'head_formation', label:'Head Formation', dayStart:21, dayEnd:40, emoji:'🥬', color:'#2E8B3A' },
-  { id:'maturation',     label:'Maturation',     dayStart:41, dayEnd:60, emoji:'✅', color:'#1B5E20' },
-];
-const TOTAL_DAYS = 60;
-
-// TM class name → stage id
-const TM_TO_STAGE = {
-  early_stage:'seedling', mid_stage:'head_formation', mature_stage:'maturation',
-  seedling:'seedling', vegetative:'vegetative', head_formation:'head_formation', maturation:'maturation',
-};
-
-// Stage id → display label (used in history log)
-const STAGE_ID_TO_LABEL = {
-  seedling:'Seedling', vegetative:'Vegetative',
-  head_formation:'Head Formation', maturation:'Maturation',
+const THRESHOLDS = {
+  temperature:   { min:15.0, max:30.0, danger:31.0 },
+  soil_moisture: { min:40,   max:70,   danger:85   },
+  humidity:      { min:60,   max:80,   danger:81,  fungal:90 },
+  npk: { nitrogen:{min:40,max:100,optimal:80}, phosphorus:{min:25,max:71,optimal:50}, potassium:{min:100,max:251,optimal:200} }
 };
 
 // ═══════════════════════════════════════════════════════════════════
-//  AI PREDICTION STATE — persists across page navigations
+//  NPK MOCK DATA — always simulated (hardware limitation)
 // ═══════════════════════════════════════════════════════════════════
-const aiPrediction = {
-  stageId:     null,   // e.g. 'head_formation'
-  stageLabel:  null,   // e.g. 'Head Formation'
-  estimatedDay:null,
-  confidence:  null,
-  timestamp:   null,   // ISO string of when prediction was made
-  source:      'none', // 'claude' | 'tm_fallback' | 'none'
-};
+const MOCK_NPK = { nitrogen:72, phosphorus:48, potassium:185, status:'NORMAL' };
 
-function toggleSidebar() {
-  const sb = document.querySelector('.sidebar');
-  const main = document.querySelector('.main');
-  const collapsed = sb.classList.toggle('collapsed');
-  main.style.marginLeft = collapsed ? '52px' : 'var(--sidebar-w)';
+function getMockNpkTrend() {
+  const T=THRESHOLDS.npk, now=new Date(), labels=[], ns=[], ps=[], ks=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now); d.setDate(d.getDate()-i);
+    labels.push((d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0'));
+    ns.push(Math.round(62+Math.random()*22));
+    ps.push(Math.round(41+Math.random()*16));
+    ks.push(Math.round(168+Math.random()*42));
+  }
+  return { labels, nitrogen:ns, phosphorus:ps, potassium:ks,
+    current:{...MOCK_NPK},
+    optimal:{ nitrogen:T.nitrogen.optimal, phosphorus:T.phosphorus.optimal, potassium:T.potassium.optimal }
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  DATA-SOURCE DETECTION
+//  FLASK PROBE
 // ═══════════════════════════════════════════════════════════════════
 let flaskAvailable = null;
 
@@ -697,16 +573,6 @@ function applySourceUI() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  THRESHOLDS
-// ═══════════════════════════════════════════════════════════════════
-const THRESHOLDS = {
-  temperature:   { min:15.0, max:30.0, danger:31.0 },
-  soil_moisture: { min:40,   max:70,   danger:85   },
-  humidity:      { min:60,   max:80,   danger:81,  fungal:90 },
-  npk: { nitrogen:{min:40,max:100,optimal:80}, phosphorus:{min:25,max:71,optimal:50}, potassium:{min:100,max:251,optimal:200} }
-};
-
 async function loadThresholds() {
   if (!flaskAvailable) return;
   try {
@@ -741,56 +607,55 @@ async function apiGet(path, fallback=null) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  SHARED LIVE DATA STORE
+//  LIVE DATA STORE
 // ═══════════════════════════════════════════════════════════════════
-const liveData={temperature:null,soil_moisture:null,humidity:null,npk:null,stage:null,historyData:null,npkTrendData:null};
+const liveData = { temperature:null, soil_moisture:null, humidity:null, npk:null, stage:null };
 
 // ═══════════════════════════════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════════════════════════════
-function switchPage(page){
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+function switchPage(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page===page));
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
-  if(page==='history')   loadHistory();
-  if(page==='analytics') refreshAnalytics();
-  if(page==='alerts')    loadAlerts();
+  if (page==='history')   loadHistory();
+  if (page==='analytics') refreshAnalytics();
+  if (page==='alerts')    loadAlerts();
 }
-document.querySelectorAll('.nav-item[data-page]').forEach(item=>item.addEventListener('click',()=>switchPage(item.dataset.page)));
+document.querySelectorAll('.nav-item[data-page]').forEach(item => item.addEventListener('click', () => switchPage(item.dataset.page)));
 
-document.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab-btn[data-tab]').forEach(b=>b.classList.remove('active'));
+document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display='none');
     document.getElementById('tab-'+btn.dataset.tab).style.display='block';
-    if(btn.dataset.tab==='nutrients') renderNutrientCharts();
+    if (btn.dataset.tab==='nutrients') renderNutrientCharts();
   });
 });
 
-const exportBtn=document.getElementById('exportBtn'),exportDD=document.getElementById('exportDropdown');
-exportBtn.addEventListener('click',e=>{e.stopPropagation();exportDD.classList.toggle('open');});
-document.addEventListener('click',()=>exportDD.classList.remove('open'));
+const exportBtn=document.getElementById('exportBtn'), exportDD=document.getElementById('exportDropdown');
+exportBtn.addEventListener('click', e => { e.stopPropagation(); exportDD.classList.toggle('open'); });
+document.addEventListener('click', () => exportDD.classList.remove('open'));
 
 // ═══════════════════════════════════════════════════════════════════
 //  CHART HELPERS
 // ═══════════════════════════════════════════════════════════════════
-const chartInstances={};
-function destroyChart(id){if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}}
-function showCanvas(wid,cid){const w=document.getElementById(wid);if(!w)return;const l=w.querySelector('.chart-loading'),c=document.getElementById(cid);if(l)l.style.display='none';if(c)c.style.display='block';}
-function showLoader(wid,cid){const w=document.getElementById(wid);if(!w)return;const l=w.querySelector('.chart-loading'),c=document.getElementById(cid);if(l)l.style.display='flex';if(c)c.style.display='none';}
-const baseOpts=(ov={})=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#555',borderColor:'#e0e0e0',borderWidth:1,padding:8}},scales:{x:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}, ...ov});
-function computeAvg(arr){const v=(arr||[]).filter(x=>x!=null);return v.length?parseFloat((v.reduce((a,b)=>a+b,0)/v.length).toFixed(1)):null;}
-function setIds(ids,text){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=text;});}
+const chartInstances = {};
+function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
+function showCanvas(wid,cid) { const w=document.getElementById(wid); if(!w)return; const l=w.querySelector('.chart-loading'),c=document.getElementById(cid); if(l)l.style.display='none'; if(c)c.style.display='block'; }
+function showLoader(wid,cid) { const w=document.getElementById(wid); if(!w)return; const l=w.querySelector('.chart-loading'),c=document.getElementById(cid); if(l)l.style.display='flex'; if(c)c.style.display='none'; }
+const baseOpts = (ov={}) => ({ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#555',borderColor:'#e0e0e0',borderWidth:1,padding:8} }, scales:{ x:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}, y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}} }, ...ov });
+function computeAvg(arr) { const v=(arr||[]).filter(x=>x!=null); return v.length ? parseFloat((v.reduce((a,b)=>a+b,0)/v.length).toFixed(1)) : null; }
+function setIds(ids,text) { ids.forEach(id => { const el=document.getElementById(id); if(el) el.textContent=text; }); }
 
-// ── Dashboard mini chart
-const dcd={labels:[],temps:[],humids:[]};
-const dashChart=new Chart(document.getElementById('dashChart'),{type:'line',data:{labels:dcd.labels,datasets:[{label:'Temp °C',data:dcd.temps,borderColor:'#F44336',backgroundColor:'rgba(244,67,54,0.07)',tension:0.4,pointRadius:2,borderWidth:2,fill:true},{label:'Humidity %',data:dcd.humids,borderColor:'#2196F3',backgroundColor:'rgba(33,150,243,0.06)',tension:0.4,pointRadius:2,borderWidth:2,fill:true}]},options:{...baseOpts(),plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,font:{size:10},color:'#888',padding:12}},tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8}}}});
-function updateDashChart(t,h){const now=new Date(),lbl=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');if(dcd.labels.length>=20){dcd.labels.shift();dcd.temps.shift();dcd.humids.shift();}dcd.labels.push(lbl);dcd.temps.push(t);dcd.humids.push(h);dashChart.update('none');}
+// Dashboard mini chart
+const dcd = { labels:[], temps:[], humids:[] };
+const dashChart = new Chart(document.getElementById('dashChart'), { type:'line', data:{ labels:dcd.labels, datasets:[{ label:'Temp °C', data:dcd.temps, borderColor:'#F44336', backgroundColor:'rgba(244,67,54,0.07)', tension:0.4, pointRadius:2, borderWidth:2, fill:true },{ label:'Humidity %', data:dcd.humids, borderColor:'#2196F3', backgroundColor:'rgba(33,150,243,0.06)', tension:0.4, pointRadius:2, borderWidth:2, fill:true }] }, options:{ ...baseOpts(), plugins:{ legend:{ display:true, position:'bottom', labels:{boxWidth:8,font:{size:10},color:'#888',padding:12} }, tooltip:{backgroundColor:'#fff',titleColor:'#333',bodyColor:'#666',borderColor:'#e0e0e0',borderWidth:1,padding:8} } } });
+function updateDashChart(t,h) { const now=new Date(), lbl=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0'); if(dcd.labels.length>=20){dcd.labels.shift();dcd.temps.shift();dcd.humids.shift();} dcd.labels.push(lbl); dcd.temps.push(t); dcd.humids.push(h); dashChart.update('none'); }
 
-// ── Env charts
-function renderEnvCharts(data){
-  const T=THRESHOLDS,at=computeAvg(data.temperature),am=computeAvg(data.soil_moisture),ah=computeAvg(data.humidity);
+function renderEnvCharts(data) {
+  const T=THRESHOLDS, at=computeAvg(data.temperature), am=computeAvg(data.soil_moisture), ah=computeAvg(data.humidity);
   const tOpt=data.temp_optimal||{min:T.temperature.min,max:T.temperature.max};
   const mOpt=data.moist_optimal||{min:T.soil_moisture.min,max:T.soil_moisture.max};
   const hOpt=data.humid_optimal||{min:T.humidity.min,max:T.humidity.max};
@@ -803,8 +668,8 @@ function renderEnvCharts(data){
   statusEl('avg-moist-status',am,mOpt,'✓ Within optimal range','⚠ Check irrigation');
   statusEl('avg-humid-status',ah,hOpt,'✓ Within optimal range','⚠ Outside optimal range');
   function trend(arr,sfx,chgId){const v=(arr||[]).filter(x=>x!=null);if(v.length<2)return;const diff=parseFloat((v[v.length-1]-v[0]).toFixed(1));const el=document.getElementById(chgId);if(!el)return;const s=(diff>=0?'▲ +':'▼ ')+diff+sfx+' vs 7 days ago';el.textContent=s;el.className='perf-change '+(s.startsWith('▲')?'up':'down');}
-  trend(data.temperature,'°C','perf-temp-change');trend(data.soil_moisture,'%','perf-moist-change');trend(data.humidity,'%','perf-humid-change');
-  const se=document.getElementById('sum-overall-status');if(se){const issues=[];if(at!=null&&(at<tOpt.min||at>tOpt.max))issues.push('temperature');if(am!=null&&(am<mOpt.min||am>mOpt.max))issues.push('moisture');if(ah!=null&&(ah<hOpt.min||ah>hOpt.max))issues.push('humidity');se.textContent=issues.length?'Watch: '+issues.join(', '):'Stable';se.className='metric-val '+(issues.length?'orange':'green');}
+  trend(data.temperature,'°C','perf-temp-change'); trend(data.soil_moisture,'%','perf-moist-change'); trend(data.humidity,'%','perf-humid-change');
+  const se=document.getElementById('sum-overall-status'); if(se){const issues=[];if(at!=null&&(at<tOpt.min||at>tOpt.max))issues.push('temperature');if(am!=null&&(am<mOpt.min||am>mOpt.max))issues.push('moisture');if(ah!=null&&(ah<hOpt.min||ah>hOpt.max))issues.push('humidity');se.textContent=issues.length?'Watch: '+issues.join(', '):'Stable';se.className='metric-val '+(issues.length?'orange':'green');}
   function lineChart(id,wid,arr,color,yMin,yMax,optMin,optMax){destroyChart(id);showCanvas(wid,id);chartInstances[id]=new Chart(document.getElementById(id),{type:'line',data:{labels:data.labels,datasets:[{data:arr,borderColor:color,backgroundColor:color.replace(')',',0.08)').replace('rgb','rgba'),tension:0.4,pointRadius:3,borderWidth:2,fill:true,pointBackgroundColor:color},{data:Array(data.labels.length).fill(optMax),borderColor:color.replace(')',',0.3)').replace('rgb','rgba'),borderDash:[4,4],pointRadius:0,borderWidth:1,fill:false},{data:Array(data.labels.length).fill(optMin),borderColor:color.replace(')',',0.3)').replace('rgb','rgba'),borderDash:[4,4],pointRadius:0,borderWidth:1,fill:false}]},options:{...baseOpts(),scales:{x:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'},min:yMin,max:yMax}}}});}
   lineChart('envTempChart','envTempWrap',data.temperature,'#F44336',tOpt.min-5,tOpt.max+5,tOpt.min,tOpt.max);
   lineChart('envMoistChart','envMoistWrap',data.soil_moisture,'#4CAF50',10,80,mOpt.min,mOpt.max);
@@ -840,30 +705,66 @@ function refreshAnalytics() {
 // ═══════════════════════════════════════════════════════════════════
 //  ALERTS
 // ═══════════════════════════════════════════════════════════════════
-let alertsData=[],currentFilter='all',alertIdCounter=1000;
-const alertIconMap={warning:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,info:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,success:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`};
-const alertColorMap={warning:'orange',info:'blue',success:'green'};
-function loadAlerts() {apiGet('/api/alerts?limit=50').then(data => {if (data?.records?.length) {const local  = alertsData.filter(a => a._local);const server = data.records.map(r => ({ id:r._id, type:r.type||'warning', title:r.title||'Alert', desc:r.desc||'', time:r.timestamp||'—', read:r.read||false, _server:true })); alertsData = [...local, ...server]; renderAlerts();}});}
-function renderAlerts(){const container=document.getElementById('alertsContainer');updateFilterCounts();const filtered=currentFilter==='all'?alertsData:alertsData.filter(a=>a.type===currentFilter);if(!filtered.length){container.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter==='all'?'':currentFilter+' '}alerts</div>`;return;}if(currentFilter==='all'){const groups=[{label:'⚠ Warnings',type:'warning'},{label:'ℹ Information',type:'info'},{label:'✓ Success',type:'success'}];let html='';groups.forEach(g=>{const items=alertsData.filter(a=>a.type===g.type);if(!items.length)return;html+=`<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`;});container.innerHTML=html;}else{container.innerHTML=`<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`;}}
-function alertCardHTML(a){const color=alertColorMap[a.type]||'blue';const sid=String(a.id).replace(/[^a-zA-Z0-9_-]/g,'_');return `<div class="alert-card ${color} ${a.read?'read':''}" id="alert-${sid}"><div class="alert-unread ${color==='orange'?'orange':''}"></div><div class="alert-top"><div class="alert-ico ${color}">${alertIconMap[a.type]||alertIconMap.info}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div><div class="alert-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${a.time}</div><span class="alert-dismiss" onclick="dismissAlert('${sid}','${a.id}')">✕</span></div>`;}
-function filterAlerts(type){currentFilter=type;document.querySelectorAll('.filter-tab').forEach(t=>{t.className='filter-tab';if(t.dataset.filter===type){const m={all:'f-all',warning:'f-warning',info:'f-info',success:'f-success'};t.classList.add(m[type]);}});renderAlerts();}
-function updateFilterCounts(){const unread=alertsData.filter(a=>!a.read).length;const counts={all:alertsData.length,warning:alertsData.filter(a=>a.type==='warning').length,info:alertsData.filter(a=>a.type==='info').length,success:alertsData.filter(a=>a.type==='success').length};const ul=document.getElementById('alert-unread-label');if(ul)ul.textContent=`${counts.all} alert${counts.all!==1?'s':''} · ${unread} unread`;document.querySelector('[data-filter="all"]').textContent=`All (${counts.all})`;document.querySelector('[data-filter="warning"]').textContent=`⚠ Warnings (${counts.warning})`;document.querySelector('[data-filter="info"]').textContent=`ℹ Info (${counts.info})`;document.querySelector('[data-filter="success"]').textContent=`✓ Success (${counts.success})`;const badge=document.getElementById('notif-badge');if(badge){badge.textContent=unread>0?(unread>9?'9+':unread):'';badge.style.display=unread>0?'flex':'none';}}
-function dismissAlert(sid,rid){const idx=alertsData.findIndex(a=>String(a.id)===String(rid)||String(a.id).replace(/[^a-zA-Z0-9_-]/g,'_')===sid);if(idx!==-1)alertsData.splice(idx,1);renderAlerts();}
-function pushSensorAlert(type,title,desc){if(alertsData.find(a=>a.title===title&&!a.read))return;alertsData.unshift({id:alertIdCounter++,type,title,desc,time:'Just now',read:false,_local:true});renderAlerts();}
-function removeSensorAlert(title){const idx=alertsData.findIndex(a=>a.title===title&&a._local);if(idx!==-1)alertsData.splice(idx,1);renderAlerts();}
-document.getElementById('markAllBtn').addEventListener('click',()=>{alertsData.forEach(a=>a.read=true);renderAlerts();if(flaskAvailable)fetch('/api/alerts/mark-all-read',{method:'POST'}).catch(()=>{});});
+let alertsData=[], currentFilter='all', alertIdCounter=1000;
+const alertIconMap = {
+  warning:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  info:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  success:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`
+};
+const alertColorMap = { warning:'orange', info:'blue', success:'green' };
+
+function loadAlerts() {
+  apiGet('/api/alerts?limit=50').then(data => {
+    if (data?.records?.length) {
+      const local  = alertsData.filter(a => a._local);
+      const server = data.records.map(r => ({ id:r._id, type:r.type||'warning', title:r.title||'Alert', desc:r.desc||'', time:r.timestamp||'—', read:r.read||false, _server:true }));
+      alertsData = [...local, ...server];
+      renderAlerts();
+    }
+  });
+}
+function renderAlerts() {
+  const container = document.getElementById('alertsContainer');
+  updateFilterCounts();
+  const filtered = currentFilter==='all' ? alertsData : alertsData.filter(a => a.type===currentFilter);
+  if (!filtered.length) { container.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>No ${currentFilter==='all'?'':currentFilter+' '}alerts</div>`; return; }
+  if (currentFilter==='all') {
+    const groups = [{label:'⚠ Warnings',type:'warning'},{label:'ℹ Information',type:'info'},{label:'✓ Success',type:'success'}];
+    let html = '';
+    groups.forEach(g => { const items=alertsData.filter(a=>a.type===g.type); if(!items.length)return; html+=`<div class="alert-section-group"><div class="alert-group-label">${g.label}</div><div class="alerts-grid">${items.map(alertCardHTML).join('')}</div></div>`; });
+    container.innerHTML = html;
+  } else {
+    container.innerHTML = `<div class="alerts-grid">${filtered.map(alertCardHTML).join('')}</div>`;
+  }
+}
+function alertCardHTML(a) { const color=alertColorMap[a.type]||'blue'; const sid=String(a.id).replace(/[^a-zA-Z0-9_-]/g,'_'); return `<div class="alert-card ${color} ${a.read?'read':''}" id="alert-${sid}"><div class="alert-unread ${color==='orange'?'orange':''}"></div><div class="alert-top"><div class="alert-ico ${color}">${alertIconMap[a.type]||alertIconMap.info}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div><div class="alert-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${a.time}</div><span class="alert-dismiss" onclick="dismissAlert('${sid}','${a.id}')">✕</span></div>`; }
+function filterAlerts(type) { currentFilter=type; document.querySelectorAll('.filter-tab').forEach(t=>{t.className='filter-tab';if(t.dataset.filter===type){const m={all:'f-all',warning:'f-warning',info:'f-info',success:'f-success'};t.classList.add(m[type]);}}); renderAlerts(); }
+function updateFilterCounts() {
+  const unread=alertsData.filter(a=>!a.read).length;
+  const counts={all:alertsData.length,warning:alertsData.filter(a=>a.type==='warning').length,info:alertsData.filter(a=>a.type==='info').length,success:alertsData.filter(a=>a.type==='success').length};
+  const ul=document.getElementById('alert-unread-label'); if(ul) ul.textContent=`${counts.all} alert${counts.all!==1?'s':''} · ${unread} unread`;
+  document.querySelector('[data-filter="all"]').textContent=`All (${counts.all})`;
+  document.querySelector('[data-filter="warning"]').textContent=`⚠ Warnings (${counts.warning})`;
+  document.querySelector('[data-filter="info"]').textContent=`ℹ Info (${counts.info})`;
+  document.querySelector('[data-filter="success"]').textContent=`✓ Success (${counts.success})`;
+  const badge=document.getElementById('notif-badge'); if(badge){badge.textContent=unread>0?(unread>9?'9+':unread):'';badge.style.display=unread>0?'flex':'none';}
+}
+function dismissAlert(sid,rid) { const idx=alertsData.findIndex(a=>String(a.id)===String(rid)||String(a.id).replace(/[^a-zA-Z0-9_-]/g,'_')===sid); if(idx!==-1) alertsData.splice(idx,1); renderAlerts(); }
+function pushSensorAlert(type,title,desc) { if(alertsData.find(a=>a.title===title&&!a.read))return; alertsData.unshift({id:alertIdCounter++,type,title,desc,time:'Just now',read:false,_local:true}); renderAlerts(); }
+function removeSensorAlert(title) { const idx=alertsData.findIndex(a=>a.title===title&&a._local); if(idx!==-1) alertsData.splice(idx,1); renderAlerts(); }
+document.getElementById('markAllBtn').addEventListener('click', () => { alertsData.forEach(a=>a.read=true); renderAlerts(); if(flaskAvailable) fetch('/api/alerts/mark-all-read',{method:'POST'}).catch(()=>{}); });
 
 // ═══════════════════════════════════════════════════════════════════
 //  SENSOR CARD STATUS
 // ═══════════════════════════════════════════════════════════════════
-function updateSensorCard(cardId,statusId,value,threshKey,unit,alertTitle){
-  const card=document.getElementById(cardId),status=document.getElementById(statusId);
-  if(!card||!status||value==null)return;
-  const T=THRESHOLDS[threshKey],{min,max,danger}=T;
-  if(value<=danger){status.textContent='Critical';status.className='sensor-status danger';card.className='sensor-card danger-border';pushSensorAlert('warning',alertTitle+' Critical',`${alertTitle} is ${value}${unit} — critical (threshold: ${danger}${unit}).`);}
-  else if(value<min){status.textContent='Low';status.className='sensor-status warning';card.className='sensor-card warning-border';pushSensorAlert('warning',alertTitle+' Low',`${alertTitle} is ${value}${unit} — below optimal ${min}${unit}.`);}
-  else if(value>max){status.textContent='High';status.className='sensor-status warning';card.className='sensor-card warning-border';pushSensorAlert('warning',alertTitle+' High',`${alertTitle} is ${value}${unit} — above optimal ${max}${unit}.`);}
-  else{status.textContent='Stable';status.className='sensor-status';card.className='sensor-card';removeSensorAlert(alertTitle+' Critical');removeSensorAlert(alertTitle+' Low');removeSensorAlert(alertTitle+' High');}
+function updateSensorCard(cardId,statusId,value,threshKey,unit,alertTitle) {
+  const card=document.getElementById(cardId), status=document.getElementById(statusId);
+  if (!card||!status||value==null) return;
+  const T=THRESHOLDS[threshKey], {min,max,danger}=T;
+  if (value<=danger)      { status.textContent='Critical'; status.className='sensor-status danger';  card.className='sensor-card danger-border';  pushSensorAlert('warning',alertTitle+' Critical',`${alertTitle} is ${value}${unit} — critical.`); }
+  else if (value<min)     { status.textContent='Low';      status.className='sensor-status warning'; card.className='sensor-card warning-border'; pushSensorAlert('warning',alertTitle+' Low',`${alertTitle} is ${value}${unit} — below optimal ${min}${unit}.`); }
+  else if (value>max)     { status.textContent='High';     status.className='sensor-status warning'; card.className='sensor-card warning-border'; pushSensorAlert('warning',alertTitle+' High',`${alertTitle} is ${value}${unit} — above optimal ${max}${unit}.`); }
+  else { status.textContent='Stable'; status.className='sensor-status'; card.className='sensor-card'; removeSensorAlert(alertTitle+' Critical'); removeSensorAlert(alertTitle+' Low'); removeSensorAlert(alertTitle+' High'); }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -892,7 +793,7 @@ function pollSensors() {
     if (t!=null&&h!=null) updateDashChart(t,h);
   });
 }
- 
+
 function syncDeviceStates() {
   apiGet('/api/devices/latest').then(data => {
     if (!data) return;
@@ -903,7 +804,7 @@ function syncDeviceStates() {
     const mn=document.getElementById('dash-mode-note'); if(mn) mn.textContent='Mode: '+(data.auto_mode?'AUTO':'MANUAL')+' · Last sync: '+(data.timestamp||'—');
   });
 }
- 
+
 function pollAlertCount() {
   if (!flaskAvailable) return;
   fetch('/api/alerts/unread-count').then(r=>r.ok?r.json():Promise.reject()).then(data => {
@@ -912,7 +813,7 @@ function pollAlertCount() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  HISTORY LOG  ← KEY CHANGE: renders AI stage column
+//  HISTORY LOG
 // ═══════════════════════════════════════════════════════════════════
 let logSkip=0, logTotal=0;
 function loadHistory() {
@@ -943,7 +844,7 @@ function loadHistory() {
     document.getElementById('log-next-btn').disabled = shown>=logTotal;
   });
 }
- 
+
 function buildTable(col, records) {
   const T=THRESHOLDS, t=document.createElement('table'); t.className='log-table';
   if (col==='sensors') {
@@ -969,221 +870,48 @@ function buildTable(col, records) {
   }
   return t;
 }
- 
+
 function fmtVal(v,min,max,unit,okColor='var(--green-primary)') { if(v==null)return'—'; return `<span style="color:${v>=min&&v<=max?okColor:'var(--orange)'};font-weight:600;">${v}</span>`; }
 function fmtNpk(s) { if(!s)return'—'; const c=s==='NORMAL'?'normal':s==='LOW'?'low':'error'; return `<span class="log-badge ${c}">${s}</span>`; }
 function fmtAlertType(s) { if(!s)return'—'; const c={warning:'warning',info:'info',success:'success'}[s]||'info'; return `<span class="log-badge ${c}">${s.toUpperCase()}</span>`; }
 function fmtDevice(s) { if(!s)return'—'; return `<span class="log-badge ${s==='ON'?'on':'off'}">${s}</span>`; }
- 
+
 document.getElementById('log-prev-btn').addEventListener('click', () => { const lim=parseInt(document.getElementById('log-limit').value); logSkip=Math.max(0,logSkip-lim); loadHistory(); });
 document.getElementById('log-next-btn').addEventListener('click', () => { logSkip+=parseInt(document.getElementById('log-limit').value); loadHistory(); });
 ['log-collection','log-days','log-limit'].forEach(id => document.getElementById(id).addEventListener('change', () => { logSkip=0; loadHistory(); }));
 document.getElementById('log-refresh-btn').addEventListener('click', () => { logSkip=0; loadHistory(); });
 
 // ═══════════════════════════════════════════════════════════════════
-//  AI STAGE PANEL — TIMELINE + CLAUDE PREDICTION
-// ═══════════════════════════════════════════════════════════════════
-function buildTimeline(){
-  const container=document.getElementById('timeline-stages');container.innerHTML='';
-  GROWTH_STAGES.forEach((s)=>{
-    const pct=(s.dayStart/TOTAL_DAYS)*100;
-    const div=document.createElement('div');div.className='t-stage';div.id='tstage-'+s.id;
-    div.style.cssText=`position:absolute;left:${pct}%;transform:translateX(-50%);top:0;display:flex;flex-direction:column;align-items:center;`;
-    div.innerHTML=`<div class="t-dot pending" id="tdot-${s.id}"></div><div class="t-label" id="tlabel-${s.id}">${s.label}</div><div class="t-days" id="tdays-${s.id}">Day ${s.dayStart}–${s.dayEnd}</div>`;
-    container.appendChild(div);
-  });
-}
-
-function animateToStage(stageId,estimatedDay){
-  const stageIdx=GROWTH_STAGES.findIndex(s=>s.id===stageId);if(stageIdx<0)return;
-  const stage=GROWTH_STAGES[stageIdx];
-  const day=estimatedDay??Math.round((stage.dayStart+stage.dayEnd)/2);
-  const pct=Math.min(100,(day/TOTAL_DAYS)*100);
-  document.getElementById('timeline-fill').style.width=pct+'%';
-  const pointer=document.getElementById('day-pointer');pointer.style.left=pct+'%';
-  document.getElementById('day-pointer-label').textContent='Day '+day;
-  GROWTH_STAGES.forEach((s,i)=>{
-    const dot=document.getElementById('tdot-'+s.id),lbl=document.getElementById('tlabel-'+s.id);if(!dot||!lbl)return;
-    if(i<stageIdx){dot.className='t-dot done';lbl.className='t-label done';}
-    else if(i===stageIdx){dot.className='t-dot active';lbl.className='t-label active';}
-    else{dot.className='t-dot pending';lbl.className='t-label';}
-  });
-  document.getElementById('stage-emoji').textContent=stage.emoji;
-  document.getElementById('stage-name').textContent=stage.label;
-  document.getElementById('stage-day').textContent=`Day ${day} of ${TOTAL_DAYS} · Window: Day ${stage.dayStart}–${stage.dayEnd}`;
-  const next=GROWTH_STAGES[stageIdx+1],nextRow=document.getElementById('next-stage-row');
-  if(next){document.getElementById('next-stage-val').textContent=next.emoji+' '+next.label;document.getElementById('next-stage-days').textContent='Starts Day '+next.dayStart;nextRow.style.display='flex';}
-  else nextRow.style.display='none';
-}
-
-function updateSourcesRow(){
-  const tm=window.tmPrediction;
-  const tmEl=document.getElementById('tm-stage-display');
-  if(tmEl)tmEl.textContent=tm?`${tm.className.replace(/_/g,' ')} (${(tm.probability*100).toFixed(0)}%)`:'Waiting for camera…';
-  const s=liveData;const ssd=document.getElementById('sensor-summary-display');
-  if(ssd)ssd.textContent=`${s.temperature??'—'}°C · ${s.soil_moisture??'—'}% moist · ${s.humidity??'—'}% humid`;
-}
-
-function renderRecommendations(recs){
-  const grid=document.getElementById('recs-grid');if(!recs||!recs.length){grid.style.display='none';return;}
-  grid.style.display='grid';
-  const iconOk=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`;
-  const iconWarn=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-  const iconInfo=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
-  grid.innerHTML=recs.map(r=>`<div class="rec-chip ${r.type??'info'}">${r.type==='ok'?iconOk:r.type==='warn'?iconWarn:iconInfo}<span>${r.text}</span></div>`).join('');
-}
-
-function setConfidence(pct){
-  document.getElementById('conf-val').textContent=pct+'%';
-  document.getElementById('conf-fill').style.width=pct+'%';
-  document.getElementById('conf-fill').style.background=pct>=80?'var(--green-primary)':pct>=60?'var(--orange)':'var(--red)';
-}
-
-function setThinking(on){
-  const txt=document.getElementById('ai-analysis-txt'),btn=document.getElementById('predict-btn');
-  if(on){txt.innerHTML=`<div class="ai-thinking"><div class="typing-dots"><span></span><span></span><span></span></div>Claude is analysing your plant data…</div>`;btn.disabled=true;btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Thinking…`;}
-  else{btn.disabled=false;btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Predict Now`;}
-}
-
-// ── Claude API call
-async function callClaude(prompt){
-  const response=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-  const data=await response.json();
-  return data.content?.map(b=>b.text??'').join('')??'';
-}
-
-// ── Main prediction — called by "Predict Now" button
-async function runPrediction(){
-  updateSourcesRow();
-  const tm=window.tmPrediction;
-  const sensor=liveData;
-  const tmStageId=tm?(TM_TO_STAGE[tm.className]??null):null;
-  checkMismatch(tmStageId,sensor.stage);
-  setThinking(true);
-
-  const prompt=`You are an expert agronomist AI for a Pechay (Chinese Cabbage / Brassica rapa) smart farm monitoring system.
-
-GROWTH STAGES (mirrors pi_sensor.py exactly):
-- Seedling:       Day 0–7
-- Vegetative:     Day 8–20
-- Head Formation: Day 21–40
-- Maturation:     Day 41–60
-
-CAMERA DETECTION (Teachable Machine model):
-- Detected class: "${tm?.className??'unknown'}"
-- Confidence: ${tm?(tm.probability*100).toFixed(1):0}%
-- Mapped to stage: "${tmStageId??'unknown'}"
-
-LIVE SENSOR READINGS:
-- Temperature: ${sensor.temperature??'?'}°C (optimal: 15–30°C)
-- Soil Moisture: ${sensor.soil_moisture??'?'}% (optimal: 40–70%)
-- Air Humidity: ${sensor.humidity??'?'}% (optimal: 60–80%)
-- NPK Status: ${sensor.npk?.status??'NORMAL'} | N:${sensor.npk?.nitrogen??'?'} P:${sensor.npk?.phosphorus??'?'} K:${sensor.npk?.potassium??'?'} mg/kg
-- Sensor-reported stage: "${sensor.stage??'unknown'}"
-
-TASK: Determine the most accurate current growth stage using BOTH camera detection AND sensor readings. If they disagree, explain which source is more reliable and why.
-
-Respond ONLY with valid JSON (no markdown, no preamble):
-{
-  "stage": "seedling" | "vegetative" | "head_formation" | "maturation",
-  "estimated_day": <integer 0–60>,
-  "confidence": <integer 0–100>,
-  "analysis": "<2–3 sentence reasoning, noting camera vs sensor agreement or disagreement>",
-  "recommendations": [
-    {"type":"ok"|"warn"|"info","text":"<short actionable tip>"},
-    {"type":"ok"|"warn"|"info","text":"<short actionable tip>"},
-    {"type":"ok"|"warn"|"info","text":"<short actionable tip>"}
-  ]
-}`;
-
-  try{
-    const raw=await callClaude(prompt);
-    const jsonStr=raw.replace(/```json|```/g,'').trim();
-    const result=JSON.parse(jsonStr);
-    const validStages=GROWTH_STAGES.map(s=>s.id);
-    const finalStageId=validStages.includes(result.stage)?result.stage:(tmStageId??'vegetative');
-    const finalStageLabel=STAGE_ID_TO_LABEL[finalStageId]||finalStageId;
-
-    // ── Save prediction to shared state ──
-    aiPrediction.stageId=finalStageId;
-    aiPrediction.stageLabel=finalStageLabel;
-    aiPrediction.estimatedDay=result.estimated_day;
-    aiPrediction.confidence=Math.round(result.confidence??75);
-    aiPrediction.timestamp=new Date().toISOString();
-    aiPrediction.source='claude';
-
-    // ── Update dashboard stage label ──
-    const stageEl=document.getElementById('dash-stage-label');
-    if(stageEl)stageEl.textContent=finalStageLabel+' ✦';
-
-    // ── Update liveData.stage ──
-    liveData.stage=finalStageLabel;
-
-    // ── Animate timeline ──
-    animateToStage(finalStageId,result.estimated_day);
-    setConfidence(aiPrediction.confidence);
-
-    // ── AI analysis text ──
-    document.getElementById('ai-analysis-txt').textContent=result.analysis??'Analysis complete.';
-    renderRecommendations(result.recommendations??[]);
-
-    // ── Hide mismatch after resolution ──
-    document.getElementById('mismatch-warn').classList.add('hidden');
-
-    // ── Sync to Flask (saves ai_stage to MongoDB sensors collection) ──
-    if(flaskAvailable){
-      fetch('/api/ai/predict',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({stage:finalStageId,stage_label:finalStageLabel,estimated_day:result.estimated_day,confidence:aiPrediction.confidence,source:'claude',tm_class:tm?.className,tm_confidence:tm?.probability})
-      }).catch(()=>{});// silent fail
-    }
-
-    // ── Refresh history log if open so new AI Stage column reflects prediction ──
-    if(document.getElementById('page-history').classList.contains('active'))loadHistory();
-
-    document.getElementById('last-synced').textContent='Last predicted: '+new Date().toLocaleTimeString()+' · History log updated ✦';
-
-  }catch(err){
-    console.error('Claude API error:',err);
-    // ── Fallback: use TM result if Claude fails ──
-    if(tmStageId){
-      aiPrediction.stageId=tmStageId;aiPrediction.stageLabel=STAGE_ID_TO_LABEL[tmStageId]||tmStageId;
-      aiPrediction.estimatedDay=null;aiPrediction.confidence=Math.round((tm?.probability??0.5)*100);
-      aiPrediction.timestamp=new Date().toISOString();aiPrediction.source='tm_fallback';
-      animateToStage(tmStageId,null);setConfidence(aiPrediction.confidence);
-      const stageEl=document.getElementById('dash-stage-label');if(stageEl)stageEl.textContent=aiPrediction.stageLabel+' (camera)';
-      liveData.stage=aiPrediction.stageLabel;
-    }
-    document.getElementById('ai-analysis-txt').innerHTML=`<span style="color:var(--orange);">Claude API unavailable — using camera detection as fallback. Error: ${err.message}</span>`;
-    if(document.getElementById('page-history').classList.contains('active'))loadHistory();
-  }finally{setThinking(false);}
-}
-
-// ═══════════════════════════════════════════════════════════════════
 //  BOOT
 // ═══════════════════════════════════════════════════════════════════
-async function boot(){
-  buildTimeline();
+async function boot() {
   await probeFlask();
-  if(flaskAvailable)await loadThresholds();
-  loadAlerts();pollSensors();syncDeviceStates();pollAlertCount();
+  if (flaskAvailable) await loadThresholds();
+  loadAlerts();
+  pollSensors();
+  syncDeviceStates();
+  pollAlertCount();
 }
 boot();
-setInterval(pollSensors,5000);
-setInterval(syncDeviceStates,10000);
-setInterval(pollAlertCount,15000);
-setInterval(updateSourcesRow,5000);
-setInterval(async()=>{const was=flaskAvailable;await probeFlask();if(!was&&flaskAvailable){await loadThresholds();pollSensors();syncDeviceStates();}},30000);
-setInterval(()=>{if(document.getElementById('page-analytics').classList.contains('active'))refreshAnalytics();},60000);
+setInterval(pollSensors,      5000);
+setInterval(syncDeviceStates, 10000);
+setInterval(pollAlertCount,   15000);
+setInterval(async () => {
+  const was = flaskAvailable;
+  await probeFlask();
+  if (!was && flaskAvailable) { await loadThresholds(); pollSensors(); syncDeviceStates(); }
+}, 30000);
+setInterval(() => { if (document.getElementById('page-analytics').classList.contains('active')) refreshAnalytics(); }, 60000);
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
      AI PLANT CLASSIFIER — Teachable Machine
-     Sets window.tmPrediction which runPrediction() reads
+     Mobile-safe: getUserMedia + facingMode:{ideal} + playsinline
      ═══════════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 <script>
-const TM_URL="https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
+const TM_URL = "https://teachablemachine.withgoogle.com/models/dt-an-AbF/";
 
 window.tmPrediction = null;
 let tmModel, tmWebcam, currentFacing = "environment";
@@ -1203,100 +931,115 @@ function onCamToggle(checkbox) {
   initAI();
 }
 
+function stopStream() {
+  loopRunning = false;
+  if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+  if (videoEl) videoEl.srcObject = null;
+}
+
+async function startCamera() {
+  stopStream();
+  const container = document.getElementById("webcam-container");
+
+  // {ideal} = soft hint, never throws on mobile. {exact} crashes on many phones.
+  try {
+    activeStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: currentFacing }, width: { ideal: 640 }, height: { ideal: 480 } },
+      audio: false
+    });
+  } catch {
+    try {
+      activeStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    } catch (err2) {
+      container.innerHTML = `<p style="color:#f44336;font-size:12px;padding:16px;text-align:center;">Camera error: ${err2.message}</p>`;
+      return;
+    }
+  }
+
+  if (!videoEl) {
+    videoEl = document.createElement("video");
+    videoEl.setAttribute("playsinline", "true"); // REQUIRED on iOS
+    videoEl.setAttribute("autoplay",    "true");
+    videoEl.setAttribute("muted",       "true");
+    videoEl.style.cssText = "width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;display:block;margin:0 auto;border-radius:8px;border:2px solid #22c55e;background:#000;";
+  }
+
+  videoEl.srcObject = activeStream;
+  await videoEl.play().catch(() => {});
+  container.innerHTML = "";
+  container.appendChild(videoEl);
+
+  if (!offCanvas) { offCanvas = document.createElement("canvas"); offCanvas.width=224; offCanvas.height=224; }
+
+  loopRunning = true;
+  requestAnimationFrame(aiLoop);
+}
+
 async function initAI() {
   try {
-    tmModel = await tmImage.load(TM_URL + "model.json", TM_URL + "metadata.json");
-
-    tmWebcam = new tmImage.Webcam(320, 240, false);
-    try {
-      await tmWebcam.setup({ facingMode: { exact: currentFacing } });
-    } catch {
-      await tmWebcam.setup({ facingMode: currentFacing });
-    }
-    await tmWebcam.play();
-
-    const c = document.getElementById("webcam-container");
-    c.innerHTML = "";
-    c.appendChild(tmWebcam.canvas);
-
-    tmWebcam.canvas.style.cssText =
-      "width:100%;height:100%;max-width:100%;max-height:100%;" +
-      "object-fit:cover;display:block;margin:0 auto;" +
-      "border-radius:12px;border:3px solid #22c55e;" +
-      "box-shadow:0 6px 18px rgba(0,0,0,0.15);background:#000;";
-
-    document.getElementById("prediction-result").innerHTML =
-      '<p style="color:#aaa;font-size:12px;text-align:center;">Camera connected — analysing…</p>';
-
-    aiLoop();
+    if (!tmModel) tmModel = await tmImage.load(TM_URL + "model.json", TM_URL + "metadata.json");
+    await startCamera();
   } catch (err) {
     console.error(err);
     document.getElementById("prediction-result").innerHTML =
-      `<h2 style="color:#15803d;font-size:16px;margin-bottom:8px;">AI Crop Analysis</h2>
-       <p style="color:#888;font-size:12px;">Camera unavailable or permission denied.</p>
-       <p style="color:#aaa;font-size:11px;margin-top:4px;">${err.message}</p>`;
+      `<h2 style="color:#15803d;font-size:15px;margin-bottom:8px;">AI Crop Analysis</h2>
+       <p style="color:#888;font-size:12px;">Model load failed: ${err.message}</p>`;
   }
 }
 
 async function aiLoop() {
-  tmWebcam.update();
-  const preds = await tmModel.predict(tmWebcam.canvas);
+  if (!loopRunning || !tmModel || !videoEl || videoEl.readyState < 2) {
+    if (loopRunning) requestAnimationFrame(aiLoop);
+    return;
+  }
 
-  let best = preds[0];
-  preds.forEach(p => { if (p.probability > best.probability) best = p; });
+  const ctx = offCanvas.getContext("2d");
+  ctx.drawImage(videoEl, 0, 0, 224, 224);
+
+  let best;
+  try {
+    const preds = await tmModel.predict(offCanvas);
+    best = preds.reduce((a, b) => b.probability > a.probability ? b : a);
+  } catch { requestAnimationFrame(aiLoop); return; }
 
   window.tmPrediction = best;
 
-  const stageLabel = { early_stage: 'Early Stage', mid_stage: 'Mid Stage', mature_stage: 'Mature Stage' };
-  if (typeof liveData !== 'undefined' && !liveData._aiOverridden) {
-    if (typeof aiPrediction !== 'undefined' && !aiPrediction.stageLabel) {
-      liveData.stage = stageLabel[best.className] || best.className;
-      const stageEl = document.getElementById("dash-stage-label");
-      if (stageEl) stageEl.textContent = liveData.stage;
-    }
-  }
+  // Sync stage to dashboard
+  const stageLabel = { early_stage:"Early Stage", mid_stage:"Mid Stage", mature_stage:"Mature Stage" };
+  const stageEl = document.getElementById("dash-stage-label");
+  if (stageEl && !liveData.stage) stageEl.textContent = stageLabel[best.className] || best.className;
 
-  if (typeof flaskAvailable !== 'undefined' && flaskAvailable) {
+  // POST to Flask
+  if (flaskAvailable) {
     fetch("/api/ai/predict", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prediction: best.className,
-        confidence: parseFloat((best.probability * 100).toFixed(1)),
-        source: 'teachable_machine'
-      })
-    }).catch(() => {});
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ prediction:best.className, confidence:parseFloat((best.probability*100).toFixed(1)), source:"teachable_machine" })
+    }).catch(()=>{});
   }
 
-  const statusMap = {
-    early_stage: "Need More Time",
-    mid_stage: "Approaching Harvest",
-    mature_stage: "Ready for Harvest"
-  };
+  const statusMap = { early_stage:"Need More Time", mid_stage:"Approaching Harvest", mature_stage:"Ready for Harvest" };
+  const camLabel  = currentFacing === "environment" ? "📷 Back Cam" : "🤳 Front Cam";
 
   document.getElementById("prediction-result").innerHTML = `
-    <h2 style="color:#15803d;margin-bottom:12px;font-size:18px;font-family:var(--sans);">AI Crop Analysis</h2>
-    <div style="margin-bottom:12px;background:#f4fbf4;padding:12px;border-radius:12px;">
-      <p style="color:#6b7280;font-size:11px;margin-bottom:4px;letter-spacing:1px;font-family:var(--sans);">DETECTED STAGE</p>
-      <h1 style="color:#166534;font-size:22px;margin:0;text-transform:capitalize;font-family:var(--sans);">${best.className.replace(/_/g, " ")}</h1>
+    <h2 style="color:#15803d;margin-bottom:10px;font-size:16px;font-family:var(--sans);">AI Crop Analysis</h2>
+    <div style="margin-bottom:10px;background:#f4fbf4;padding:10px;border-radius:10px;">
+      <p style="color:#6b7280;font-size:10px;margin-bottom:3px;letter-spacing:1px;">DETECTED STAGE</p>
+      <p style="color:#166534;font-size:18px;font-weight:700;margin:0;text-transform:capitalize;">${best.className.replace(/_/g," ")}</p>
     </div>
-    <div style="margin-bottom:12px;background:#f4fbf4;padding:12px;border-radius:12px;">
-      <p style="color:#6b7280;font-size:11px;margin-bottom:4px;letter-spacing:1px;font-family:var(--sans);">CONFIDENCE</p>
-      <h2 style="color:#22c55e;font-size:22px;margin:0;font-family:var(--sans);">${(best.probability * 100).toFixed(1)}%</h2>
-      <div style="width:100%;height:8px;background:#dcfce7;border-radius:20px;margin-top:10px;overflow:hidden;">
-        <div style="width:${(best.probability * 100).toFixed(1)}%;height:100%;background:#22c55e;border-radius:20px;"></div>
+    <div style="margin-bottom:10px;background:#f4fbf4;padding:10px;border-radius:10px;">
+      <p style="color:#6b7280;font-size:10px;margin-bottom:3px;letter-spacing:1px;">CONFIDENCE</p>
+      <p style="color:#22c55e;font-size:18px;font-weight:700;margin:0;">${(best.probability*100).toFixed(1)}%</p>
+      <div style="width:100%;height:6px;background:#dcfce7;border-radius:20px;margin-top:8px;overflow:hidden;">
+        <div style="width:${(best.probability*100).toFixed(1)}%;height:100%;background:#22c55e;border-radius:20px;transition:width .3s;"></div>
       </div>
     </div>
-    <div>
-      <p style="color:#6b7280;font-size:11px;margin-bottom:4px;letter-spacing:1px;font-family:var(--sans);">STATUS</p>
-      <div style="background:#dcfce7;color:#166534;padding:12px;border-radius:12px;font-size:14px;font-weight:bold;text-align:center;font-family:var(--sans);">${statusMap[best.className] || best.className}</div>
-    </div>`;
+    <div style="background:#dcfce7;color:#166534;padding:10px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;">${statusMap[best.className]||best.className}</div>
+    <p style="color:#aaa;font-size:10px;margin-top:8px;text-align:center;">${camLabel}</p>`;
 
   requestAnimationFrame(aiLoop);
 }
 
 document.addEventListener("DOMContentLoaded", initAI);
-
 </script>
 </body>
 </html>
